@@ -1,0 +1,264 @@
+// Schema generado a partir de SensaCine_MER_FINAL.drawio
+// Convención: modelos y campos en camelCase/PascalCase (idiomático de Prisma),
+// @map / @@map preservan los nombres exactos de tablas y columnas del MER original,
+// para que quien lea la base de datos directamente reconozca el diagrama.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum Rol {
+  cliente
+  admin
+  cocina
+}
+
+enum EstadoReserva {
+  Confirmado
+  Cancelado
+  Finalizado
+}
+
+enum TipoRestriccion {
+  alergia
+  intolerancia
+  preferencia
+}
+
+enum TipoNotificacion {
+  confirmacion
+  solicitud_resena
+}
+
+enum EstadoOrdenCocina {
+  Pendiente
+  En_preparacion
+  Lista
+}
+
+// ---------- Entidades ----------
+
+model Usuario {
+  id            Int      @id @default(autoincrement()) @map("id_usuario")
+  nombre        String   @db.VarChar(150)
+  email         String   @unique @db.VarChar(150)
+  passwordHash  String   @map("password_hash") @db.VarChar(255)
+  rol           Rol      @default(cliente)
+  estado        String   @default("activo") @db.VarChar(30)
+  fechaRegistro DateTime @default(now()) @map("fecha_registro")
+
+  reservas Reserva[]
+  logs     LogAuditoria[]
+
+  @@map("usuario")
+}
+
+model LogAuditoria {
+  id            Int      @id @default(autoincrement()) @map("id_log")
+  idUsuario     Int      @map("id_usuario")
+  usuario       Usuario  @relation(fields: [idUsuario], references: [id])
+  accion        String   @db.VarChar(100)
+  entidad       String   @db.VarChar(100)
+  entidadId     Int      @map("entidad_id")
+  valorAnterior String?  @map("valor_anterior") @db.Text
+  valorNuevo    String?  @map("valor_nuevo") @db.Text
+  fechaHora     DateTime @default(now()) @map("fecha_hora")
+
+  @@map("log_auditoria")
+}
+
+model Pelicula {
+  id                    Int      @id @default(autoincrement()) @map("id_pelicula")
+  titulo                String   @db.VarChar(200)
+  sinopsis              String?  @db.Text
+  duracionMinutos       Int      @map("duracion_minutos")
+  genero                String?  @db.VarChar(80)
+  clasificacion         String?  @db.VarChar(20)
+  posterUrl             String?  @map("poster_url") @db.VarChar(500)
+  estado                String   @default("activa") @db.VarChar(30)
+  precioBaseExperiencia Decimal  @map("precio_base_experiencia") @db.Decimal(10, 2)
+
+  funciones Funcion[]
+  productos Producto[]
+
+  @@map("pelicula")
+}
+
+model Sala {
+  id        Int    @id @default(autoincrement()) @map("id_sala")
+  nombre    String @db.VarChar(80)
+  capacidad Int
+  estado    String @default("activa") @db.VarChar(30)
+
+  asientos  Asiento[]
+  funciones Funcion[]
+
+  @@map("sala")
+}
+
+model Asiento {
+  id     Int    @id @default(autoincrement()) @map("id_asiento")
+  idSala Int    @map("id_sala")
+  sala   Sala   @relation(fields: [idSala], references: [id])
+  fila   String @db.VarChar(5)
+  numero Int
+
+  reservaAsientos ReservaAsiento[]
+
+  @@unique([idSala, fila, numero])
+  @@map("asiento")
+}
+
+model Producto {
+  id          Int      @id @default(autoincrement()) @map("id_producto")
+  nombre      String   @db.VarChar(150)
+  descripcion String?  @db.Text
+  categoria   String?  @db.VarChar(50)
+  estado      String   @default("activo") @db.VarChar(30)
+  idPelicula  Int?     @map("id_pelicula")
+  pelicula    Pelicula? @relation(fields: [idPelicula], references: [id])
+  ordenMenu   Int?     @map("orden_menu")
+
+  restricciones      ProductoRestriccion[]
+  reservaRestriccion ReservaRestriccion[]
+
+  @@map("producto")
+}
+
+model RestriccionAlimentaria {
+  id          Int             @id @default(autoincrement()) @map("id_restriccion")
+  nombre      String          @db.VarChar(100)
+  tipo        TipoRestriccion
+  descripcion String?         @db.Text
+
+  productos          ProductoRestriccion[]
+  reservaRestriccion ReservaRestriccion[]
+
+  @@map("restriccion_alimentaria")
+}
+
+model ProductoRestriccion {
+  id            Int                     @id @default(autoincrement()) @map("id_producto_restriccion")
+  idProducto    Int                     @map("id_producto")
+  producto      Producto                @relation(fields: [idProducto], references: [id])
+  idRestriccion Int                     @map("id_restriccion")
+  restriccion   RestriccionAlimentaria  @relation(fields: [idRestriccion], references: [id])
+
+  @@unique([idProducto, idRestriccion])
+  @@map("producto_restriccion")
+}
+
+model Funcion {
+  id                   Int      @id @default(autoincrement()) @map("id_funcion")
+  idPelicula           Int      @map("id_pelicula")
+  pelicula             Pelicula @relation(fields: [idPelicula], references: [id])
+  idSala               Int      @map("id_sala")
+  sala                 Sala     @relation(fields: [idSala], references: [id])
+  fecha                DateTime @db.Date
+  horaInicio           DateTime @map("hora_inicio") @db.Time
+  horaFin              DateTime @map("hora_fin") @db.Time
+  precioAsientoOficial Decimal  @map("precio_asiento_oficial") @db.Decimal(10, 2)
+  estado               String   @default("programada") @db.VarChar(30)
+
+  reservas Reserva[]
+
+  @@map("funcion")
+}
+
+model Reserva {
+  id           Int           @id @default(autoincrement()) @map("id_reserva")
+  idUsuario    Int           @map("id_usuario")
+  usuario      Usuario       @relation(fields: [idUsuario], references: [id])
+  idFuncion    Int           @map("id_funcion")
+  funcion      Funcion       @relation(fields: [idFuncion], references: [id])
+  fechaReserva DateTime      @default(now()) @map("fecha_reserva")
+  montoTotal   Decimal       @map("monto_total") @db.Decimal(10, 2)
+  estado       EstadoReserva @default(Confirmado)
+
+  asientos       ReservaAsiento[]
+  pagos          Pago[]
+  resenas        Resena[]
+  notificaciones Notificacion[]
+
+  @@map("reserva")
+}
+
+model ReservaAsiento {
+  id        Int      @id @default(autoincrement()) @map("id_reserva_asiento")
+  idReserva Int      @map("id_reserva")
+  reserva   Reserva  @relation(fields: [idReserva], references: [id])
+  idAsiento Int      @map("id_asiento")
+  asiento   Asiento  @relation(fields: [idAsiento], references: [id])
+
+  restricciones ReservaRestriccion[]
+  ordenesCocina OrdenCocina[]
+
+  @@unique([idReserva, idAsiento])
+  @@map("reserva_asiento")
+}
+
+model ReservaRestriccion {
+  id               Int                     @id @default(autoincrement()) @map("id_reserva_asiento_restriccion")
+  idReservaAsiento Int                     @map("id_reserva_asiento")
+  reservaAsiento   ReservaAsiento          @relation(fields: [idReservaAsiento], references: [id])
+  idRestriccion    Int                     @map("id_restriccion")
+  restriccion      RestriccionAlimentaria  @relation(fields: [idRestriccion], references: [id])
+  notas            String?                 @db.VarChar(255)
+  idProducto       Int?                    @map("id_producto")
+  producto         Producto?               @relation(fields: [idProducto], references: [id])
+
+  @@map("reserva_restriccion")
+}
+
+model Pago {
+  id                    Int      @id @default(autoincrement()) @map("id_pago")
+  idReserva             Int      @map("id_reserva")
+  reserva               Reserva  @relation(fields: [idReserva], references: [id])
+  medioPago             String   @map("medio_pago") @db.VarChar(50)
+  monto                 Decimal  @db.Decimal(10, 2)
+  estado                String   @default("pendiente") @db.VarChar(30)
+  fechaPago             DateTime @default(now()) @map("fecha_pago")
+  referenciaTransaccion String?  @map("referencia_transaccion") @db.VarChar(150)
+
+  @@map("pago")
+}
+
+model Resena {
+  id                      Int      @id @default(autoincrement()) @map("id_resena")
+  idReserva               Int      @map("id_reserva")
+  reserva                 Reserva  @relation(fields: [idReserva], references: [id])
+  calificacionPelicula    Int      @map("calificacion_pelicula")
+  calificacionExperiencia Int      @map("calificacion_experiencia")
+  comentario              String?  @db.Text
+  fechaCreacion           DateTime @default(now()) @map("fecha_creacion")
+
+  @@map("resena")
+}
+
+model Notificacion {
+  id         Int              @id @default(autoincrement()) @map("id_notificacion")
+  idReserva  Int              @map("id_reserva")
+  reserva    Reserva          @relation(fields: [idReserva], references: [id])
+  tipo       TipoNotificacion
+  fechaEnvio DateTime?        @map("fecha_envio")
+  estado     String           @default("pendiente") @db.VarChar(30)
+
+  @@map("notificacion")
+}
+
+model OrdenCocina {
+  id                 Int               @id @default(autoincrement()) @map("id_orden")
+  idReservaAsiento   Int               @map("id_reserva_asiento")
+  reservaAsiento     ReservaAsiento    @relation(fields: [idReservaAsiento], references: [id])
+  estado             EstadoOrdenCocina @default(Pendiente)
+  fechaActualizacion DateTime          @default(now()) @updatedAt @map("fecha_actualizacion")
+
+  @@map("orden_cocina")
+}
