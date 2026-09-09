@@ -8,4 +8,10 @@ export class AuthController {
     const usuario = await this.authService.register(req.body);
     res.status(201).json(usuario);
   };
+
+  login = async (req: Request, res: Response) => {
+    const response = await this.authService.login(req.body);
+    res.status(200).json(response);
+  };
 }
+

@@ -1,6 +1,6 @@
 # SensaCine — Backend
 
-Backend para el sistema de **SensaCine**. Diseñado con una arquitectura limpia y modular por capas (`routes` → `controller` → `service` → `repository`), inyección de dependencias desacoplada, DTOs con tipado estricto y validación de esquemas con **Zod**, y **Prisma ORM** conectado a **PostgreSQL**.
+Backend para el sistema de **SensaCine**. Diseñado con una arquitectura limpia y modular por capas (`routes` → `controller` → `service` → `repository`), inyección de dependencias desacoplada, DTOs con tipado estricto y validación de esquemas con **Zod**, autenticación **JWT** y control de acceso basado en roles, y **Prisma ORM** conectado a **PostgreSQL**.
 
 ---
 
@@ -10,19 +10,28 @@ Backend para el sistema de **SensaCine**. Diseñado con una arquitectura limpia 
 sensacine-backend/
 ├── prisma/
 │   ├── schema.prisma        # 16 entidades del MER mapeadas a PostgreSQL
+│   ├── seed.ts              # Script de seed (15 películas + usuario admin inicial)
 │   └── migrations/          # Historial de migraciones generado con prisma migrate
 ├── src/
 │   ├── modules/
-│   │   ├── auth/             # ✅ Módulo de Autenticación y Registro de Usuarios
-│   │   │   ├── dtos/         # DTOs de entrada y salida (RegisterDTO, AuthResponseDTO)
-│   │   │   ├── __tests__/    # Tests unitarios con mocks (sin tocar la BD)
+│   │   ├── auth/             # ✅ Módulo de Autenticación (Registro y Login con JWT)
+│   │   │   ├── dtos/         # RegisterDTO, LoginDTO, AuthResponseDTO, LoginResponseDTO
+│   │   │   ├── __tests__/    # Tests unitarios con mock repository
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.service.ts
 │   │   │   ├── auth.repository.ts
 │   │   │   ├── auth.routes.ts
 │   │   │   ├── auth.types.ts
 │   │   │   └── auth.validator.ts
-│   │   ├── catalogo/         # Películas, salas, asientos, funciones
+│   │   ├── catalogo/         # ✅ Módulo de Catálogo y Películas (CRUD completo)
+│   │   │   ├── dtos/         # CreatePeliculaDTO, UpdatePeliculaDTO, PeliculaResponseDTO
+│   │   │   ├── __tests__/    # Tests unitarios para PeliculaService
+│   │   │   ├── pelicula.controller.ts
+│   │   │   ├── pelicula.service.ts
+│   │   │   ├── pelicula.repository.ts
+│   │   │   ├── pelicula.routes.ts
+│   │   │   ├── pelicula.types.ts
+│   │   │   └── pelicula.validator.ts
 │   │   ├── menu/             # Productos, restricciones alimentarias
 │   │   ├── reservas/         # Reservas, reserva_asiento, reserva_restriccion
 │   │   ├── pagos/            # Pasarela de pagos
@@ -34,6 +43,7 @@ sensacine-backend/
 │   │   ├── errors/AppError.ts
 │   │   ├── middlewares/errorHandler.ts
 │   │   ├── middlewares/validateSchema.ts
+│   │   ├── middlewares/authMiddleware.ts  # Autenticación JWT y requireRole("admin")
 │   │   └── helpers/asyncHandler.ts
 │   ├── infrastructure/
 │   │   ├── prisma/client.ts   # Instancia Singleton de PrismaClient
@@ -55,14 +65,13 @@ sensacine-backend/
 
 - **Node.js**: Versión 18 o superior.
 - **npm**: Versión 9 o superior.
-- **PostgreSQL**: Servidor corriendo localmente (puerto `5432` por defecto) o en la nube (Supabase, Neon, Railway, Docker, etc.).
+- **PostgreSQL**: Servidor corriendo localmente o en la nube.
 
 ---
 
 ## 🚀 Guía de Instalación y Comandos Paso a Paso
 
 ### Paso 1: Instalar Dependencias
-Instala los paquetes necesarios del proyecto.
 ```bash
 npm install
 ```
@@ -84,162 +93,145 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-Abre el archivo `.env` y coloca tus credenciales reales de PostgreSQL:
+Ajusta tus credenciales reales de PostgreSQL en `.env`:
 ```env
 NODE_ENV=development
 PORT=3000
 
-# Formato: postgresql://<usuario>:<password>@<host>:<puerto>/<nombre_base_datos>?schema=public
 DATABASE_URL="postgresql://postgres:tu_password@localhost:5432/sensacine?schema=public"
-
 JWT_SECRET="sensacine-super-secreto-desarrollo-2026"
 BCRYPT_SALT_ROUNDS=10
 ```
 
 ---
 
-### Paso 3: Generar el Cliente de Prisma (`prisma generate`)
-Lee el archivo `prisma/schema.prisma` y compila los tipos de TypeScript y métodos del ORM dentro de `node_modules/@prisma/client`:
+### Paso 3: Generar el Cliente de Prisma
 ```bash
 npm run prisma:generate
 ```
 
 ---
 
-### Paso 4: Crear la Base de Datos y las Tablas
-
-Existen dos alternativas según el flujo de trabajo:
-
-#### Opción A (Recomendada para equipo): Ejecutar Migraciones
-Crea la base de datos si no existe, ejecuta las sentencias SQL para crear las 16 tablas y guarda el historial en `prisma/migrations/`:
-```bash
-npm run prisma:migrate
-```
-*Si es la primera vez, la terminal te pedirá un nombre para la migración. Escribe: `init`*.
-
-#### Opción B (Prototipado rápido): Sincronizar Esquema Directo
-Si solo deseas sincronizar el esquema con la base de datos sin generar archivos de migración:
+### Paso 4: Sincronizar Base de Datos y Crear Tablas
 ```bash
 npx prisma db push
 ```
+*(O `npm run prisma:migrate` para flujo con archivos de migración).*
 
 ---
 
-### Paso 5: Explorar la Base de Datos Visualmente (Opcional)
-Abre una interfaz gráfica web en `http://localhost:5555` para ver, insertar y editar registros en las tablas de PostgreSQL:
+### Paso 5: Poblar la Base de Datos con el Dataset Inicial (Seed)
+Inserta **15 películas populares con posters en alta resolución** y crea el usuario **Administrador** por defecto:
 ```bash
-npm run prisma:studio
+npm run seed
 ```
+
+> **Credenciales del Administrador creado:**
+> - **Email:** `admin@sensacine.com`
+> - **Contraseña:** `Admin1234!`
+> - **Rol:** `admin`
 
 ---
 
 ### Paso 6: Iniciar el Servidor en Desarrollo
-Inicia el servidor con recarga automática en caliente (*hot-reloading*):
 ```bash
 npm run dev
 ```
-Deberías ver en consola:
-```
-🚀 Servidor SensaCine escuchando en http://localhost:3000
-```
+Consola: `🚀 Servidor SensaCine escuchando en http://localhost:3000`
 
 ---
 
-## 🧪 Pruebas del Módulo de Autenticación (`auth`)
+## 🎬 Endpoints del Módulo de Películas (`/api/peliculas`)
 
-El módulo `auth` cuenta con dos niveles de pruebas:
+| Método | Endpoint | Acceso | Descripción |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/peliculas` | **Público** | Lista las películas activas para la pantalla principal. (Usa `?todas=true` para listar todo). |
+| `GET` | `/api/peliculas/:id` | **Público** | Obtiene el detalle de una película por su ID. |
+| `POST` | `/api/peliculas` | **Solo Admin** (`Bearer Token`) | Crea una nueva película. |
+| `PUT` | `/api/peliculas/:id` | **Solo Admin** (`Bearer Token`) | Actualiza una película existente. |
+| `DELETE` | `/api/peliculas/:id` | **Solo Admin** (`Bearer Token`) | Elimina una película. |
 
-### 1. Pruebas Unitarias (Automáticas con Jest - Sin necesidad de Base de Datos)
-Verifican la lógica del servicio `AuthService`, el hashing seguro con `bcrypt`, que nunca se exponga el `passwordHash` y el manejo de errores de duplicados usando un repositorio mock en memoria:
+---
+
+## 🧪 Pruebas del Módulo de Películas y Autenticación
+
+### 1. Pruebas Unitarias (Automáticas con Jest)
 ```bash
 npm test
 ```
-Para ejecutar en modo observador durante desarrollo:
+Ejecuta 9 pruebas unitarias verificando lógica de películas (filtrado activas, validaciones, CRUD con mock repository) y autenticación.
+
+---
+
+### 2. Pruebas de Endpoints HTTP
+
+#### A. Listar Películas Activas (Pantalla Principal - Público)
 ```bash
-npm run test:watch
+curl http://localhost:3000/api/peliculas
+```
+**Respuesta:** Array con las 15 películas activas con sus títulos, sinopsis, duración, género, posterUrl y precioBaseExperiencia.
+
+---
+
+#### B. Obtener Detalle de una Película
+```bash
+curl http://localhost:3000/api/peliculas/1
 ```
 
 ---
 
-### 2. Pruebas de Endpoints HTTP (Servidor en ejecución)
-
-Asegúrate de que el servidor esté corriendo (`npm run dev`) y realiza las siguientes pruebas:
-
-#### A. Health Check (Verificar que el servidor responde)
-- **cURL / Git Bash / Linux / macOS:**
-  ```bash
-  curl http://localhost:3000/health
-  ```
-- **Windows PowerShell:**
-  ```powershell
-  Invoke-RestMethod -Uri "http://localhost:3000/health" -Method Get
-  ```
-- **Respuesta esperada:**
-  ```json
-  { "status": "ok" }
-  ```
-
----
-
-#### B. Registro de Usuario Exitoso (`POST /api/auth/register`)
-- **cURL / Git Bash / Linux / macOS:**
-  ```bash
-  curl -X POST http://localhost:3000/api/auth/register \
-    -H "Content-Type: application/json" \
-    -d '{"nombre": "Ana Torres", "email": "ana@example.com", "password": "supersecreta123"}'
-  ```
-- **Windows PowerShell:**
-  ```powershell
-  $body = @{
-    nombre = "Ana Torres"
-    email = "ana@example.com"
-    password = "supersecreta123"
-  } | ConvertTo-Json
-
-  Invoke-RestMethod -Uri "http://localhost:3000/api/auth/register" -Method Post -Body $body -ContentType "application/json"
-  ```
-- **Respuesta esperada (201 Created):**
-  ```json
-  {
+#### C. Iniciar Sesión como Administrador (`POST /api/auth/login`)
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@sensacine.com", "password": "Admin1234!"}'
+```
+**Respuesta esperada (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
+  "usuario": {
     "id": 1,
-    "nombre": "Ana Torres",
-    "email": "ana@example.com",
-    "rol": "cliente"
+    "nombre": "Administrador SensaCine",
+    "email": "admin@sensacine.com",
+    "rol": "admin"
   }
-  ```
+}
+```
 
 ---
 
-#### C. Validación de Datos Incorrectos (`400 Bad Request`)
-Prueba enviando una contraseña muy corta (menos de 8 caracteres) o un email inválido:
-- **cURL:**
-  ```bash
-  curl -X POST http://localhost:3000/api/auth/register \
-    -H "Content-Type: application/json" \
-    -d '{"nombre": "A", "email": "email-no-valido", "password": "123"}'
-  ```
-- **Respuesta esperada (400 Bad Request):**
-  ```json
-  {
-    "error": "Datos inválidos",
-    "details": {
-      "nombre": ["El nombre debe tener al menos 2 caracteres"],
-      "email": ["Email inválido"],
-      "password": ["La contraseña debe tener al menos 8 caracteres"]
-    }
-  }
-  ```
+#### D. Crear Nueva Película (Requiere Token de Administrador)
+```bash
+curl -X POST http://localhost:3000/api/peliculas \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <PEGA_AQUI_TU_TOKEN_JWT>" \
+  -d '{
+    "titulo": "Deadpool & Wolverine",
+    "sinopsis": "Wolverine se recupera de sus heridas cuando se cruza con Deadpool.",
+    "duracionMinutos": 128,
+    "genero": "Acción / Comedia",
+    "clasificacion": "R",
+    "posterUrl": "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
+    "precioBaseExperiencia": 29000
+  }'
+```
+*(Si intentas llamar este endpoint sin token o con un usuario de rol cliente, recibirás un código `401 Unauthorized` o `403 Forbidden`).*
 
 ---
 
-#### D. Manejo de Email Duplicado (`409 Conflict`)
-Vuelve a enviar la petición con el mismo email que ya registraste previamente:
-- **Respuesta esperada (409 Conflict):**
-  ```json
-  {
-    "error": "Ya existe un usuario registrado con este email"
-  }
-  ```
+#### E. Actualizar y Eliminar Película (Admin)
+```bash
+# Actualizar precio o datos
+curl -X PUT http://localhost:3000/api/peliculas/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <TOKEN_ADMIN>" \
+  -d '{"precioBaseExperiencia": 31000}'
+
+# Eliminar película
+curl -X DELETE http://localhost:3000/api/peliculas/16 \
+  -H "Authorization: Bearer <TOKEN_ADMIN>"
+```
 
 ---
 
@@ -248,6 +240,7 @@ Vuelve a enviar la petición con el mismo email que ya registraste previamente:
 | Comando | Descripción |
 | :--- | :--- |
 | `npm run dev` | Inicia el servidor en modo desarrollo con `ts-node-dev` (hot-reload). |
+| `npm run seed` | Ejecuta `prisma/seed.ts` e inserta el dataset de 15 películas y el usuario admin. |
 | `npm run build` | Compila el código TypeScript a JavaScript en la carpeta `dist/`. |
 | `npm start` | Ejecuta la versión compilada en producción desde `dist/server.js`. |
 | `npm test` | Ejecuta todos los tests unitarios con Jest. |
@@ -260,34 +253,11 @@ Vuelve a enviar la petición con el mismo email que ya registraste previamente:
 
 ## 🔧 Solución a Problemas Comunes (Troubleshooting)
 
-### 1. `❌ Variables de entorno inválidas: { DATABASE_URL: [...] }`
-- **Causa**: El archivo `.env` no existe en la raíz o falta alguna variable obligatoria (`DATABASE_URL`, `JWT_SECRET`).
-- **Solución**: Asegúrate de tener el archivo `.env` en `sensacine-backend/.env` (no en `src/.env`) y con todas las claves definidas según `.env.example`.
+### 1. `❌ Variables de entorno inválidas`
+- Asegúrate de tener el archivo `.env` en la raíz `sensacine-backend/.env` con todas las variables requeridas.
 
-### 2. `Can't reach database server at localhost:5432` / `P1001`
-- **Causa**: El servicio de PostgreSQL no está iniciado o las credenciales (usuario/contraseña/puerto) en `DATABASE_URL` son incorrectas.
-- **Solución**:
-  - Verifica que PostgreSQL esté corriendo en tu equipo (ej. en Servicios de Windows, Docker, o aplicación pgAdmin).
-  - Confirma el usuario y contraseña en el `.env`.
+### 2. `Can't reach database server at localhost:5432`
+- Verifica que el servicio de PostgreSQL esté iniciado y las credenciales en `DATABASE_URL` sean correctas.
 
-### 3. `The database sensacine does not exist`
-- **Solución**: Ejecuta `npm run prisma:migrate` y cuando Prisma pregunte si deseas crear la base de datos, presiona `y` + Enter.
-
-### 4. `Cannot find module '@prisma/client'` o errores de tipos en modelos
-- **Solución**: Ejecuta `npm run prisma:generate` para regenerar los tipos estáticos de Prisma.
-
-### 5. Advertencias de Vulnerabilidades en `npm audit`
-- **Solución**: El proyecto ya incluye `overrides` en `package.json` para fijar las versiones seguras de `tar` y `qs`. Ejecuta `npm install` para que se apliquen y `npm audit` reportará **0 vulnerabilidades**.
-
----
-
-## 🧩 Cómo Replicar el Patrón para un Nuevo Módulo (Ej. `catalogo`)
-
-1. En `src/modules/catalogo/`, crea `pelicula.types.ts` con la interfaz del repositorio (`IPeliculaRepository`).
-2. Crea `pelicula.repository.ts` implementando esa interfaz usando `prisma.pelicula`.
-3. Crea `pelicula.service.ts` con la lógica de negocio y validaciones.
-4. Crea `pelicula.controller.ts`, `pelicula.validator.ts` y `pelicula.routes.ts`.
-5. Define los DTOs en `catalogo/dtos/` (`CreatePeliculaDTO.ts`, `PeliculaResponseDTO.ts`).
-6. Registra la instancia en `src/di/container.ts`.
-7. Monta la ruta en `src/app.ts`: `app.use("/api/peliculas", peliculaRoutes)`.
-8. Agrega los tests unitarios con repositorio falso en `catalogo/__tests__/pelicula.service.test.ts`.
+### 3. `Token de autenticación no proporcionado / inválido`
+- Agrega el encabezado `Authorization: Bearer <token>` obtenido tras hacer login en `/api/auth/login`.
