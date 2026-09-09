@@ -77,3 +77,16 @@ export function Button({
     </button>
   );
 }
+
+export const ButtonA = ({ children, isLoading = false, disabled, ...props}: ButtonProps) => {
+  return (
+    <button
+      {...props}
+      disabled={disabled || isLoading}
+      className=" w-full rounded-xl bg-[#087ea4] px-5 py-3 text-sm font-semibold text-white
+      shadow-lg shadow-[#087ea4]/20 transition-all duration-200 hover:bg-[#066f91] hover:shadow-xl
+      hover:shadow-[#087ea4]/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60">
+      {isLoading ? "Cargando..." : children}
+    </button>
+  );
+};
