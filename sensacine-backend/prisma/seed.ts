@@ -211,6 +211,51 @@ async function main() {
     }
   }
 
+  // 3. Insertar Salas y Asientos
+  console.log("🏛️ Configurando Salas y Asientos...");
+  const SALAS_SEED = [
+    { nombre: "Sala 1 - Premiere Dolby Atmos", filas: 5, asientosPorFila: 8, capacidad: 40 },
+    { nombre: "Sala 2 - IMAX Laser Sensorial", filas: 5, asientosPorFila: 10, capacidad: 50 },
+    { nombre: "Sala 3 - 4DX Multisensory VIP", filas: 4, asientosPorFila: 6, capacidad: 24 },
+  ];
+
+  for (const salaConfig of SALAS_SEED) {
+    let sala = await prisma.sala.findFirst({
+      where: { nombre: salaConfig.nombre },
+    });
+
+    if (!sala) {
+      sala = await prisma.sala.create({
+        data: {
+          nombre: salaConfig.nombre,
+          capacidad: salaConfig.capacidad,
+          estado: "activa",
+        },
+      });
+      console.log(`  ➕ Sala creada: "${sala.nombre}" (${sala.capacidad} asientos)`);
+
+      // Generar asientos
+      const asientosToCreate = [];
+      for (let f = 0; f < salaConfig.filas; f++) {
+        const letraFila = String.fromCharCode(65 + f);
+        for (let n = 1; n <= salaConfig.asientosPorFila; n++) {
+          asientosToCreate.push({
+            idSala: sala.id,
+            fila: letraFila,
+            numero: n,
+          });
+        }
+      }
+      await prisma.asiento.createMany({
+        data: asientosToCreate,
+        skipDuplicates: true,
+      });
+      console.log(`     🪑 ${asientosToCreate.length} asientos generados para ${sala.nombre}`);
+    } else {
+      console.log(`  ℹ️ Sala ya existía: "${sala.nombre}"`);
+    }
+  }
+
   console.log("✨ Seed completado exitosamente.");
 }
 
