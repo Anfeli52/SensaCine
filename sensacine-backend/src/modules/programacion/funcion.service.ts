@@ -12,9 +12,9 @@ import {
 
 export class FuncionService {
   constructor(
-    private funcionRepo: IFuncionRepository,
-    private peliculaRepo: IPeliculaRepository,
-    private salaRepo: ISalaRepository
+    private readonly funcionRepo: IFuncionRepository,
+    private readonly peliculaRepo: IPeliculaRepository,
+    private readonly salaRepo: ISalaRepository
   ) {}
 
   public parseDate(val: string | Date): Date {

@@ -35,8 +35,8 @@ export function AdminPeliculaModal({
   onSubmit,
   peliculaToEdit,
   isLoading = false,
-}: AdminPeliculaModalProps) {
-  const isEditing = !!peliculaToEdit;
+}: Readonly<AdminPeliculaModalProps>) {
+  const isEditing = !peliculaToEdit ? false : true;
 
   const [formData, setFormData] = useState<CreatePeliculaInput>({
     titulo: "",
@@ -145,7 +145,7 @@ export function AdminPeliculaModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEditing ? `Editar Película: ${peliculaToEdit.titulo}` : "Registrar Nueva Película"}
+      title={isEditing ? `Editar Película: ${peliculaToEdit?.titulo || ""}` : "Registrar Nueva Película"}
       maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-6">

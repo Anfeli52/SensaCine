@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { FuncionService } from "./funcion.service";
 
 export class FuncionController {
-  constructor(private funcionService: FuncionService) {}
+  constructor(private readonly funcionService: FuncionService) {}
 
   listar = async (req: Request, res: Response) => {
     const filters = {

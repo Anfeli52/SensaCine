@@ -44,7 +44,7 @@ export function Navbar() {
               className="text-[#0071e3] hover:text-[#0077ed] transition-colors font-semibold flex items-center gap-1.5"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[#0071e3]" />
-              Gestión Admin
+              <span>Gestión Admin</span>
             </Link>
           )}
         </nav>

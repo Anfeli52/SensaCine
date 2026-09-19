@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { SalaService } from "./sala.service";
 
 export class SalaController {
-  constructor(private salaService: SalaService) {}
+  constructor(private readonly salaService: SalaService) {}
 
   listar = async (_req: Request, res: Response) => {
     const salas = await this.salaService.listarTodas();

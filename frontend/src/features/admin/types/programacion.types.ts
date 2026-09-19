@@ -7,11 +7,14 @@ export interface Asiento {
   numero: number;
 }
 
+export type SalaEstado = "activa" | "inactiva" | "mantenimiento";
+export type FuncionEstado = "programada" | "en_curso" | "finalizada" | "cancelada";
+
 export interface Sala {
   id: number;
   nombre: string;
   capacidad: number;
-  estado: "activa" | "inactiva" | "mantenimiento" | string;
+  estado: SalaEstado;
   asientos?: Asiento[];
   _count?: {
     funciones?: number;
@@ -24,12 +27,12 @@ export interface CreateSalaInput {
   filas?: number;
   asientosPorFila?: number;
   capacidad?: number;
-  estado?: string;
+  estado?: SalaEstado;
 }
 
 export interface UpdateSalaInput {
   nombre?: string;
-  estado?: string;
+  estado?: SalaEstado;
 }
 
 export interface Funcion {
@@ -40,7 +43,7 @@ export interface Funcion {
   horaInicio: string; // HH:mm
   horaFin: string; // HH:mm
   precioAsientoOficial: number;
-  estado: "programada" | "en_curso" | "finalizada" | "cancelada" | string;
+  estado: FuncionEstado;
   pelicula?: Pelicula;
   sala?: Sala;
 }

@@ -26,7 +26,7 @@ export function AdminFuncionTable({
   onEdit,
   onDelete,
   onAddNew,
-}: AdminFuncionTableProps) {
+}: Readonly<AdminFuncionTableProps>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSalaId, setSelectedSalaId] = useState<string>("todas");
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -61,27 +61,27 @@ export function AdminFuncionTable({
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-applePill text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Programada
+            <span>Programada</span>
           </span>
         );
       case "en_curso":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-applePill text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-            En Curso
+            <span>En Curso</span>
           </span>
         );
       case "finalizada":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-applePill text-[11px] font-medium bg-gray-100 text-gray-600 border border-gray-200">
-            Finalizada
+            <span>Finalizada</span>
           </span>
         );
       case "cancelada":
       default:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-applePill text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
-            Cancelada
+            <span>Cancelada</span>
           </span>
         );
     }

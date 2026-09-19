@@ -17,7 +17,7 @@ export function AdminDeleteConfirmModal({
   onConfirm,
   pelicula,
   isLoading = false,
-}: AdminDeleteConfirmModalProps) {
+}: Readonly<AdminDeleteConfirmModalProps>) {
   if (!pelicula) return null;
 
   return (
@@ -37,17 +37,16 @@ export function AdminDeleteConfirmModal({
               ¿Deseas eliminar permanentemente esta película?
             </h4>
             <p className="text-[12px] text-red-800/90 mt-1 leading-relaxed">
-              Estás a punto de eliminar{" "}
+              <span>Estás a punto de eliminar </span>
               <strong className="font-semibold text-red-950">"{pelicula.titulo}"</strong>.
-              Esta acción no se puede deshacer.
+              <span> Esta acción no se puede deshacer.</span>
             </p>
           </div>
         </div>
 
         <p className="text-[12px] text-[#86868b] leading-relaxed">
-          Nota: Si la película ya tiene funciones de cartelera o platos asignados, el sistema no
-          permitirá eliminarla para preservar los registros; en su lugar podrás cambiar su estado a
-          <strong> Inactiva</strong>.
+          <span>Nota: Si la película ya tiene funciones de cartelera asignadas, el sistema no permitirá eliminarla para preservar los registros; en su lugar podrás cambiar su estado a </span>
+          <strong>Inactiva</strong>.
         </p>
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#f0f0f0]">

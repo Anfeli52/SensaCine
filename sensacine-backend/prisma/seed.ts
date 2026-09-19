@@ -171,10 +171,7 @@ const PELICULAS_SEED = [
   },
 ];
 
-async function main() {
-  console.log("🌱 Iniciando proceso de Seed...");
-
-  // 1. Crear usuario Administrador inicial si no existe
+async function seedAdmin(): Promise<void> {
   const adminEmail = "admin@sensacine.com";
   const existingAdmin = await prisma.usuario.findUnique({ where: { email: adminEmail } });
 
@@ -193,8 +190,9 @@ async function main() {
   } else {
     console.log(`ℹ️ Usuario Administrador ya existe: ${adminEmail}`);
   }
+}
 
-  // 2. Insertar las 15 películas
+async function seedPeliculas(): Promise<void> {
   console.log(`🎬 Insertando ${PELICULAS_SEED.length} películas...`);
   for (const pelicula of PELICULAS_SEED) {
     const existing = await prisma.pelicula.findFirst({
@@ -210,8 +208,9 @@ async function main() {
       console.log(`  ℹ️ Película ya existía: "${pelicula.titulo}"`);
     }
   }
+}
 
-  // 3. Insertar Salas y Asientos
+async function seedSalas(): Promise<void> {
   console.log("🏛️ Configurando Salas y Asientos...");
   const SALAS_SEED = [
     { nombre: "Sala 1 - Premiere Dolby Atmos", filas: 5, asientosPorFila: 8, capacidad: 40 },
@@ -220,42 +219,48 @@ async function main() {
   ];
 
   for (const salaConfig of SALAS_SEED) {
-    let sala = await prisma.sala.findFirst({
+    const existing = await prisma.sala.findFirst({
       where: { nombre: salaConfig.nombre },
     });
 
-    if (!sala) {
-      sala = await prisma.sala.create({
-        data: {
-          nombre: salaConfig.nombre,
-          capacidad: salaConfig.capacidad,
-          estado: "activa",
-        },
-      });
-      console.log(`  ➕ Sala creada: "${sala.nombre}" (${sala.capacidad} asientos)`);
-
-      // Generar asientos
-      const asientosToCreate = [];
-      for (let f = 0; f < salaConfig.filas; f++) {
-        const letraFila = String.fromCharCode(65 + f);
-        for (let n = 1; n <= salaConfig.asientosPorFila; n++) {
-          asientosToCreate.push({
-            idSala: sala.id,
-            fila: letraFila,
-            numero: n,
-          });
-        }
-      }
-      await prisma.asiento.createMany({
-        data: asientosToCreate,
-        skipDuplicates: true,
-      });
-      console.log(`     🪑 ${asientosToCreate.length} asientos generados para ${sala.nombre}`);
-    } else {
-      console.log(`  ℹ️ Sala ya existía: "${sala.nombre}"`);
+    if (existing) {
+      console.log(`  ℹ️ Sala ya existía: "${existing.nombre}"`);
+      continue;
     }
-  }
 
+    const sala = await prisma.sala.create({
+      data: {
+        nombre: salaConfig.nombre,
+        capacidad: salaConfig.capacidad,
+        estado: "activa",
+      },
+    });
+    console.log(`  ➕ Sala creada: "${sala.nombre}" (${sala.capacidad} asientos)`);
+
+    const asientosToCreate = [];
+    for (let f = 0; f < salaConfig.filas; f++) {
+      const letraFila = String.fromCodePoint(65 + f);
+      for (let n = 1; n <= salaConfig.asientosPorFila; n++) {
+        asientosToCreate.push({
+          idSala: sala.id,
+          fila: letraFila,
+          numero: n,
+        });
+      }
+    }
+    await prisma.asiento.createMany({
+      data: asientosToCreate,
+      skipDuplicates: true,
+    });
+    console.log(`     🪑 ${asientosToCreate.length} asientos generados para ${sala.nombre}`);
+  }
+}
+
+async function main() {
+  console.log("🌱 Iniciando proceso de Seed...");
+  await seedAdmin();
+  await seedPeliculas();
+  await seedSalas();
   console.log("✨ Seed completado exitosamente.");
 }
 

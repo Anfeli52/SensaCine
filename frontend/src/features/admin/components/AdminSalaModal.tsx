@@ -1,7 +1,7 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { Modal } from "../../../shared/components/Modal";
 import { Button } from "../../../shared/components/Button";
-import { CreateSalaInput, Sala } from "../types/programacion.types";
+import { CreateSalaInput, Sala, SalaEstado } from "../types/programacion.types";
 import { Armchair, Sparkles, AlertCircle, Tv } from "lucide-react";
 
 interface AdminSalaModalProps {
@@ -18,13 +18,13 @@ export function AdminSalaModal({
   onSubmit,
   salaToEdit,
   isLoading = false,
-}: AdminSalaModalProps) {
+}: Readonly<AdminSalaModalProps>) {
   const isEditing = !!salaToEdit;
 
   const [nombre, setNombre] = useState("");
   const [filas, setFilas] = useState(5);
   const [asientosPorFila, setAsientosPorFila] = useState(8);
-  const [estado, setEstado] = useState<string>("activa");
+  const [estado, setEstado] = useState<SalaEstado>("activa");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export function AdminSalaModal({
                 {/* Filas */}
                 <div>
                   <div className="flex justify-between text-[12px] font-medium text-[#6e6e73] mb-1">
-                    <label htmlFor="filasRange">Número de Filas (A a {String.fromCharCode(64 + filas)}):</label>
+                    <label htmlFor="filasRange">Número de Filas (A a {String.fromCodePoint(64 + filas)}):</label>
                     <span className="font-bold text-[#1d1d1f]">{filas} filas</span>
                   </div>
                   <input
@@ -175,7 +175,7 @@ export function AdminSalaModal({
               <select
                 id="estadoSala"
                 value={estado}
-                onChange={(e: ChangeEvent<HTMLSelectElement>) => setEstado(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setEstado(e.target.value as any)}
                 className="w-full px-3 py-2 bg-[#f5f5f7] border border-[#e5e5ea] rounded-appleMd text-[13px] text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-[#0071e3]/30 focus:border-[#0071e3] transition-all"
               >
                 <option value="activa">🟢 Sala Activa</option>
@@ -205,16 +205,16 @@ export function AdminSalaModal({
             <div className="w-full overflow-x-auto p-2 max-h-[220px] flex justify-center">
               <div className="space-y-1.5 inline-block">
                 {Array.from({ length: filas }).map((_, rIdx) => {
-                  const letter = String.fromCharCode(65 + rIdx);
+                  const letter = String.fromCodePoint(65 + rIdx);
                   return (
-                    <div key={rIdx} className="flex items-center gap-1.5">
+                    <div key={letter} className="flex items-center gap-1.5">
                       <span className="text-[10px] font-mono font-medium text-[#86868b] w-3 text-right">
                         {letter}
                       </span>
                       <div className="flex gap-1">
                         {Array.from({ length: asientosPorFila }).map((_, cIdx) => (
                           <div
-                            key={cIdx}
+                            key={`${letter}-${cIdx + 1}`}
                             className="w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-appleXs bg-[#0071e3]/10 hover:bg-[#0071e3]/20 border border-[#0071e3]/30 flex items-center justify-center text-[8px] text-[#0071e3] font-semibold transition-all shadow-xs"
                             title={`Asiento ${letter}${cIdx + 1}`}
                           >

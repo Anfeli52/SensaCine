@@ -270,18 +270,18 @@ export function AdminSalasPage() {
                   </h3>
                   <span
                     className={`px-2.5 py-0.5 rounded-applePill text-[11px] font-medium ${
-                      sala.estado === "activa"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : sala.estado === "mantenimiento"
-                        ? "bg-amber-50 text-amber-700 border border-amber-200"
-                        : "bg-gray-100 text-gray-600 border border-gray-200"
+                      (() => {
+                        if (sala.estado === "activa") return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+                        if (sala.estado === "mantenimiento") return "bg-amber-50 text-amber-700 border border-amber-200";
+                        return "bg-gray-100 text-gray-600 border border-gray-200";
+                      })()
                     }`}
                   >
-                    {sala.estado === "activa"
-                      ? "Activa"
-                      : sala.estado === "mantenimiento"
-                      ? "Mantenimiento"
-                      : "Inactiva"}
+                    {(() => {
+                      if (sala.estado === "activa") return "Activa";
+                      if (sala.estado === "mantenimiento") return "Mantenimiento";
+                      return "Inactiva";
+                    })()}
                   </span>
                 </div>
 
@@ -314,7 +314,7 @@ export function AdminSalasPage() {
                 <div className="grid grid-cols-8 gap-1.5 opacity-75 max-w-[180px]">
                   {Array.from({ length: Math.min(24, sala.capacidad) }).map((_, i) => (
                     <div
-                      key={i}
+                      key={`seat-dot-${sala.id}-${i}`}
                       className="w-3 h-3 rounded-appleXs bg-[#0071e3]/20 border border-[#0071e3]/40"
                     />
                   ))}

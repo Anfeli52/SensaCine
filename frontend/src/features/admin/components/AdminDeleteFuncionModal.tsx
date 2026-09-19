@@ -17,7 +17,7 @@ export function AdminDeleteFuncionModal({
   onConfirm,
   funcion,
   isLoading = false,
-}: AdminDeleteFuncionModalProps) {
+}: Readonly<AdminDeleteFuncionModalProps>) {
   if (!funcion) return null;
 
   return (
@@ -36,20 +36,17 @@ export function AdminDeleteFuncionModal({
             <h4 className="text-[14px] font-semibold text-red-950">
               ¿Deseas eliminar esta función programada?
             </h4>
-            <p className="text-[12px] text-red-800/90 mt-1 leading-relaxed">
-              Película: <strong className="font-semibold text-red-950">"{funcion.pelicula?.titulo}"</strong>
-              <br />
-              Sala: <strong>{funcion.sala?.nombre}</strong>
-              <br />
-              Horario: <strong>{funcion.fecha.split("T")[0]} ({funcion.horaInicio} - {funcion.horaFin})</strong>
-            </p>
+            <div className="text-[12px] text-red-800/90 mt-1 leading-relaxed">
+              <p><span>Película: </span><strong className="font-semibold text-red-950">"{funcion.pelicula?.titulo}"</strong></p>
+              <p><span>Sala: </span><strong>{funcion.sala?.nombre}</strong></p>
+              <p><span>Horario: </span><strong>{funcion.fecha.split("T")[0]} ({funcion.horaInicio} - {funcion.horaFin})</strong></p>
+            </div>
           </div>
         </div>
 
         <p className="text-[12px] text-[#86868b] leading-relaxed">
-          Nota: Si la función ya tiene reservas asociadas por clientes, el sistema no permitirá
-          eliminarla por integridad de los pagos; en su lugar podrás cambiar su estado a
-          <strong> Cancelada</strong>.
+          <span>Nota: Si la función ya tiene reservas asociadas por clientes, el sistema no permitirá eliminarla por integridad de los pagos; en su lugar podrás cambiar su estado a </span>
+          <strong>Cancelada</strong>.
         </p>
 
         <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#f0f0f0]">

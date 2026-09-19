@@ -2,7 +2,7 @@ import { AppError } from "../../common/errors/AppError";
 import { CreateSalaInput, ISalaRepository, SalaConDetalles, UpdateSalaInput } from "./sala.types";
 
 export class SalaService {
-  constructor(private salaRepo: ISalaRepository) {}
+  constructor(private readonly salaRepo: ISalaRepository) {}
 
   async listarTodas(): Promise<SalaConDetalles[]> {
     return this.salaRepo.findAll();
@@ -50,7 +50,7 @@ export class SalaService {
     let count = 0;
 
     for (let f = 0; f < filas; f++) {
-      const letraFila = String.fromCharCode(65 + f); // 65 = 'A'
+      const letraFila = String.fromCodePoint(65 + f); // 65 = 'A'
       for (let n = 1; n <= asientosPorFila; n++) {
         if (count < capacidad) {
           asientosToCreate.push({

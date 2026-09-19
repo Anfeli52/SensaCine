@@ -34,8 +34,8 @@ export function AdminFuncionModal({
   salas,
   existingFunciones = [],
   isLoading = false,
-}: AdminFuncionModalProps) {
-  const isEditing = !!funcionToEdit;
+}: Readonly<AdminFuncionModalProps>) {
+  const isEditing = !funcionToEdit ? false : true;
 
   const todayStr = new Date().toISOString().split("T")[0];
 
@@ -82,8 +82,8 @@ export function AdminFuncionModal({
     const conflicting = existingFunciones.find((f) => {
       if (f.idSala !== idSala) return false;
       if (f.estado === "cancelada") return false;
-      if (isEditing && funcionToEdit && f.id === funcionToEdit.id) return false;
-      if (f.fecha !== fecha && !f.fecha.startsWith(fecha)) return false;
+      if (isEditing && f.id === funcionToEdit?.id) return false;
+      if (!f.fecha?.startsWith(fecha)) return false;
 
       const fStart = toMinutes(f.horaInicio);
       const fEnd = toMinutes(f.horaFin);

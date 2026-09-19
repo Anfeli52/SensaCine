@@ -23,14 +23,14 @@ export function AdminPeliculaTable({
   onEdit,
   onDelete,
   onAddNew,
-}: AdminPeliculaTableProps) {
+}: Readonly<AdminPeliculaTableProps>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEstado, setSelectedEstado] = useState<string>("todas");
 
   const filteredPeliculas = peliculas.filter((pelicula) => {
     const matchesSearch =
       pelicula.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (pelicula.genero && pelicula.genero.toLowerCase().includes(searchTerm.toLowerCase()));
+      Boolean(pelicula.genero?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesEstado =
       selectedEstado === "todas" || pelicula.estado === selectedEstado;
@@ -52,14 +52,14 @@ export function AdminPeliculaTable({
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-applePill text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            En Cartelera
+            <span>En Cartelera</span>
           </span>
         );
       case "proximamente":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-applePill text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-            Próximamente
+            <span>Próximamente</span>
           </span>
         );
       case "inactiva":
@@ -67,7 +67,7 @@ export function AdminPeliculaTable({
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-applePill text-[11px] font-medium bg-gray-100 text-gray-600 border border-gray-200">
             <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-            Inactiva
+            <span>Inactiva</span>
           </span>
         );
     }

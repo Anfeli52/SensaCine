@@ -8,7 +8,7 @@ export interface Pelicula {
   genero: string | null;
   clasificacion: string | null;
   posterUrl: string | null;
-  estado: PeliculaEstado | string;
+  estado: PeliculaEstado;
   precioBaseExperiencia: number;
 }
 
@@ -19,7 +19,7 @@ export interface CreatePeliculaInput {
   genero?: string | null;
   clasificacion?: string | null;
   posterUrl?: string | null;
-  estado?: PeliculaEstado | string;
+  estado?: PeliculaEstado;
   precioBaseExperiencia: number;
 }
 
@@ -30,7 +30,7 @@ export interface UpdatePeliculaInput {
   genero?: string | null;
   clasificacion?: string | null;
   posterUrl?: string | null;
-  estado?: PeliculaEstado | string;
+  estado?: PeliculaEstado;
   precioBaseExperiencia?: number;
 }
 

@@ -16,7 +16,7 @@ export function AdminFuncionTimeline({
   selectedDate,
   onEdit,
   onDelete,
-}: AdminFuncionTimelineProps) {
+}: Readonly<AdminFuncionTimelineProps>) {
   // Filtrar funciones para la fecha seleccionada
   const dayFunciones = funciones.filter(
     (f) => f.fecha === selectedDate || f.fecha.startsWith(selectedDate)
@@ -91,7 +91,7 @@ export function AdminFuncionTimeline({
                   {/* Hour guide vertical lines */}
                   {Array.from({ length: TOTAL_HOURS }).map((_, i) => (
                     <div
-                      key={i}
+                      key={`guide-${sala.id}-${START_HOUR + i}`}
                       className="absolute top-0 bottom-0 border-r border-[#f0f0f0]"
                       style={{ left: `${(i / TOTAL_HOURS) * 100}%` }}
                     />
