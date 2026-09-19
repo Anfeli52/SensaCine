@@ -79,7 +79,17 @@ export class PeliculaService {
       throw new AppError("Película no encontrada", 404);
     }
 
-    await this.peliculaRepo.delete(id);
-    return { mensaje: "Película eliminada exitosamente", id };
+    try {
+      await this.peliculaRepo.delete(id);
+      return { mensaje: "Película eliminada exitosamente", id };
+    } catch (error: any) {
+      if (error?.code === "P2003") {
+        throw new AppError(
+          "No se puede eliminar la película porque tiene funciones o productos asociados. Puedes cambiar su estado a 'inactiva'.",
+          400
+        );
+      }
+      throw error;
+    }
   }
 }

@@ -35,18 +35,40 @@ export function Navbar() {
           <Link to="/" className="text-[#1d1d1f] hover:text-[#0071e3] transition-colors font-medium">
             Cartelera
           </Link>
-          <a href="#peliculas" className="hover:text-[#1d1d1f] transition-colors">
+          <a href="/#peliculas" className="hover:text-[#1d1d1f] transition-colors">
             Películas
           </a>
+          {usuario?.rol === "admin" && (
+            <Link
+              to="/admin/peliculas"
+              className="text-[#0071e3] hover:text-[#0077ed] transition-colors font-semibold flex items-center gap-1.5"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0071e3]" />
+              Gestión Admin
+            </Link>
+          )}
         </nav>
 
         {/* Right Action Buttons */}
         <div className="flex items-center gap-2.5">
           {isAuthenticated ? (
             <>
+              {usuario?.rol === "admin" && (
+                <Link
+                  to="/admin/peliculas"
+                  className="md:hidden flex items-center gap-1 px-2.5 py-1 bg-[#0071e3]/10 text-[#0071e3] rounded-applePill text-[11px] font-medium"
+                >
+                  Admin
+                </Link>
+              )}
               <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f5f5f7] rounded-applePill text-[12px] text-[#1d1d1f] font-medium border border-[#e5e5ea]">
                 <User className="w-3.5 h-3.5 text-[#0071e3]" />
                 <span className="max-w-[120px] truncate">{usuario?.nombre || "Mi Cuenta"}</span>
+                {usuario?.rol === "admin" && (
+                  <span className="ml-1 text-[10px] uppercase font-bold text-[#0071e3] bg-[#0071e3]/10 px-1.5 py-0.5 rounded-applePill">
+                    Admin
+                  </span>
+                )}
               </div>
               <Button
                 variant="secondary"
