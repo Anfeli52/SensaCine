@@ -100,11 +100,12 @@ export function AdminSalaModal({
           {/* Inputs Section */}
           <div className="md:col-span-6 space-y-4">
             <div>
-              <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
+              <label htmlFor="nombreSala" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
                 <Armchair className="w-3.5 h-3.5 text-[#0071e3]" />
                 Nombre de la Sala <span className="text-red-500">*</span>
               </label>
               <input
+                id="nombreSala"
                 type="text"
                 value={nombre}
                 onChange={(e) => {
@@ -132,10 +133,11 @@ export function AdminSalaModal({
                 {/* Filas */}
                 <div>
                   <div className="flex justify-between text-[12px] font-medium text-[#6e6e73] mb-1">
-                    <span>Número de Filas (A a {String.fromCharCode(64 + filas)}):</span>
+                    <label htmlFor="filasRange">Número de Filas (A a {String.fromCharCode(64 + filas)}):</label>
                     <span className="font-bold text-[#1d1d1f]">{filas} filas</span>
                   </div>
                   <input
+                    id="filasRange"
                     type="range"
                     min="1"
                     max="10"
@@ -148,10 +150,11 @@ export function AdminSalaModal({
                 {/* Asientos por fila */}
                 <div>
                   <div className="flex justify-between text-[12px] font-medium text-[#6e6e73] mb-1">
-                    <span>Asientos por Fila (1 a {asientosPorFila}):</span>
+                    <label htmlFor="asientosPorFilaRange">Asientos por Fila (1 a {asientosPorFila}):</label>
                     <span className="font-bold text-[#1d1d1f]">{asientosPorFila} asientos</span>
                   </div>
                   <input
+                    id="asientosPorFilaRange"
                     type="range"
                     min="2"
                     max="14"
@@ -165,11 +168,12 @@ export function AdminSalaModal({
 
             {/* Estado de la sala */}
             <div>
-              <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+              <label htmlFor="estadoSala" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-[#86868b]" />
                 Estado Operativo
               </label>
               <select
+                id="estadoSala"
                 value={estado}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setEstado(e.target.value)}
                 className="w-full px-3 py-2 bg-[#f5f5f7] border border-[#e5e5ea] rounded-appleMd text-[13px] text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-[#0071e3]/30 focus:border-[#0071e3] transition-all"

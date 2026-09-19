@@ -8,17 +8,17 @@ export const createFuncionSchema = z.object({
   idSala: z.number().int("El ID de la sala debe ser un entero").positive("Sala no válida"),
   fecha: z
     .string()
-    .refine((val) => dateRegex.test(val) || !isNaN(Date.parse(val)), {
+    .refine((val) => dateRegex.test(val) || !Number.isNaN(Date.parse(val)), {
       message: "La fecha debe tener formato YYYY-MM-DD",
     }),
   horaInicio: z
     .string()
-    .refine((val) => timeRegex.test(val) || !isNaN(Date.parse(val)), {
+    .refine((val) => timeRegex.test(val) || !Number.isNaN(Date.parse(val)), {
       message: "La hora de inicio debe tener formato HH:mm (ej. 15:30)",
     }),
   horaFin: z
     .string()
-    .refine((val) => timeRegex.test(val) || !isNaN(Date.parse(val)), {
+    .refine((val) => timeRegex.test(val) || !Number.isNaN(Date.parse(val)), {
       message: "La hora de fin debe tener formato HH:mm",
     })
     .optional(),

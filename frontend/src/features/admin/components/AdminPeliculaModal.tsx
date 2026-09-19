@@ -161,11 +161,12 @@ export function AdminPeliculaModal({
           <div className="md:col-span-7 space-y-4">
             {/* Titulo */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
+              <label htmlFor="titulo" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
                 <Film className="w-3.5 h-3.5 text-[#0071e3]" />
                 Título de la Película <span className="text-red-500">*</span>
               </label>
               <input
+                id="titulo"
                 type="text"
                 name="titulo"
                 value={formData.titulo}
@@ -179,11 +180,12 @@ export function AdminPeliculaModal({
             {/* Duracion y Clasificacion */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+                <label htmlFor="duracionMinutos" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
                   <Clock className="w-3 h-3 text-[#86868b]" />
                   Duración (minutos) <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="duracionMinutos"
                   type="number"
                   name="duracionMinutos"
                   min="1"
@@ -196,11 +198,12 @@ export function AdminPeliculaModal({
               </div>
 
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+                <label htmlFor="clasificacion" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
                   <ShieldAlert className="w-3 h-3 text-[#86868b]" />
                   Clasificación
                 </label>
                 <select
+                  id="clasificacion"
                   name="clasificacion"
                   value={formData.clasificacion || ""}
                   onChange={handleChange}
@@ -219,11 +222,12 @@ export function AdminPeliculaModal({
             {/* Genero y Estado */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+                <label htmlFor="genero" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
                   <Tag className="w-3 h-3 text-[#86868b]" />
                   Género
                 </label>
                 <input
+                  id="genero"
                   type="text"
                   name="genero"
                   list="generos-list"
@@ -240,11 +244,12 @@ export function AdminPeliculaModal({
               </div>
 
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+                <label htmlFor="estadoPelicula" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-[#86868b]" />
                   Estado en Plataforma
                 </label>
                 <select
+                  id="estadoPelicula"
                   name="estado"
                   value={formData.estado}
                   onChange={handleChange}
@@ -259,7 +264,7 @@ export function AdminPeliculaModal({
 
             {/* Precio Base */}
             <div>
-              <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+              <label htmlFor="precioBaseExperiencia" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
                 <DollarSign className="w-3 h-3 text-[#86868b]" />
                 Precio Base de Experiencia (COP) <span className="text-red-500">*</span>
               </label>
@@ -268,6 +273,7 @@ export function AdminPeliculaModal({
                   $
                 </span>
                 <input
+                  id="precioBaseExperiencia"
                   type="number"
                   name="precioBaseExperiencia"
                   min="0"
@@ -288,11 +294,12 @@ export function AdminPeliculaModal({
           {/* Poster Preview & URL (right col) */}
           <div className="md:col-span-5 flex flex-col justify-between space-y-4">
             <div>
-              <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+              <label htmlFor="posterUrl" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
                 <Image className="w-3 h-3 text-[#86868b]" />
                 URL del Póster / Imagen
               </label>
               <input
+                id="posterUrl"
                 type="url"
                 name="posterUrl"
                 value={formData.posterUrl || ""}
@@ -335,10 +342,11 @@ export function AdminPeliculaModal({
 
         {/* Sinopsis */}
         <div>
-          <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
+          <label htmlFor="sinopsis" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
             Sinopsis / Descripción
           </label>
           <textarea
+            id="sinopsis"
             name="sinopsis"
             rows={3}
             value={formData.sinopsis || ""}

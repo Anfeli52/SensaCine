@@ -26,9 +26,9 @@ export function MovieModal({ pelicula, isOpen, onClose }: MovieModalProps) {
   const [selectedDate, setSelectedDate] = useState<string>("");
 
   // Obtener fechas únicas disponibles
-  const uniqueDates = Array.from(
-    new Set(funciones.map((f: any) => f.fecha.split("T")[0]))
-  ).sort() as string[];
+  const uniqueDates = (
+    Array.from(new Set(funciones.map((f: any) => f.fecha.split("T")[0]))) as string[]
+  ).sort((a, b) => a.localeCompare(b));
 
   const todayStr = new Date().toISOString().split("T")[0];
 
@@ -190,10 +190,11 @@ export function MovieModal({ pelicula, isOpen, onClose }: MovieModalProps) {
                   const isSelected = selectedFuncionId === funcion.id;
 
                   return (
-                    <div
+                    <button
                       key={funcion.id}
+                      type="button"
                       onClick={() => setSelectedFuncionId(funcion.id)}
-                      className={`p-3.5 rounded-appleLg border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2.5 ${
+                      className={`text-left w-full p-3.5 rounded-appleLg border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2.5 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 ${
                         isSelected
                           ? "bg-[#0071e3]/5 border-[#0071e3] shadow-md ring-2 ring-[#0071e3]/20"
                           : "bg-white hover:bg-[#fafafc] border-[#e5e5ea] shadow-xs"
@@ -221,7 +222,7 @@ export function MovieModal({ pelicula, isOpen, onClose }: MovieModalProps) {
                           {formatPrice(funcion.precioAsientoOficial)}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>

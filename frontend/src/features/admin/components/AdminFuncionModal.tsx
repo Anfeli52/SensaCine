@@ -55,7 +55,7 @@ export function AdminFuncionModal({
   const calculateEndTime = (startStr: string, durMin: number): string => {
     if (!startStr) return "";
     const [h, m] = startStr.split(":").map(Number);
-    if (isNaN(h) || isNaN(m)) return "";
+    if (Number.isNaN(h) || Number.isNaN(m)) return "";
 
     const totalMinutes = h * 60 + m + durMin;
     const endH = Math.floor(totalMinutes / 60) % 24;
@@ -213,11 +213,12 @@ export function AdminFuncionModal({
           <div className="md:col-span-6 space-y-4">
             {/* Pelicula */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
+              <label htmlFor="idPelicula" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
                 <Film className="w-3.5 h-3.5 text-[#0071e3]" />
                 Película del Catálogo <span className="text-red-500">*</span>
               </label>
               <select
+                id="idPelicula"
                 value={idPelicula}
                 onChange={(e) => handlePeliculaChange(Number(e.target.value))}
                 required
@@ -258,11 +259,12 @@ export function AdminFuncionModal({
 
             {/* Sala */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
+              <label htmlFor="idSala" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
                 <Armchair className="w-3.5 h-3.5 text-[#0071e3]" />
                 Sala de Cine <span className="text-red-500">*</span>
               </label>
               <select
+                id="idSala"
                 value={idSala}
                 onChange={(e) => {
                   setIdSala(Number(e.target.value));
@@ -281,10 +283,11 @@ export function AdminFuncionModal({
 
             {/* Estado de la función */}
             <div>
-              <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5">
+              <label htmlFor="estadoFuncion" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5">
                 Estado de la Función
               </label>
               <select
+                id="estadoFuncion"
                 value={estado}
                 onChange={(e: ChangeEvent<HTMLSelectElement>) => setEstado(e.target.value)}
                 className="w-full px-3 py-2 bg-[#f5f5f7] border border-[#e5e5ea] rounded-appleMd text-[13px] text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-[#0071e3]/30 focus:border-[#0071e3] transition-all"
@@ -301,11 +304,12 @@ export function AdminFuncionModal({
           <div className="md:col-span-6 space-y-4">
             {/* Fecha */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
+              <label htmlFor="fechaProyeccion" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-[#0071e3]" />
                 Fecha de Proyección <span className="text-red-500">*</span>
               </label>
               <input
+                id="fechaProyeccion"
                 type="date"
                 value={fecha}
                 min={todayStr}
@@ -321,11 +325,12 @@ export function AdminFuncionModal({
             {/* Horarios (Inicio y Fin Calculado) */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+                <label htmlFor="horaInicio" className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
                   <Clock className="w-3 h-3 text-[#86868b]" />
                   Hora Inicio <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="horaInicio"
                   type="time"
                   value={horaInicio}
                   onChange={(e) => {
@@ -338,10 +343,10 @@ export function AdminFuncionModal({
               </div>
 
               <div>
-                <label className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
+                <span className="block text-[12px] font-medium text-[#6e6e73] mb-1.5 flex items-center gap-1">
                   <Clock className="w-3 h-3 text-[#86868b]" />
                   Fin Estimado
-                </label>
+                </span>
                 <div className="px-3 py-2 bg-[#f0f0f5] border border-[#e0e0e5] rounded-appleMd text-[13px] font-semibold text-[#1d1d1f] flex items-center justify-between">
                   <span>{calculatedHoraFin || "--:--"}</span>
                   <span className="text-[10px] text-[#0071e3] bg-[#0071e3]/10 px-1.5 py-0.5 rounded-applePill font-medium">
@@ -353,7 +358,7 @@ export function AdminFuncionModal({
 
             {/* Precio Oficial */}
             <div>
-              <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
+              <label htmlFor="precioAsientoOficial" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5 flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5 text-[#0071e3]" />
                 Precio Oficial Asiento (COP) <span className="text-red-500">*</span>
               </label>
@@ -362,6 +367,7 @@ export function AdminFuncionModal({
                   $
                 </span>
                 <input
+                  id="precioAsientoOficial"
                   type="number"
                   min="0"
                   step="500"
