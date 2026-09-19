@@ -6,6 +6,8 @@ import { HomePage } from "../features/catalogo/pages/HomePage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { RegisterPage } from "../features/auth/pages/RegisterPage";
 import { AdminPeliculasPage } from "../features/admin/pages/AdminPeliculasPage";
+import { AdminFuncionesPage } from "../features/admin/pages/AdminFuncionesPage";
+import { AdminSalasPage } from "../features/admin/pages/AdminSalasPage";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +34,14 @@ export const router = createBrowserRouter([
           {
             path: "peliculas",
             element: <AdminPeliculasPage />,
+          },
+          {
+            path: "funciones",
+            element: <AdminFuncionesPage />,
+          },
+          {
+            path: "salas",
+            element: <AdminSalasPage />,
           },
         ],
       },

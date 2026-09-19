@@ -6,6 +6,7 @@ import {
   useDeletePelicula,
 } from "../hooks/useAdminPeliculas";
 import { CreatePeliculaInput, Pelicula } from "../../catalogo/types";
+import { AdminNavTabs } from "../components/AdminNavTabs";
 import { AdminStats } from "../components/AdminStats";
 import { AdminPeliculaTable } from "../components/AdminPeliculaTable";
 import { AdminPeliculaModal } from "../components/AdminPeliculaModal";
@@ -19,7 +20,6 @@ import {
   Clapperboard,
   RefreshCw,
 } from "lucide-react";
-
 
 export function AdminPeliculasPage() {
   const { data: peliculas, isLoading, isError, refetch, isFetching } = useAdminPeliculas();
@@ -122,6 +122,9 @@ export function AdminPeliculasPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Navigation Tabs */}
+      <AdminNavTabs />
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>

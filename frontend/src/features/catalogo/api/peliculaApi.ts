@@ -38,3 +38,16 @@ export async function deletePelicula(
   return data;
 }
 
+export async function getFuncionesDisponiblesPorPelicula(
+  idPelicula: number
+): Promise<any[]> {
+  const { data } = await apiClient.get<any[]>("/funciones", {
+    params: {
+      idPelicula,
+      soloFuturas: true,
+    },
+  });
+  return data;
+}
+
+
