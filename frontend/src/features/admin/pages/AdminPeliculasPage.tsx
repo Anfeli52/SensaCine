@@ -11,15 +11,10 @@ import { AdminStats } from "../components/AdminStats";
 import { AdminPeliculaTable } from "../components/AdminPeliculaTable";
 import { AdminPeliculaModal } from "../components/AdminPeliculaModal";
 import { AdminDeleteConfirmModal } from "../components/AdminDeleteConfirmModal";
+import { AdminBannerAlert, BannerAlertData } from "../components/AdminBannerAlert";
+import { AdminLoadingState, AdminErrorState } from "../components/AdminPageState";
 import { Button } from "../../../shared/components/Button";
-import { Spinner } from "../../../shared/components/Spinner";
-import {
-  Plus,
-  CheckCircle2,
-  AlertCircle,
-  Clapperboard,
-  RefreshCw,
-} from "lucide-react";
+import { Plus, Clapperboard, RefreshCw } from "lucide-react";
 
 export function AdminPeliculasPage() {
   const { data: peliculas, isLoading, isError, refetch, isFetching } = useAdminPeliculas();
@@ -34,10 +29,7 @@ export function AdminPeliculasPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingPelicula, setDeletingPelicula] = useState<Pelicula | null>(null);
 
-  const [bannerAlert, setBannerAlert] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  const [bannerAlert, setBannerAlert] = useState<BannerAlertData | null>(null);
 
   const showNotification = (type: "success" | "error", message: string) => {
     setBannerAlert({ type, message });
@@ -93,30 +85,16 @@ export function AdminPeliculasPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <Spinner size="md" />
-        <p className="text-[13px] text-[#86868b]">Cargando panel de administración...</p>
-      </div>
-    );
+    return <AdminLoadingState message="Cargando panel de películas..." />;
   }
 
   if (isError || !peliculas) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-12 h-12 rounded-applePill bg-red-50 flex items-center justify-center text-red-500 mb-3">
-          <AlertCircle className="w-5 h-5" />
-        </div>
-        <h2 className="text-lg font-bold text-[#1d1d1f] mb-1">
-          Error al cargar el catálogo
-        </h2>
-        <p className="text-[13px] text-[#86868b] max-w-md mb-5">
-          No se pudo sincronizar la lista de películas desde el servidor.
-        </p>
-        <Button variant="primary" size="sm" onClick={() => refetch()}>
-          Reintentar
-        </Button>
-      </div>
+      <AdminErrorState
+        title="Error al cargar el catálogo"
+        description="No se pudo sincronizar la lista de películas desde el servidor."
+        onRetry={() => refetch()}
+      />
     );
   }
 
@@ -168,30 +146,7 @@ export function AdminPeliculasPage() {
       </div>
 
       {/* Banner Feedback Alert */}
-      {bannerAlert && (
-        <div
-          className={`mb-6 p-4 rounded-appleLg border flex items-center justify-between gap-3 text-[13px] transition-all ${
-            bannerAlert.type === "success"
-              ? "bg-emerald-50/90 border-emerald-200 text-emerald-800"
-              : "bg-red-50/90 border-red-200 text-red-800"
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            {bannerAlert.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-            )}
-            <span>{bannerAlert.message}</span>
-          </div>
-          <button
-            onClick={() => setBannerAlert(null)}
-            className="text-[11px] font-semibold uppercase tracking-wider hover:opacity-75"
-          >
-            Cerrar
-          </button>
-        </div>
-      )}
+      <AdminBannerAlert alert={bannerAlert} onClose={() => setBannerAlert(null)} />
 
       {/* Stats Summary */}
       <AdminStats peliculas={peliculas} />

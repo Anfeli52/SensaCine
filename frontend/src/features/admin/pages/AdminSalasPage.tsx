@@ -8,8 +8,9 @@ import {
 import { CreateSalaInput, Sala } from "../types/programacion.types";
 import { AdminNavTabs } from "../components/AdminNavTabs";
 import { AdminSalaModal } from "../components/AdminSalaModal";
+import { AdminBannerAlert, BannerAlertData } from "../components/AdminBannerAlert";
+import { AdminLoadingState, AdminErrorState } from "../components/AdminPageState";
 import { Button } from "../../../shared/components/Button";
-import { Spinner } from "../../../shared/components/Spinner";
 import {
   Plus,
   Armchair,
@@ -35,10 +36,7 @@ export function AdminSalasPage() {
 
   const [deleteConfirmSala, setDeleteConfirmSala] = useState<Sala | null>(null);
 
-  const [bannerAlert, setBannerAlert] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  const [bannerAlert, setBannerAlert] = useState<BannerAlertData | null>(null);
 
   const showNotification = (type: "success" | "error", message: string) => {
     setBannerAlert({ type, message });
@@ -61,9 +59,9 @@ export function AdminSalasPage() {
     if (editingSala) {
       await updateMutation.mutateAsync({
         id: editingSala.id,
-        data: formData,
+        data: { nombre: formData.nombre, estado: formData.estado },
       });
-      showNotification("success", `Sala "${formData.nombre}" actualizada con éxito.`);
+      showNotification("success", `Sala "${formData.nombre}" actualizada.`);
     } else {
       await createMutation.mutateAsync(formData);
       showNotification(
@@ -94,28 +92,16 @@ export function AdminSalasPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <Spinner size="md" />
-        <p className="text-[13px] text-[#86868b]">Cargando salas de cine...</p>
-      </div>
-    );
+    return <AdminLoadingState message="Cargando salas de cine..." />;
   }
 
   if (isError || !salas) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-12 h-12 rounded-applePill bg-red-50 flex items-center justify-center text-red-500 mb-3">
-          <AlertCircle className="w-5 h-5" />
-        </div>
-        <h2 className="text-lg font-bold text-[#1d1d1f] mb-1">Error al cargar las salas</h2>
-        <p className="text-[13px] text-[#86868b] max-w-md mb-5">
-          No se pudo sincronizar la información de salas desde el servidor.
-        </p>
-        <Button variant="primary" size="sm" onClick={() => refetch()}>
-          Reintentar
-        </Button>
-      </div>
+      <AdminErrorState
+        title="Error al cargar las salas"
+        description="No se pudo sincronizar la información de salas desde el servidor."
+        onRetry={() => refetch()}
+      />
     );
   }
 
@@ -139,7 +125,7 @@ export function AdminSalasPage() {
             Salas y Distribución de Asientos
           </h1>
           <p className="text-[13px] sm:text-[14px] text-[#86868b] mt-1">
-            Configura las salas de proyección cinematográfica y sus matrices de butacas.
+            Crea salas, diseña matrices de butacas y administra el aforo físico.
           </p>
         </div>
 
@@ -171,30 +157,7 @@ export function AdminSalasPage() {
       </div>
 
       {/* Banner Feedback Alert */}
-      {bannerAlert && (
-        <div
-          className={`mb-6 p-4 rounded-appleLg border flex items-center justify-between gap-3 text-[13px] transition-all ${
-            bannerAlert.type === "success"
-              ? "bg-emerald-50/90 border-emerald-200 text-emerald-800"
-              : "bg-red-50/90 border-red-200 text-red-800"
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            {bannerAlert.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-            )}
-            <span>{bannerAlert.message}</span>
-          </div>
-          <button
-            onClick={() => setBannerAlert(null)}
-            className="text-[11px] font-semibold uppercase tracking-wider hover:opacity-75"
-          >
-            Cerrar
-          </button>
-        </div>
-      )}
+      <AdminBannerAlert alert={bannerAlert} onClose={() => setBannerAlert(null)} />
 
       {/* Metrics Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

@@ -104,6 +104,23 @@ describe("FuncionService", () => {
     deleteAsientosBySala: jest.fn(),
   };
 
+  const createFuncionFixture = (
+    id: number,
+    overrides: Partial<FuncionConDetalles> = {}
+  ): FuncionConDetalles => ({
+    id,
+    idPelicula: 1,
+    idSala: 1,
+    fecha: new Date(Date.UTC(2026, 8, 20)),
+    horaInicio: new Date(Date.UTC(1970, 0, 1, 14, 0, 0)),
+    horaFin: new Date(Date.UTC(1970, 0, 1, 16, 0, 0)),
+    precioAsientoOficial: new Prisma.Decimal(30000),
+    estado: "programada",
+    pelicula: samplePelicula,
+    sala: sampleSala1,
+    ...overrides,
+  });
+
   it("crear debe calcular automáticamente horaFin y guardar la función", async () => {
     const funcionRepo = makeFakeFuncionRepo([]);
     const service = new FuncionService(funcionRepo, fakePeliculaRepo, fakeSalaRepo);
@@ -125,22 +142,7 @@ describe("FuncionService", () => {
   });
 
   it("crear debe BLOQUEAR cualquier intento de solapamiento en la misma sala y horario (error 409)", async () => {
-    const fecha = new Date(Date.UTC(2026, 8, 20)); // 2026-09-20
-    const horaInicioExistente = new Date(Date.UTC(1970, 0, 1, 14, 0, 0)); // 14:00
-    const horaFinExistente = new Date(Date.UTC(1970, 0, 1, 16, 0, 0)); // 16:00
-
-    const funcionExistente: FuncionConDetalles = {
-      id: 1,
-      idPelicula: 1,
-      idSala: 1,
-      fecha,
-      horaInicio: horaInicioExistente,
-      horaFin: horaFinExistente,
-      precioAsientoOficial: new Prisma.Decimal(30000),
-      estado: "programada",
-      pelicula: samplePelicula,
-      sala: sampleSala1,
-    };
+    const funcionExistente = createFuncionFixture(1);
 
     const funcionRepo = makeFakeFuncionRepo([funcionExistente]);
     const service = new FuncionService(funcionRepo, fakePeliculaRepo, fakeSalaRepo);
@@ -169,20 +171,7 @@ describe("FuncionService", () => {
   });
 
   it("crear debe PERMITIR programar en la misma sala después de que termine la anterior", async () => {
-    const fecha = new Date(Date.UTC(2026, 8, 20));
-    const horaInicioExistente = new Date(Date.UTC(1970, 0, 1, 14, 0, 0));
-    const horaFinExistente = new Date(Date.UTC(1970, 0, 1, 16, 0, 0));
-
-    const funcionExistente: FuncionConDetalles = {
-      id: 1,
-      idPelicula: 1,
-      idSala: 1,
-      fecha,
-      horaInicio: horaInicioExistente,
-      horaFin: horaFinExistente,
-      precioAsientoOficial: new Prisma.Decimal(30000),
-      estado: "programada",
-    };
+    const funcionExistente = createFuncionFixture(1);
 
     const funcionRepo = makeFakeFuncionRepo([funcionExistente]);
     const service = new FuncionService(funcionRepo, fakePeliculaRepo, fakeSalaRepo);
@@ -202,20 +191,7 @@ describe("FuncionService", () => {
   });
 
   it("crear debe PERMITIR programar al mismo horario si es en una SALA DIFERENTE", async () => {
-    const fecha = new Date(Date.UTC(2026, 8, 20));
-    const horaInicioExistente = new Date(Date.UTC(1970, 0, 1, 14, 0, 0));
-    const horaFinExistente = new Date(Date.UTC(1970, 0, 1, 16, 0, 0));
-
-    const funcionExistente: FuncionConDetalles = {
-      id: 1,
-      idPelicula: 1,
-      idSala: 1, // Sala 1
-      fecha,
-      horaInicio: horaInicioExistente,
-      horaFin: horaFinExistente,
-      precioAsientoOficial: new Prisma.Decimal(30000),
-      estado: "programada",
-    };
+    const funcionExistente = createFuncionFixture(1, { idSala: 1 });
 
     const funcionRepo = makeFakeFuncionRepo([funcionExistente]);
     const service = new FuncionService(funcionRepo, fakePeliculaRepo, fakeSalaRepo);
@@ -234,27 +210,19 @@ describe("FuncionService", () => {
   });
 
   it("listar con soloFuturas debe omitir funciones pasadas", async () => {
-    const pasada: FuncionConDetalles = {
-      id: 10,
-      idPelicula: 1,
-      idSala: 1,
-      fecha: new Date(Date.UTC(2020, 0, 1)), // 2020 (pasada)
+    const pasada = createFuncionFixture(10, {
+      fecha: new Date(Date.UTC(2020, 0, 1)),
       horaInicio: new Date(Date.UTC(1970, 0, 1, 10, 0, 0)),
       horaFin: new Date(Date.UTC(1970, 0, 1, 12, 0, 0)),
       precioAsientoOficial: new Prisma.Decimal(25000),
-      estado: "programada",
-    };
+    });
 
-    const futura: FuncionConDetalles = {
-      id: 11,
-      idPelicula: 1,
-      idSala: 1,
-      fecha: new Date(Date.UTC(2030, 0, 1)), // 2030 (futura)
+    const futura = createFuncionFixture(11, {
+      fecha: new Date(Date.UTC(2030, 0, 1)),
       horaInicio: new Date(Date.UTC(1970, 0, 1, 15, 0, 0)),
       horaFin: new Date(Date.UTC(1970, 0, 1, 17, 0, 0)),
       precioAsientoOficial: new Prisma.Decimal(25000),
-      estado: "programada",
-    };
+    });
 
     const funcionRepo = makeFakeFuncionRepo([pasada, futura]);
     const service = new FuncionService(funcionRepo, fakePeliculaRepo, fakeSalaRepo);

@@ -14,13 +14,12 @@ import { AdminFuncionTimeline } from "../components/AdminFuncionTimeline";
 import { AdminFuncionTable } from "../components/AdminFuncionTable";
 import { AdminFuncionModal } from "../components/AdminFuncionModal";
 import { AdminDeleteFuncionModal } from "../components/AdminDeleteFuncionModal";
+import { AdminBannerAlert, BannerAlertData } from "../components/AdminBannerAlert";
+import { AdminLoadingState, AdminErrorState } from "../components/AdminPageState";
 import { Button } from "../../../shared/components/Button";
-import { Spinner } from "../../../shared/components/Spinner";
 import {
   Plus,
   Calendar,
-  CheckCircle2,
-  AlertCircle,
   RefreshCw,
   LayoutGrid,
   List,
@@ -37,8 +36,8 @@ export function AdminFuncionesPage() {
     isFetching,
   } = useAdminFunciones();
 
-  const { data: salas, isLoading: loadingSalas } = useAdminSalas();
-  const { data: peliculas, isLoading: loadingPeliculas } = useAdminPeliculas();
+  const { data: salas = [], isLoading: loadingSalas } = useAdminSalas();
+  const { data: peliculas = [], isLoading: loadingPeliculas } = useAdminPeliculas();
 
   const createMutation = useCreateFuncion();
   const updateMutation = useUpdateFuncion();
@@ -53,10 +52,7 @@ export function AdminFuncionesPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingFuncion, setDeletingFuncion] = useState<Funcion | null>(null);
 
-  const [bannerAlert, setBannerAlert] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  const [bannerAlert, setBannerAlert] = useState<BannerAlertData | null>(null);
 
   const showNotification = (type: "success" | "error", message: string) => {
     setBannerAlert({ type, message });
@@ -114,30 +110,16 @@ export function AdminFuncionesPage() {
   const isLoading = loadingFunciones || loadingSalas || loadingPeliculas;
 
   if (isLoading) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
-        <Spinner size="md" />
-        <p className="text-[13px] text-[#86868b]">Cargando cartelera y salas...</p>
-      </div>
-    );
+    return <AdminLoadingState message="Cargando cartelera y salas..." />;
   }
 
   if (errorFunciones || !funciones || !salas || !peliculas) {
     return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-12 h-12 rounded-applePill bg-red-50 flex items-center justify-center text-red-500 mb-3">
-          <AlertCircle className="w-5 h-5" />
-        </div>
-        <h2 className="text-lg font-bold text-[#1d1d1f] mb-1">
-          Error al cargar la programación
-        </h2>
-        <p className="text-[13px] text-[#86868b] max-w-md mb-5">
-          No se pudieron sincronizar las funciones desde el servidor.
-        </p>
-        <Button variant="primary" size="sm" onClick={() => refetch()}>
-          Reintentar
-        </Button>
-      </div>
+      <AdminErrorState
+        title="Error al cargar la programación"
+        description="No se pudieron sincronizar las funciones desde el servidor."
+        onRetry={() => refetch()}
+      />
     );
   }
 
@@ -217,30 +199,7 @@ export function AdminFuncionesPage() {
       </div>
 
       {/* Banner Feedback Alert */}
-      {bannerAlert && (
-        <div
-          className={`mb-6 p-4 rounded-appleLg border flex items-center justify-between gap-3 text-[13px] transition-all ${
-            bannerAlert.type === "success"
-              ? "bg-emerald-50/90 border-emerald-200 text-emerald-800"
-              : "bg-red-50/90 border-red-200 text-red-800"
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            {bannerAlert.type === "success" ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            ) : (
-              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-            )}
-            <span>{bannerAlert.message}</span>
-          </div>
-          <button
-            onClick={() => setBannerAlert(null)}
-            className="text-[11px] font-semibold uppercase tracking-wider hover:opacity-75"
-          >
-            Cerrar
-          </button>
-        </div>
-      )}
+      <AdminBannerAlert alert={bannerAlert} onClose={() => setBannerAlert(null)} />
 
       {/* Stats Summary */}
       <AdminFuncionStats funciones={funciones} salas={salas} />
