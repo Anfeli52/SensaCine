@@ -15,6 +15,7 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/peliculas", peliculaRoutes);
+app.use("/api/hall/:id/seats", peliculaRoutes);
 
 // El errorHandler SIEMPRE va de último, después de montar todas las rutas.
 
