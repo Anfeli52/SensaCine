@@ -7,6 +7,6 @@ export async function getBookingById(id: number): Promise<Booking> {
 } 
 
 export async function getSeatsByHall(id: number): Promise<Asiento[]> {
-    const { data } = await apiClient.get<Asiento[]>(`/halls/${id}/seats`);
+    const { data } = await apiClient.get<Asiento[]>(`/reservas/halls/${id}/seats`);
     return data;
 }

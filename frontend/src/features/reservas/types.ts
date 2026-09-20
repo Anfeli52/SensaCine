@@ -8,9 +8,10 @@ export interface Booking {
 }
 
 export interface Asiento {
-    id_seat: number;
-    id_hall: number;
-    row: string;
-    number: number;
-    status: string;
+    id: number;
+    id_sala: number;
+    fila: string;
+    numero: number;
 }
+
+export type SeatStatus = "available" | "selected" | "occupied";

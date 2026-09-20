@@ -9,3 +9,5 @@ router.get(
     authenticate, 
     asyncHandler(asientoController.getAsientosBySala)
 );
+
+export default router;

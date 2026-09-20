@@ -5,6 +5,7 @@ import authRoutes from "./modules/auth/auth.routes";
 import peliculaRoutes from "./modules/catalogo/pelicula.routes";
 import salaRoutes from "./modules/programacion/sala.routes";
 import funcionRoutes from "./modules/programacion/funcion.routes";
+import reservaRoutes from "./modules/reservas/reserva.routes";
 import { errorHandler } from "./common/middlewares/errorHandler";
 
 export const app = express();
@@ -19,7 +20,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/peliculas", peliculaRoutes);
 app.use("/api/salas", salaRoutes);
 app.use("/api/funciones", funcionRoutes);
-app.use("/api/hall/:id/seats", peliculaRoutes);
+app.use("/api/reservas", reservaRoutes);
 
 // El errorHandler SIEMPRE va de último, después de montar todas las rutas.
 
