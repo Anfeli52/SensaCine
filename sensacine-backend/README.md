@@ -215,6 +215,8 @@ curl -X POST http://localhost:3000/api/peliculas \
     "posterUrl": "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
     "precioBaseExperiencia": 29000
   }'
+
+  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwibmFtZSI6IkNlc2FyIEFuZHJlcyIsImlhdCI6MTc3OTYzMTI5MiwiZXhwIjoxNzc5Njc0NDkyfQ.KGXvvzZkufi_Ban7xEVCqYjr0H_zmdF16i1xD43UEpk
 ```
 *(Si intentas llamar este endpoint sin token o con un usuario de rol cliente, recibirás un código `401 Unauthorized` o `403 Forbidden`).*
 
