@@ -39,8 +39,20 @@ export function SeatSelectionPage() {
     const state = useLocation().state as LocationState | null;
     const [selected, setSelected] = useState<Asiento[]>([]);
 
-    const idSala = state?.funcion.idSala ?? state?.funcion.sala?.id;
-    const { filas, isLoading, isError, refetch } = useAsientos(idSala);
+    const [aviso, setAviso] = useState<string | null>(null);
+
+    const { filas, occupiedIds, isLoading, isError, refetch } = useAsientos(
+        state?.funcion.id,
+        (ids) =>
+            setSelected((prev) => {
+                const perdidos = prev.filter((s) => ids.includes(s.id));
+                if (perdidos.length === 0) return prev;
+                setAviso(
+                    `Ya no están disponibles: ${perdidos.map((p) => `${p.fila}${p.numero}`).join(", ")}`
+                );
+                return prev.filter((s) => !ids.includes(s.id));
+            })
+    );
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
     if (!state) return <Navigate to="/" replace />;
@@ -84,7 +96,12 @@ export function SeatSelectionPage() {
             );
         }
         return (
-            <SeatMap filas={filas} selectedIds={selected.map((s) => s.id)} onToggle={toggle} />
+            <SeatMap
+                filas={filas}
+                selectedIds={selected.map((s) => s.id)}
+                occupiedIds={occupiedIds}
+                onToggle={toggle}
+            />
         );
     };
 
@@ -123,6 +140,20 @@ export function SeatSelectionPage() {
                     </span>
                 </div>
             </div>
+
+            {aviso && (
+                <div
+                    role="alert"
+                    className="flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 text-amber-800 text-[12px] rounded-appleLg px-4 py-2.5"
+                >
+                    <span className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" /> {aviso}
+                    </span>
+                    <button type="button" onClick={() => setAviso(null)} className="font-semibold hover:underline">
+                        Cerrar
+                    </button>
+                </div>
+            )}
 
             <div className="bg-white border border-[#e5e5ea] rounded-appleLg shadow-xs p-5 sm:p-8 space-y-6">
                 {renderMap()}

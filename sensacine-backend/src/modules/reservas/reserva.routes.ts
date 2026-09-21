@@ -10,4 +10,16 @@ router.get(
     asyncHandler(asientoController.getAsientosBySala)
 );
 
+router.get(
+    "/funciones/:id/seats",
+    authenticate,
+    asyncHandler(asientoController.getDisponibilidadByFuncion)
+);
+
+router.post(
+    "/halls/:id_hall/seats/:id_seat/reserve",
+    authenticate,
+    asyncHandler(asientoController.reserveSeat)
+)
+
 export default router;

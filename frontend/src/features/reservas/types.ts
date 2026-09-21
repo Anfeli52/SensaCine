@@ -15,3 +15,13 @@ export interface Asiento {
 }
 
 export type SeatStatus = "available" | "selected" | "occupied";
+
+export interface AsientoFuncion extends Asiento {
+    ocupado: boolean;
+}
+
+export interface DisponibilidadFuncion {
+    id_funcion: number;
+    id_sala: number;
+    asientos: AsientoFuncion[];
+}

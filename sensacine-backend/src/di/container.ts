@@ -17,6 +17,7 @@ import { PrismaFuncionRepository } from "../modules/programacion/funcion.reposit
 import { AsientoController } from "../modules/reservas/asiento.controller";
 import { AsientoService } from "../modules/reservas/asiento.service";
 import { PrismaAsientoRepository } from "../modules/reservas/asiento.repository";
+import { SocketAsientoNotifier } from "../infrastructure/socket/SocketAsientoNotifier";
 
 // Módulo Auth
 const usuarioRepository = new PrismaUsuarioRepository();
@@ -39,5 +40,5 @@ export const funcionController = new FuncionController(funcionService);
 
 // Módulo Reservas (Asientos)
 const asientoRepository = new PrismaAsientoRepository();
-const asientoService = new AsientoService(asientoRepository);
+export const asientoService = new AsientoService(asientoRepository, new SocketAsientoNotifier());
 export const asientoController = new AsientoController(asientoService);
