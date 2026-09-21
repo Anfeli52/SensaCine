@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { peliculaController } from "../../di/container";
+import { peliculaController, menuController } from "../../di/container";
 import { asyncHandler } from "../../common/helpers/asyncHandler";
 import { validateSchema } from "../../common/middlewares/validateSchema";
 import { authenticate, requireRole } from "../../common/middlewares/authMiddleware";
@@ -9,6 +9,7 @@ const router = Router();
 
 // Rutas públicas (pantalla principal y detalle)
 router.get("/", asyncHandler(peliculaController.listar));
+router.get("/:id/menu", asyncHandler(menuController.obtenerMenuPorPelicula));
 router.get("/:id", asyncHandler(peliculaController.obtenerPorId));
 
 // Rutas protegidas (Solo administradores)

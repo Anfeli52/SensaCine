@@ -14,6 +14,10 @@ import { FuncionController } from "../modules/programacion/funcion.controller";
 import { FuncionService } from "../modules/programacion/funcion.service";
 import { PrismaFuncionRepository } from "../modules/programacion/funcion.repository";
 
+import { MenuController } from "../modules/menu/menu.controller";
+import { MenuService } from "../modules/menu/menu.service";
+import { MenuRepository } from "../modules/menu/menu.repository";
+
 // Módulo Auth
 const usuarioRepository = new PrismaUsuarioRepository();
 const authService = new AuthService(usuarioRepository);
@@ -33,4 +37,7 @@ const funcionRepository = new PrismaFuncionRepository();
 export const funcionService = new FuncionService(funcionRepository, peliculaRepository, salaRepository);
 export const funcionController = new FuncionController(funcionService);
 
-
+// Módulo Menú
+const menuRepository = new MenuRepository();
+const menuService = new MenuService(menuRepository);
+export const menuController = new MenuController(menuService);
