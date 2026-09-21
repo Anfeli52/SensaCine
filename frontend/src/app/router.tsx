@@ -8,6 +8,7 @@ import { RegisterPage } from "../features/auth/pages/RegisterPage";
 import { AdminPeliculasPage } from "../features/admin/pages/AdminPeliculasPage";
 import { AdminFuncionesPage } from "../features/admin/pages/AdminFuncionesPage";
 import { AdminSalasPage } from "../features/admin/pages/AdminSalasPage";
+import { AdminUsuariosPage } from "../features/admin/pages/AdminUsuariosPage";
 import { MenuPage } from "../features/menu/pages/MenuPage";
 
 export const router = createBrowserRouter([
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
           {
             path: "salas",
             element: <AdminSalasPage />,
+          },
+          {
+            path: "usuarios",
+            element: <AdminUsuariosPage />,
           },
         ],
       },

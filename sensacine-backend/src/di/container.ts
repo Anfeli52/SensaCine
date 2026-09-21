@@ -18,6 +18,10 @@ import { MenuController } from "../modules/menu/menu.controller";
 import { MenuService } from "../modules/menu/menu.service";
 import { MenuRepository } from "../modules/menu/menu.repository";
 
+import { AdminController } from "../modules/admin/admin.controller";
+import { AdminService } from "../modules/admin/admin.service";
+import { AdminRepository } from "../modules/admin/admin.repository";
+
 // Módulo Auth
 const usuarioRepository = new PrismaUsuarioRepository();
 const authService = new AuthService(usuarioRepository);
@@ -41,3 +45,8 @@ export const funcionController = new FuncionController(funcionService);
 const menuRepository = new MenuRepository();
 const menuService = new MenuService(menuRepository);
 export const menuController = new MenuController(menuService);
+
+// Módulo Admin
+const adminRepository = new AdminRepository();
+const adminService = new AdminService(adminRepository);
+export const adminController = new AdminController(adminService);
