@@ -6,7 +6,14 @@ import { Badge } from "../../../shared/components/Badge";
 import { Button } from "../../../shared/components/Button";
 import { Spinner } from "../../../shared/components/Spinner";
 import { useFuncionesDisponibles } from "../hooks/usePeliculas";
-import { Clock, Calendar, Armchair, CheckCircle2, Sparkles, } from "lucide-react";
+import {
+  Clock,
+  Calendar,
+  Armchair,
+  CheckCircle2,
+  Sparkles,
+  UtensilsCrossed,
+} from "lucide-react";
 
 
 interface MovieModalProps {
@@ -16,10 +23,11 @@ interface MovieModalProps {
 }
 
 export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalProps>) {
-  const navigate = useNavigate();
   const { data: funciones = [], isLoading } = useFuncionesDisponibles(pelicula?.id);
   const [selectedFuncionId, setSelectedFuncionId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
+
+  const navigate = useNavigate();
 
   // Obtener fechas únicas disponibles
   const uniqueDates = (
@@ -112,11 +120,10 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
                   setSelectedDate(dateStr);
                   setSelectedFuncionId(null);
                 }}
-                className={`px-3.5 py-1.5 rounded-applePill text-[12px] font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${
-                  isSelected
+                className={`px-3.5 py-1.5 rounded-applePill text-[12px] font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${isSelected
                     ? "bg-[#0071e3] text-white shadow-sm font-semibold"
                     : "bg-[#f5f5f7] text-[#6e6e73] hover:text-[#1d1d1f] hover:bg-[#e8e8ed]"
-                }`}
+                  }`}
               >
                 <Calendar className="w-3 h-3" />
                 <span>{formatTabDate(dateStr)}</span>
@@ -135,11 +142,10 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
                 key={funcion.id}
                 type="button"
                 onClick={() => setSelectedFuncionId(funcion.id)}
-                className={`text-left w-full p-3.5 rounded-appleLg border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2.5 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 ${
-                  isSelected
+                className={`text-left w-full p-3.5 rounded-appleLg border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2.5 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 ${isSelected
                     ? "bg-[#0071e3]/5 border-[#0071e3] shadow-md ring-2 ring-[#0071e3]/20"
                     : "bg-white hover:bg-[#fafafc] border-[#e5e5ea] shadow-xs"
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-1.5 text-[14px] font-bold text-[#1d1d1f]">
@@ -216,6 +222,17 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
             <p className="text-[12px] text-[#6e6e73] leading-relaxed line-clamp-3 pt-1">
               {pelicula.sinopsis || "Sinopsis no disponible."}
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate(`/menu/${pelicula.id}`);
+              }}
+              className="inline-flex items-center gap-2 mt-2 px-3.5 py-2 rounded-applePill bg-[#f0f6ff] text-[#0071e3] text-[12px] font-semibold hover:bg-[#e1efff] transition-colors"
+            >
+              <UtensilsCrossed className="w-3.5 h-3.5" />
+              Ver experiencia gastronómica
+            </button>
           </div>
         </div>
 

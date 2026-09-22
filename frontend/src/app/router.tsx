@@ -9,17 +9,18 @@ import { SeatSelectionPage } from "../features/reservas/pages/SeatSelectionPage"
 import { AdminPeliculasPage } from "../features/admin/pages/AdminPeliculasPage";
 import { AdminFuncionesPage } from "../features/admin/pages/AdminFuncionesPage";
 import { AdminSalasPage } from "../features/admin/pages/AdminSalasPage";
+import { AdminUsuariosPage } from "../features/admin/pages/AdminUsuariosPage";
+import { MenuPage } from "../features/menu/pages/MenuPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MainLayout />,
     children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
+      { index: true, element: <HomePage />},
+      { path: "menu/:peliculaId", element: <MenuPage /> },
     ],
+    
   },
   {
     path: "/reservas/asientos",
@@ -48,6 +49,10 @@ export const router = createBrowserRouter([
           {
             path: "salas",
             element: <AdminSalasPage />,
+          },
+          {
+            path: "usuarios",
+            element: <AdminUsuariosPage />,
           },
         ],
       },

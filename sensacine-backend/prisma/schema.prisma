@@ -125,6 +125,7 @@ model Producto {
   idPelicula  Int?     @map("id_pelicula")
   pelicula    Pelicula? @relation(fields: [idPelicula], references: [id])
   ordenMenu   Int?     @map("orden_menu")
+  imagenUrl   String?   @map("imagen_url") @db.VarChar(500)
 
   restricciones      ProductoRestriccion[]
   reservaRestriccion ReservaRestriccion[]
