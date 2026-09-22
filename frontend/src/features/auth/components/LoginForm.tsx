@@ -1,78 +1,59 @@
-import React, { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useLogin } from "../hooks/useLogin";
-import { Button } from "../../../shared/components/Button";
-import { Lock, Mail, AlertCircle } from "lucide-react";
 
-export function LoginForm({ onSuccess }: { onSuccess?: () => void }) {
+import { Input } from "../../../shared/components/Input";
+import { ButtonA } from "../../../shared/components/Button";
+
+export const LoginForm = ({
+  onSuccess,
+}: {
+  onSuccess?: () => void;
+}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
   const loginMutation = useLogin();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setError("");
+
     loginMutation.mutate(
-      { email, password },
+      {
+        email,
+        password,
+      },
       {
         onSuccess: () => {
           onSuccess?.();
+        },
+        onError: () => {
+          setError("Credenciales incorrectas");
         },
       }
     );
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {loginMutation.isError && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-appleMd text-red-600 text-[13px]">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span>Credenciales inválidas o error de conexión</span>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <Input type="email" label="Email" name="email" value={email} placeholder="usuario@ejemplo.com" onChange={(event) => setEmail(event.target.value)} required/>
+      <Input type="password" label="Contraseña" name="password" value={password} placeholder="••••••••" onChange={(event) => setPassword(event.target.value)} required/>
+
+      {error && (
+        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <span className="text-sm text-red-600">
+            {error}
+          </span>
         </div>
       )}
 
-      <div>
-        <label className="block text-[12px] font-medium text-[#6e6e73] mb-1">
-          Correo Electrónico
-        </label>
-        <div className="relative">
-          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="usuario@ejemplo.com"
-            className="w-full bg-[#f5f5f7] border border-[#e0e0e0] rounded-appleMd py-2 pl-9 pr-4 text-[13px] text-[#1d1d1f] placeholder-[#86868b] focus:outline-none focus:border-[#0071e3] transition-all"
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-[12px] font-medium text-[#6e6e73] mb-1">
-          Contraseña
-        </label>
-        <div className="relative">
-          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="••••••••"
-            className="w-full bg-[#f5f5f7] border border-[#e0e0e0] rounded-appleMd py-2 pl-9 pr-4 text-[13px] text-[#1d1d1f] placeholder-[#86868b] focus:outline-none focus:border-[#0071e3] transition-all"
-          />
-        </div>
-      </div>
-
       <div className="pt-2">
-        <Button
-          type="submit"
-          variant="primary"
-          fullWidth
-          isLoading={loginMutation.isPending}
-        >
-          Iniciar Sesión
-        </Button>
+        <ButtonA type="submit" isLoading={loginMutation.isPending}>
+          Iniciar sesión
+        </ButtonA>
       </div>
     </form>
   );
-}
+};
