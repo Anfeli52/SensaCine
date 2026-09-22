@@ -23,6 +23,7 @@ interface MovieModalProps {
 }
 
 export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalProps>) {
+  const navigate = useNavigate();
   const { data: funciones = [], isLoading } = useFuncionesDisponibles(pelicula?.id);
   const [selectedFuncionId, setSelectedFuncionId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -289,9 +290,9 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
               disabled={!selectedFuncion}
               onClick={() => {
                 if (selectedFuncion) {
-                  alert(
-                    `Función seleccionada: ${pelicula.titulo} en ${selectedFuncion.sala?.nombre} el ${selectedDate} a las ${selectedFuncion.horaInicio}. El módulo de reservas continuará en el siguiente paso.`
-                  );
+                  navigate("/reservas/asientos", {
+                    state: { pelicula, funcion: selectedFuncion },
+                  });
                 }
               }}
               className="px-5 bg-[#0071e3] hover:bg-[#0077ed]"

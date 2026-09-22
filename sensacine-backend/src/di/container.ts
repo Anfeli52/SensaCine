@@ -14,6 +14,11 @@ import { FuncionController } from "../modules/programacion/funcion.controller";
 import { FuncionService } from "../modules/programacion/funcion.service";
 import { PrismaFuncionRepository } from "../modules/programacion/funcion.repository";
 
+import { AsientoController } from "../modules/reservas/asiento.controller";
+import { AsientoService } from "../modules/reservas/asiento.service";
+import { PrismaAsientoRepository } from "../modules/reservas/asiento.repository";
+import { SocketAsientoNotifier } from "../infrastructure/socket/SocketAsientoNotifier";
+
 import { MenuController } from "../modules/menu/menu.controller";
 import { MenuService } from "../modules/menu/menu.service";
 import { MenuRepository } from "../modules/menu/menu.repository";
@@ -41,7 +46,10 @@ const funcionRepository = new PrismaFuncionRepository();
 export const funcionService = new FuncionService(funcionRepository, peliculaRepository, salaRepository);
 export const funcionController = new FuncionController(funcionService);
 
-// Módulo Menú
+// Módulo Reservas (Asientos)
+const asientoRepository = new PrismaAsientoRepository();
+export const asientoService = new AsientoService(asientoRepository, new SocketAsientoNotifier());
+export const asientoController = new AsientoController(asientoService);// Módulo Menú
 const menuRepository = new MenuRepository();
 const menuService = new MenuService(menuRepository);
 export const menuController = new MenuController(menuService);

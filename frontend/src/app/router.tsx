@@ -5,6 +5,7 @@ import { ProtectedRoute } from "../routes/ProtectedRoute";
 import { HomePage } from "../features/catalogo/pages/HomePage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { RegisterPage } from "../features/auth/pages/RegisterPage";
+import { SeatSelectionPage } from "../features/reservas/pages/SeatSelectionPage";
 import { AdminPeliculasPage } from "../features/admin/pages/AdminPeliculasPage";
 import { AdminFuncionesPage } from "../features/admin/pages/AdminFuncionesPage";
 import { AdminSalasPage } from "../features/admin/pages/AdminSalasPage";
@@ -20,6 +21,11 @@ export const router = createBrowserRouter([
       { path: "menu/:peliculaId", element: <MenuPage /> },
     ],
     
+  },
+  {
+    path: "/reservas/asientos",
+    element: <MainLayout />,
+    children: [{ index: true, element: <SeatSelectionPage /> }],
   },
   {
     path: "/admin",

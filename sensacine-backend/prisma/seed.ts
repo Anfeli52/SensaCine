@@ -256,11 +256,91 @@ async function seedSalas(): Promise<void> {
   }
 }
 
+function createUtcDate(date: string, hours: number, minutes = 0): Date {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, hours, minutes));
+}
+
+async function seedFunciones(): Promise<void> {
+  const salas = await prisma.sala.findMany({
+    where: {
+      nombre: {
+        in: [
+          "Sala 1 - Premiere Dolby Atmos",
+          "Sala 2 - IMAX Laser Sensorial",
+          "Sala 3 - 4DX Multisensory VIP",
+        ],
+      },
+    },
+    orderBy: { id: "asc" },
+  });
+
+  const peliculas = await prisma.pelicula.findMany({
+    where: { titulo: { in: PELICULAS_SEED.map(({ titulo }) => titulo) } },
+    orderBy: { id: "asc" },
+  });
+
+  if (salas.length < 3 || peliculas.length !== PELICULAS_SEED.length) {
+    throw new Error("No se encontraron todas las salas o películas necesarias para crear funciones.");
+  }
+
+  const fechas = ["2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25"];
+  const horasInicio = [9, 14, 19];
+  let funcionesCreadas = 0;
+
+  console.log("🎥 Configurando funciones...");
+
+  for (let peliculaIndex = 0; peliculaIndex < peliculas.length; peliculaIndex++) {
+    const pelicula = peliculas[peliculaIndex];
+
+    for (let funcionIndex = 0; funcionIndex < 2; funcionIndex++) {
+      const slotIndex = peliculaIndex * 2 + funcionIndex;
+      const fecha = fechas[Math.floor(slotIndex / (salas.length * horasInicio.length)) % fechas.length];
+      const sala = salas[Math.floor(slotIndex / horasInicio.length) % salas.length];
+      const horaInicio = horasInicio[slotIndex % horasInicio.length];
+      const fechaFuncion = createUtcDate(fecha, 0);
+      const inicio = createUtcDate(fecha, horaInicio);
+      const fin = new Date(inicio.getTime() + pelicula.duracionMinutos * 60 * 1000);
+
+      const existing = await prisma.funcion.findFirst({
+        where: {
+          idPelicula: pelicula.id,
+          idSala: sala.id,
+          fecha: fechaFuncion,
+          horaInicio: inicio,
+        },
+      });
+
+      if (existing) {
+        console.log(`  ℹ️ Función ya existía: "${pelicula.titulo}" ${fecha} ${String(horaInicio).padStart(2, "0")}:00`);
+        continue;
+      }
+
+      await prisma.funcion.create({
+        data: {
+          idPelicula: pelicula.id,
+          idSala: sala.id,
+          fecha: fechaFuncion,
+          horaInicio: inicio,
+          horaFin: fin,
+          precioAsientoOficial: pelicula.precioBaseExperiencia,
+          estado: "programada",
+        },
+      });
+      funcionesCreadas++;
+      console.log(`  ➕ Función agregada: "${pelicula.titulo}" ${fecha} ${String(horaInicio).padStart(2, "0")}:00 - ${sala.nombre}`);
+    }
+  }
+
+  console.log(`🎟️ ${funcionesCreadas} funciones nuevas creadas.`);
+}
+
 async function main() {
   console.log("🌱 Iniciando proceso de Seed...");
   await seedAdmin();
   await seedPeliculas();
   await seedSalas();
+  await seedFunciones();
   console.log("✨ Seed completado exitosamente.");
 }
 
