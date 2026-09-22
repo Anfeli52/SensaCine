@@ -1,0 +1,79 @@
+import { Modal } from "../../../shared/components/Modal";
+import { Button } from "../../../shared/components/Button";
+import { Pelicula } from "../../catalogo/types";
+import { Trash2, AlertTriangle } from "lucide-react";
+
+interface AdminDeleteConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+  pelicula: Pelicula | null;
+  isLoading?: boolean;
+}
+
+export function AdminDeleteConfirmModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  pelicula,
+  isLoading = false,
+}: Readonly<AdminDeleteConfirmModalProps>) {
+  if (!pelicula) return null;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Confirmar Eliminación"
+      maxWidth="md"
+    >
+      <div className="space-y-4">
+        <div className="flex items-start gap-3.5 p-4 rounded-appleLg bg-red-50/80 border border-red-100 text-red-900">
+          <div className="p-2 bg-red-100 rounded-appleMd text-red-600 flex-shrink-0">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-[14px] font-semibold text-red-950">
+              ¿Deseas eliminar permanentemente esta película?
+            </h4>
+            <p className="text-[12px] text-red-800/90 mt-1 leading-relaxed">
+              <span>Estás a punto de eliminar </span>
+              <strong className="font-semibold text-red-950">"{pelicula.titulo}"</strong>.
+              <span> Esta acción no se puede deshacer.</span>
+            </p>
+          </div>
+        </div>
+
+        <p className="text-[12px] text-[#86868b] leading-relaxed">
+          <span>Nota: Si la película ya tiene funciones de cartelera asignadas, el sistema no permitirá eliminarla para preservar los registros; en su lugar podrás cambiar su estado a </span>
+          <strong>Inactiva</strong>.
+        </p>
+
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#f0f0f0]">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onClose}
+            disabled={isLoading}
+            className="text-[13px] px-4"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            isLoading={isLoading}
+            onClick={onConfirm}
+            className="text-[13px] px-4 bg-red-600 hover:bg-red-700 text-white"
+            leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+          >
+            Eliminar Película
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
