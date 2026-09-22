@@ -23,7 +23,6 @@ interface MovieModalProps {
 }
 
 export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalProps>) {
-  const navigate = useNavigate();
   const { data: funciones = [], isLoading } = useFuncionesDisponibles(pelicula?.id);
   const [selectedFuncionId, setSelectedFuncionId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");

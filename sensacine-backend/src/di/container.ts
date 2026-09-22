@@ -49,7 +49,9 @@ export const funcionController = new FuncionController(funcionService);
 // Módulo Reservas (Asientos)
 const asientoRepository = new PrismaAsientoRepository();
 export const asientoService = new AsientoService(asientoRepository, new SocketAsientoNotifier());
-export const asientoController = new AsientoController(asientoService);// Módulo Menú
+export const asientoController = new AsientoController(asientoService);
+
+// Módulo Menú
 const menuRepository = new MenuRepository();
 const menuService = new MenuService(menuRepository);
 export const menuController = new MenuController(menuService);
