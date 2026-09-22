@@ -1,5 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPeliculasActivas, getPeliculaById } from "../api/peliculaApi";
+import {
+  getPeliculasActivas,
+  getPeliculaById,
+  getFuncionesDisponiblesPorPelicula,
+} from "../api/peliculaApi";
 
 export const PELICULAS_QUERY_KEY = ["peliculas", "activas"];
 
@@ -17,3 +21,12 @@ export function usePelicula(id: number) {
     enabled: !!id,
   });
 }
+
+export function useFuncionesDisponibles(idPelicula?: number) {
+  return useQuery({
+    queryKey: ["funciones", "disponibles", idPelicula],
+    queryFn: () => (idPelicula ? getFuncionesDisponiblesPorPelicula(idPelicula) : []),
+    enabled: !!idPelicula,
+  });
+}
+

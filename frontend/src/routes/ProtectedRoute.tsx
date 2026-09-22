@@ -7,10 +7,7 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export function ProtectedRoute({
-  rolesPermitidos,
-  redirectTo = "/login",
-}: ProtectedRouteProps) {
+export function ProtectedRoute({ rolesPermitidos, redirectTo = "/login", }: ProtectedRouteProps) {
   const { isAuthenticated, usuario } = useAuthStore();
 
   if (!isAuthenticated) {
