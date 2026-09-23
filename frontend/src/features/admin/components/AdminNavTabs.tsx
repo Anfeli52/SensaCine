@@ -29,6 +29,11 @@ export function AdminNavTabs() {
       path: "/admin/usuarios", 
       icon: Users, 
     },
+    { id: "productos", 
+      label: "Catálogo de Productos Gastronómicos", 
+      path: "/admin/productos", 
+      icon: Users, 
+    },
   ];
 
   return (
