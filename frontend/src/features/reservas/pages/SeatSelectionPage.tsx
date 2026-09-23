@@ -186,7 +186,13 @@ export function SeatSelectionPage() {
                         </>
                     )}
                 </div>
-                <Button variant="primary" size="sm" disabled={selected.length === 0} className="px-5">
+                <Button 
+                    variant="primary" 
+                    size="sm" 
+                    disabled={selected.length === 0} 
+                    className="px-5"
+                    onClick={() => navigate('/reservas/alergenos', { state: { ...state, selectedAsientos: selected } })}
+                >
                     Continuar
                 </Button>
             </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pelicula } from "../types";
 import { Badge } from "../../../shared/components/Badge";
 import { Clock } from "lucide-react";
@@ -8,6 +9,7 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ pelicula, onClick }: MovieCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   return (
     <div
       onClick={onClick}
@@ -46,6 +48,25 @@ export function MovieCard({ pelicula, onClick }: MovieCardProps) {
           <h3 className="text-[15px] font-semibold text-[#1d1d1f] tracking-tight leading-snug group-hover:text-[#0071e3] transition-colors line-clamp-2">
             {pelicula.titulo}
           </h3>
+          {pelicula.sinopsis && (
+            <div className="mt-1.5 text-[12px] text-[#6e6e73]">
+              <p className={isExpanded ? "" : "line-clamp-2 leading-relaxed"}>
+                {pelicula.sinopsis}
+              </p>
+              {pelicula.sinopsis.length > 80 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsExpanded(!isExpanded);
+                  }}
+                  className="text-[#0071e3] font-medium hover:underline mt-0.5 inline-block focus:outline-none"
+                >
+                  {isExpanded ? "Ver menos" : "Ver más"}
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Footer Meta */}

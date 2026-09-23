@@ -6,6 +6,7 @@ import { HomePage } from "../features/catalogo/pages/HomePage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { RegisterPage } from "../features/auth/pages/RegisterPage";
 import { SeatSelectionPage } from "../features/reservas/pages/SeatSelectionPage";
+import { AlergenosPage } from "../features/reservas/pages/AlergenosPage";
 import { AdminPeliculasPage } from "../features/admin/pages/AdminPeliculasPage";
 import { AdminFuncionesPage } from "../features/admin/pages/AdminFuncionesPage";
 import { AdminSalasPage } from "../features/admin/pages/AdminSalasPage";
@@ -26,6 +27,11 @@ export const router = createBrowserRouter([
     path: "/reservas/asientos",
     element: <MainLayout />,
     children: [{ index: true, element: <SeatSelectionPage /> }],
+  },
+  {
+    path: "/reservas/alergenos",
+    element: <MainLayout />,
+    children: [{ index: true, element: <AlergenosPage /> }],
   },
   {
     path: "/admin",
