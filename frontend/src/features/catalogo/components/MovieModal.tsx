@@ -26,6 +26,7 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
   const { data: funciones = [], isLoading } = useFuncionesDisponibles(pelicula?.id);
   const [selectedFuncionId, setSelectedFuncionId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
 
   const navigate = useNavigate();
 
@@ -219,9 +220,20 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
             </div>
 
             {/* Synopsis */}
-            <p className="text-[12px] text-[#6e6e73] leading-relaxed line-clamp-3 pt-1">
-              {pelicula.sinopsis || "Sinopsis no disponible."}
-            </p>
+            <div>
+              <p className={`text-[12px] text-[#6e6e73] leading-relaxed pt-1 ${isSynopsisExpanded ? "" : "line-clamp-3"}`}>
+                {pelicula.sinopsis || "Sinopsis no disponible."}
+              </p>
+              {pelicula.sinopsis && pelicula.sinopsis.length > 100 && (
+                <button
+                  type="button"
+                  onClick={() => setIsSynopsisExpanded(!isSynopsisExpanded)}
+                  className="text-[#0071e3] font-medium text-[12px] hover:underline mt-0.5 inline-block focus:outline-none"
+                >
+                  {isSynopsisExpanded ? "Ver menos" : "Ver más"}
+                </button>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => {

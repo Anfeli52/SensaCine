@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pelicula } from "../types";
 import { Badge } from "../../../shared/components/Badge";
 import { Button } from "../../../shared/components/Button";
@@ -9,6 +10,8 @@ interface HeroBannerProps {
 }
 
 export function HeroBanner({ featuredMovie, onSelectMovie }: HeroBannerProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   if (!featuredMovie) return null;
 
   return (
@@ -57,9 +60,20 @@ export function HeroBanner({ featuredMovie, onSelectMovie }: HeroBannerProps) {
           </div>
 
           {/* Synopsis */}
-          <p className="text-[14px] text-[#6e6e73] max-w-2xl leading-relaxed line-clamp-3">
-            {featuredMovie.sinopsis || "Disfruta de la mejor experiencia cinematográfica en cartelera."}
-          </p>
+          <div>
+            <p className={`text-[14px] text-[#6e6e73] max-w-2xl leading-relaxed ${isExpanded ? "" : "line-clamp-3"}`}>
+              {featuredMovie.sinopsis || "Disfruta de la mejor experiencia cinematográfica en cartelera."}
+            </p>
+            {featuredMovie.sinopsis && featuredMovie.sinopsis.length > 100 && (
+              <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-[#0071e3] font-medium text-[13px] hover:underline mt-1 inline-block focus:outline-none"
+              >
+                {isExpanded ? "Ver menos" : "Ver más"}
+              </button>
+            )}
+          </div>
 
           {/* Action CTAs */}
           <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-3">
