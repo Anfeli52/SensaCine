@@ -10,6 +10,7 @@ import { AdminPeliculasPage } from "../features/admin/pages/AdminPeliculasPage";
 import { AdminFuncionesPage } from "../features/admin/pages/AdminFuncionesPage";
 import { AdminSalasPage } from "../features/admin/pages/AdminSalasPage";
 import { AdminUsuariosPage } from "../features/admin/pages/AdminUsuariosPage";
+import { AdminProductosPage } from "../features/admin/pages/AdminProductosPage";
 import { MenuPage } from "../features/menu/pages/MenuPage";
 
 export const router = createBrowserRouter([
@@ -54,6 +55,10 @@ export const router = createBrowserRouter([
             path: "usuarios",
             element: <AdminUsuariosPage />,
           },
+          {
+            path: "productos",
+            element: <AdminProductosPage />,
+          }
         ],
       },
     ],

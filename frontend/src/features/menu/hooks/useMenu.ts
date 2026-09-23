@@ -6,5 +6,7 @@ export function useMenu(idPelicula?: number) {
     queryKey: ["menu", idPelicula],
     queryFn: () => (idPelicula ? getMenuPorPelicula(idPelicula) : []),
     enabled: !!idPelicula,
+    refetchOnWindowFocus: true,
+    staleTime: 0
   });
 }
