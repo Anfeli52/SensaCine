@@ -64,15 +64,14 @@ export function AlergenosPage() {
             ? alergiasSeleccionadas.map(a => a === "Otro" ? otraAlergia : a)
             : [];
             
-        console.log("Procediendo al pago con:", {
-            pelicula,
-            funcion,
-            asientos: selectedAsientos,
-            alergias: alergiasData
+        navigate("/reservas/resumen", {
+            state: {
+                pelicula,
+                funcion,
+                selectedAsientos,
+                alergias: alergiasData
+            }
         });
-        
-        alert("Información de alérgenos guardada.\n" + (alergiasData.length > 0 ? "Alérgenos: " + alergiasData.join(", ") : "Sin alérgenos") + "\n\nRedirigiendo a pagos (Próximamente)...");
-        navigate("/");
     };
 
     return (
