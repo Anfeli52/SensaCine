@@ -69,7 +69,7 @@ export function AdminDeleteConfirmModal({
             className="text-[13px] px-4 bg-red-600 hover:bg-red-700 text-white"
             leftIcon={<Trash2 className="w-3.5 h-3.5" />}
           >
-            Eliminar Película
+            Eliminar Producto
           </Button>
         </div>
       </div>
