@@ -171,6 +171,161 @@ const PELICULAS_SEED = [
   },
 ];
 
+const PRODUCTOS_SEED = [
+  {
+    idPelicula: 1,
+    nombre: "Palomitas de caramelo",
+    descripcion:
+      "Palomitas dulces con cobertura de caramelo, ideales para disfrutar durante la función.",
+    categoria: "Snacks",
+    estado: "activo",
+    ordenMenu: 1,
+    imagenUrl:
+      "https://www.loleta.es/wp-content/uploads/2020/03/WEB-PALOMITAS-8203-copia-748x1024.jpg",
+  },
+  {
+    idPelicula: 1,
+    nombre: "Nachos con queso",
+    descripcion:
+      "Nachos crujientes acompañados de salsa de queso cheddar.",
+    categoria: "Snacks",
+    estado: "activo",
+    ordenMenu: 2,
+    imagenUrl:
+      "https://www.kindpng.com/picc/m/132-1322497_nachos-cinepolis-png-download-nachos-con-queso-cinepolis.png",
+  },
+  {
+    idPelicula: 1,
+    nombre: "Bebida temática",
+    descripcion:
+      "Bebida fría inspirada en la temática de la película",
+    categoria: "Bebida",
+    estado: "activo",
+    ordenMenu: 3,
+    imagenUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYcN-qgSL-rySzAQSOsGKcHb832ZnIm_TDm8sUB4uszrvBy4SIdvplqkxE&s=10",
+  },
+  {
+    idPelicula: 1,
+    nombre: "Postre de la película",
+    descripcion:
+      "Postre especial inspirado en los elementos y sabores de la película.",
+    categoria: "Postres",
+    estado: "activo",
+    ordenMenu: 4,
+    imagenUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8UvEfa0cM2ufZYLX42phhUPf4enNikG0HNYRDtZyHz2S2wueiQNk2aWQ&s=10",
+  },
+  {
+    idPelicula: 1,
+    nombre: "Chocolate caliente",
+    descripcion:
+      "Chocolate caliente cremoso para complementar la experiencia gastronómica.",
+    categoria: "Bebida",
+    estado: "inactivo",
+    ordenMenu: 5,
+    imagenUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQgBGECjThqKnwCgDJZ233oIijwu04sAcarR8NmKG53asxN9quWk4Y9dXUX&s=10",
+  },
+  {
+    idPelicula: 1,
+    nombre: "Hamburguesa Cine",
+    descripcion: "Hamburguesa especial de la pelicula",
+    categoria: "Plato Principal",
+    estado: "inactivo",
+    ordenMenu: 6,
+    imagenUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTW0lTLcChTXS98tuMljmeciK6xpHhITvQ7teo1h7st_iPnTdaezEDOrwix&s=10",
+  },
+  {
+    idPelicula: 11,
+    nombre: "Pan de muerto",
+    descripcion:
+      "Pan de muerto tradicional, suave y ligeramente dulce, inspirado en las tradiciones mexicanas del Día de Muertos.",
+    categoria: "Entrada",
+    estado: "activo",
+    ordenMenu: 1,
+    imagenUrl:
+      "https://images.getrecipekit.com/20230117012442-25102021-xcd_0029-20-20editado.png?aspect_ratio=16:9&quality=90&",
+  },
+  {
+    idPelicula: 11,
+    nombre: "Tacos al pastor",
+    descripcion:
+      "Tacos al pastor con carne sazonada, cebolla, cilantro y un toque de piña, inspirados en los sabores tradicionales de México.",
+    categoria: "Plato principal",
+    estado: "activo",
+    ordenMenu: 2,
+    imagenUrl:
+      "https://assets.tmecosys.com/image/upload/t_web_rdp_recipe_584x480/img/recipe/ras/Assets/C07AE049-11C3-4672-A96A-A547C15F0116/Derivates/FE1D05A4-0A44-4007-9A42-5CAFD9F8F798.jpg",
+  },
+  {
+    idPelicula: 11,
+    nombre: "Elote mexicano",
+    descripcion:
+      "Elote asado acompañado de mayonesa, queso y un toque de limón, inspirado en la comida callejera mexicana.",
+    categoria: "Acompañamiento",
+    estado: "activo",
+    ordenMenu: 3,
+    imagenUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYzDDOr92mY5MMMXnA8JFLdwrsqjY-TXFDjhvsOV-hfWrm30bQqG-8x8Iy&s=10",
+  },
+  {
+    idPelicula: 11,
+    nombre: "Agua de jamaica",
+    descripcion:
+      "Bebida refrescante de flor de jamaica con un sabor dulce y ligeramente ácido.",
+    categoria: "Bebida",
+    estado: "activo",
+    ordenMenu: 4,
+    imagenUrl:
+      "https://cloudfront-us-east-1.images.arcpublishing.com/infobae/IDNEPYYXRJBFHBLLZZ5BO5OJDY.jpg",
+  },
+  {
+    idPelicula: 11,
+    nombre: "Chocolate mexicano",
+    descripcion:
+      "Chocolate caliente de textura cremosa con un toque de canela, inspirado en los sabores tradicionales mexicanos.",
+    categoria: "Bebida",
+    estado: "activo",
+    ordenMenu: 5,
+    imagenUrl:
+      "https://www.piloncilloyvainilla.com/wp-content/uploads/2025/01/spiced-mexican-chocolate9.webp",
+  },
+  {
+    idPelicula: 11,
+    nombre: "Churros con canela",
+    descripcion:
+      "Churros crujientes por fuera y suaves por dentro, acompañadoscon azúcar y canela.",
+    categoria: "Postre",
+    estado: "activo",
+    ordenMenu: 6,
+    imagenUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzzXaAqxJmerLKnE_aMhPiak9Fb8ZgShZJuw2yxgO2w0Z6s4FeoRbwreV1&s=10",
+  },
+  {
+    idPelicula: 15,
+    nombre: "Noodles",
+    descripcion:
+      "Fideos estirados a mano del agreste noroeste de China",
+    categoria: "Plato Principal",
+    estado: "activo",
+    ordenMenu: 1,
+    imagenUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTencXo-DV1-f_4kwCU9cdcQ0lrGTl8JQ1HgfmMuIpIw-h9n5r5YqgUlP3K&s=10",
+  },
+  {
+    idPelicula: 15,
+    nombre: "Dumplings",
+    descripcion: "Dumplings de la pelicula",
+    categoria: "Entrada",
+    estado: "inactivo",
+    ordenMenu: 2,
+    imagenUrl:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlPdzgGXlrXUYAO3CbeZ5JqsbxiaepGhVaC_A3k3jEoQ1Wj_qeeEkaDhKk&s=10",
+  },
+];
+
 async function seedAdmin(): Promise<void> {
   const adminEmail = "admin@sensacine.com";
   const existingAdmin = await prisma.usuario.findUnique({ where: { email: adminEmail } });
@@ -335,10 +490,37 @@ async function seedFunciones(): Promise<void> {
   console.log(`🎟️ ${funcionesCreadas} funciones nuevas creadas.`);
 }
 
+async function seedProductos(): Promise<void> {
+  console.log(`🍿 Insertando ${PRODUCTOS_SEED.length} productos gastronómicos...`);
+
+  for (const producto of PRODUCTOS_SEED) {
+    const existente = await prisma.producto.findFirst({
+      where: {
+        idPelicula: producto.idPelicula,
+        ordenMenu: producto.ordenMenu,
+      },
+    });
+
+    if (existente) {
+      console.log(
+        `ℹ️ Producto ya existente: ${producto.nombre} (película ${producto.idPelicula}, orden ${producto.ordenMenu})`
+      );
+      continue;
+    }
+
+    await prisma.producto.create({
+      data: producto,
+    });
+
+    console.log(`✅ Producto creado: ${producto.nombre}`);
+  }
+}
+
 async function main() {
   console.log("🌱 Iniciando proceso de Seed...");
   await seedAdmin();
   await seedPeliculas();
+  await seedProductos();
   await seedSalas();
   await seedFunciones();
   console.log("✨ Seed completado exitosamente.");
