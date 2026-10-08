@@ -192,11 +192,12 @@ model Reserva {
 }
 
 model ReservaAsiento {
-  id        Int      @id @default(autoincrement()) @map("id_reserva_asiento")
-  idReserva Int      @map("id_reserva")
-  reserva   Reserva  @relation(fields: [idReserva], references: [id])
-  idAsiento Int      @map("id_asiento")
-  asiento   Asiento  @relation(fields: [idAsiento], references: [id])
+  id            Int      @id @default(autoincrement()) @map("id_reserva_asiento")
+  idReserva     Int      @map("id_reserva")
+  reserva       Reserva  @relation(fields: [idReserva], references: [id])
+  idAsiento     Int      @map("id_asiento")
+  asiento       Asiento  @relation(fields: [idAsiento], references: [id])
+  nombrePersona String?  @map("nombre_persona") @db.VarChar(100)
 
   restricciones ReservaRestriccion[]
   ordenesCocina OrdenCocina[]

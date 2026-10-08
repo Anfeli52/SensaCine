@@ -25,3 +25,11 @@ export interface DisponibilidadFuncion {
     id_sala: number;
     asientos: AsientoFuncion[];
 }
+
+export interface AsientoDetalleReserva {
+    asiento: Asiento;
+    nombrePersona: string;
+    tieneAlergias: boolean;
+    alergias: string[];
+    otraAlergia?: string;
+}
