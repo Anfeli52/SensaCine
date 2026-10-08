@@ -42,4 +42,12 @@ export class TarjetaService {
         const actualizada = await this.tarjetaRepo.actualizarSaldo(tarjeta.id, data);
         return this.toDTO(actualizada);
     };
+
+    async eliminar(idUsuario:number, idTarjeta:number): Promise<void>{
+        const tarjeta = await this.tarjetaRepo.obtenerPorId(idTarjeta);
+        if(!tarjeta || tarjeta.idUsuario !== idUsuario || tarjeta.estado !== "Activa" ){
+            throw new AppError("Tarjeta inexistente o No Autorizado", 404);
+        }
+        await this.tarjetaRepo.eliminar(idTarjeta)
+    }
 }
