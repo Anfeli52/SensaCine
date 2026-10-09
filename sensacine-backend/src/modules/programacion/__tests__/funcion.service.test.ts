@@ -231,5 +231,21 @@ describe("FuncionService", () => {
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(11);
   });
+
+  it("listar con soloFuturas debe incluir funciones de fechas futuras sin importar la hora", async () => {
+    const manana = createFuncionFixture(20, {
+      fecha: new Date(Date.UTC(2035, 5, 15)),
+      horaInicio: new Date(Date.UTC(1970, 0, 1, 9, 0, 0)),
+      horaFin: new Date(Date.UTC(1970, 0, 1, 11, 0, 0)),
+      precioAsientoOficial: new Prisma.Decimal(28000),
+    });
+
+    const funcionRepo = makeFakeFuncionRepo([manana]);
+    const service = new FuncionService(funcionRepo, fakePeliculaRepo, fakeSalaRepo);
+
+    const result = await service.listar({ soloFuturas: true });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe(20);
+  });
 });
 

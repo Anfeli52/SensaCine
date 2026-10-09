@@ -1,6 +1,7 @@
 import { AppError } from "../../common/errors/AppError";
 import { IPeliculaRepository } from "../catalogo/pelicula.types";
 import { ISalaRepository } from "./sala.types";
+import { getCinemaDateStr, getCinemaTimeStr } from "../../common/helpers/dateUtils";
 import {
   CreateFuncionInput,
   FuncionConDetalles,
@@ -87,11 +88,8 @@ export class FuncionService {
     let dtos = funciones.map((f) => this.toDTO(f));
 
     if (filters?.soloFuturas) {
-      const now = new Date();
-      const todayStr = this.formatDate(now);
-      const currentHours = now.getHours();
-      const currentMinutes = now.getMinutes();
-      const currentTimeStr = `${String(currentHours).padStart(2, "0")}:${String(currentMinutes).padStart(2, "0")}`;
+      const todayStr = getCinemaDateStr();
+      const currentTimeStr = getCinemaTimeStr();
 
       dtos = dtos.filter((f) => {
         if (f.fecha > todayStr) return true;

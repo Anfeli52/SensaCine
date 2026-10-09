@@ -22,6 +22,12 @@ export class TarjetaController {
   };
   
 
+  procesarPago = async (req: AuthRequest, res: Response) => {
+    const idTarjeta = Number(req.params.id);
+    const resultado = await this.tarjetaService.procesarPago(req.usuario!.id, idTarjeta, req.body);
+    res.status(200).json(resultado);
+  };
+
   eliminar = async (req: AuthRequest, res: Response) => {
     const idTarjeta = Number(req.params.id);
     await this.tarjetaService.eliminar(req.usuario!.id, idTarjeta);

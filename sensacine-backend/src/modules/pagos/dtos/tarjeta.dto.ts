@@ -24,3 +24,18 @@ export interface TarjetaResponseDTO {
     fechaCreacion: Date;
 }
 
+export interface ProcesarPagoDTO {
+    monto: number;
+    descripcion?: string;
+}
+
+export interface ResultadoPagoDTO {
+    exitoso: boolean;
+    mensaje: string;
+    referenciaTransaccion: string;
+    montoPagado: number;
+    nuevoSaldo: number;
+    tarjetaId: number;
+    fechaPago: Date;
+}
+

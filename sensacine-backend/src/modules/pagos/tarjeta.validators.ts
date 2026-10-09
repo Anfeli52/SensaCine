@@ -12,3 +12,8 @@ export const createTarjetaSchema = z.object({
 export const updateSaldoSchema = z.object({
   nuevoSaldo: z.number().min(0, "El saldo no puede ser negativo"),
 });
+
+export const procesarPagoSchema = z.object({
+  monto: z.number().positive("El monto a pagar debe ser mayor a cero"),
+  descripcion: z.string().optional(),
+});
