@@ -46,6 +46,24 @@ const historialInclude = {
                     numero: true,
                 },
             },
+            restricciones: {
+                include: {
+                    restriccion: {
+                        select: {
+                            id: true,
+                            nombre: true,
+                            tipo: true,
+                            descripcion: true,
+                        },
+                    },
+                    producto: {
+                        select: {
+                            id: true,
+                            nombre: true,
+                        },
+                    },
+                },
+            },
         },
     },
 } satisfies Prisma.ReservaInclude;

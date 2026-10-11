@@ -77,7 +77,75 @@ function ReservaDetalle({ id }: { id: number }) {
                     Esta reserva no tiene asientos registrados.
                 </p>
             )}
+            <div className="mt-6">
+                <div className="flex items-center gap-2 mb-3">
+                    <AlertCircle className="w-4 h-4 text-[#0071e3]" />
+                    <h4 className="text-sm font-semibold text-[#1d1d1f]">
+                        Restricciones alimentarias
+                    </h4>
+                </div>
 
+                {data.asientos.some(
+                    (item) => item.restricciones.length > 0
+                ) ? (
+                    <div className="space-y-3">
+                        {data.asientos
+                            .filter((item) => item.restricciones.length > 0)
+                            .map((item) => (
+                                <div
+                                    key={item.id}
+                                    className="rounded-xl border border-[#e5e5ea] p-3"
+                                >
+                                    <p className="text-sm font-semibold text-[#1d1d1f] mb-2">
+                                        Asiento {item.asiento.fila}
+                                        {item.asiento.numero}
+                                    </p>
+
+                                    <div className="space-y-3">
+                                        {item.restricciones.map((restriccion) => (
+                                            <div
+                                                key={restriccion.id}
+                                                className="rounded-lg bg-[#f5f5f7] p-3"
+                                            >
+                                                <p className="text-sm font-medium text-[#1d1d1f]">
+                                                    {restriccion.restriccion.nombre}
+                                                </p>
+
+                                                {restriccion.restriccion.descripcion && (
+                                                    <p className="mt-1 text-xs text-[#6e6e73]">
+                                                        {restriccion.restriccion.descripcion}
+                                                    </p>
+                                                )}
+
+                                                {restriccion.producto && (
+                                                    <p className="mt-2 text-xs text-[#6e6e73]">
+                                                        <span className="font-medium">
+                                                            Producto:
+                                                        </span>{" "}
+                                                        {restriccion.producto.nombre}
+                                                    </p>
+                                                )}
+
+                                                {restriccion.notas && (
+                                                    <p className="mt-2 text-xs text-[#6e6e73]">
+                                                        <span className="font-medium">
+                                                            Notas:
+                                                        </span>{" "}
+                                                        {restriccion.notas}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                    </div>
+                ) : (
+                    <p className="text-sm text-[#86868b]">
+                        No hay restricciones alimentarias registradas para esta reserva.
+                    </p>
+                )}
+            </div>
 
             <div className="mt-6">
                 <div className="flex items-center gap-2 mb-3">
