@@ -37,17 +37,6 @@ export function AdminUsuarioTable({
         return matchesSearch && matchesRol && matchesEstado;
     });
 
-    const getRolLabel = (rol: Rol) => {
-        switch (rol) {
-            case "admin":
-                return "Administrador";
-            case "cocina":
-                return "Cocina";
-            case "cliente":
-                return "Cliente";
-        }
-    };
-
     const getRolIcon = (rol: Rol) => {
         switch (rol) {
             case "admin":
@@ -57,10 +46,6 @@ export function AdminUsuarioTable({
             case "cliente":
                 return <UserRound className="w-3.5 h-3.5" />;
         }
-    };
-
-    const getEstadoLabel = (estado: string) => {
-        return estado === "activo" ? "Activo" : "Inactivo";
     };
 
     return (

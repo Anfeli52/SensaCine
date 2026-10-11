@@ -14,16 +14,17 @@ import { AdminSalasPage } from "../features/admin/pages/AdminSalasPage";
 import { AdminUsuariosPage } from "../features/admin/pages/AdminUsuariosPage";
 import { AdminProductosPage } from "../features/admin/pages/AdminProductosPage";
 import { MenuPage } from "../features/menu/pages/MenuPage";
+import { MisReservasPage } from "../features/reservas/pages/MisReservasPage";
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MainLayout />,
     children: [
-      { index: true, element: <HomePage />},
+      { index: true, element: <HomePage /> },
       { path: "menu/:peliculaId", element: <MenuPage /> },
     ],
-    
+
   },
   {
     path: "/reservas/asientos",
@@ -40,6 +41,12 @@ export const router = createBrowserRouter([
     element: <MainLayout />,
     children: [{ index: true, element: <ResumenReservaPage /> }],
   },
+  {
+    path: "/reservas/historial",
+    element: <MainLayout />,
+    children: [{ index: true, element: <MisReservasPage />, },],
+  },
+  
   {
     path: "/admin",
     element: <ProtectedRoute rolesPermitidos={["admin"]} />,

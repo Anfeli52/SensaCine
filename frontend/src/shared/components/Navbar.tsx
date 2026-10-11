@@ -38,6 +38,14 @@ export function Navbar() {
           <a href="/#peliculas" className="hover:text-[#1d1d1f] transition-colors">
             Películas
           </a>
+          {usuario?.rol === "cliente" && (
+            <Link
+              to="/reservas/historial"
+              className="text-[#1d1d1f] hover:text-[#0071e3] transition-colors font-medium"
+            >
+              Mis reservas anteriores
+            </Link>
+          )}
           {usuario?.rol === "admin" && (
             <Link
               to="/admin/peliculas"
