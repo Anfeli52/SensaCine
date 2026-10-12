@@ -32,6 +32,10 @@ import { AdminController } from "../modules/admin/admin.controller";
 import { AdminService } from "../modules/admin/admin.service";
 import { AdminRepository } from "../modules/admin/admin.repository";
 
+import { ReservasAdminRepository } from "../modules/reservas/reservasAdmin.repository";
+import { ReservasAdminService } from "../modules/reservas/reservasAdmin.service";
+import { ReservasAdminController } from "../modules/reservas/reservasAdmin.controller";
+
 // Módulo Auth
 const usuarioRepository = new PrismaUsuarioRepository();
 const authService = new AuthService(usuarioRepository);
@@ -70,3 +74,8 @@ export const menuController = new MenuController(menuService);
 const adminRepository = new AdminRepository();
 const adminService = new AdminService(adminRepository);
 export const adminController = new AdminController(adminService);
+
+// Módulo Reservas Admin
+const reservasAdminRepository = new ReservasAdminRepository();
+const reservasAdminService = new ReservasAdminService(reservasAdminRepository);
+export const reservasAdminController = new ReservasAdminController(reservasAdminService);

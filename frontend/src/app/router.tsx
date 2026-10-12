@@ -15,6 +15,7 @@ import { AdminUsuariosPage } from "../features/admin/pages/AdminUsuariosPage";
 import { AdminProductosPage } from "../features/admin/pages/AdminProductosPage";
 import { MenuPage } from "../features/menu/pages/MenuPage";
 import { MisReservasPage } from "../features/reservas/pages/MisReservasPage";
+import { AdminReservasPage } from "../features/admin/pages/AdminReservasPage";
 
 export const router = createBrowserRouter([
   {
@@ -77,7 +78,11 @@ export const router = createBrowserRouter([
           {
             path: "productos",
             element: <AdminProductosPage />,
-          }
+          },
+          {
+            path: "reservas",
+            element: <AdminReservasPage />,
+          },
         ],
       },
     ],
