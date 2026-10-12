@@ -88,6 +88,17 @@ const PELICULAS_SEED = [
     estado: "activa",
     precioBaseExperiencia: 24000,
   },
+  {
+    titulo: "Coco",
+    sinopsis:
+      "Miguel sueña con ser músico a pesar de la prohibición de su familia. En su búsqueda por cumplir su sueño, viaja a la Tierra de los Muertos, donde descubre los secretos de su historia familiar con la ayuda del carismático Héctor.",
+    duracionMinutos: 105,
+    genero: "Animación / Aventura / Fantasía",
+    clasificacion: "PG",
+    posterUrl: "https://image.tmdb.org/t/p/w500/gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg",
+    estado: "activa",
+    precioBaseExperiencia: 24000,
+  },
 ];
 
 const RESTRICCIONES_SEED = [
@@ -374,7 +385,7 @@ const PRODUCTOS_SEED = [
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTW0lTLcChTXS98tuMljmeciK6xpHhITvQ7teo1h7st_iPnTdaezEDOrwix&s=10",
   },
   {
-    idPelicula: 11,
+    idPelicula: 8,
     nombre: "Pan de muerto",
     descripcion:
       "Pan de muerto tradicional, suave y ligeramente dulce, inspirado en las tradiciones mexicanas del Día de Muertos.",
@@ -385,7 +396,7 @@ const PRODUCTOS_SEED = [
       "https://images.getrecipekit.com/20230117012442-25102021-xcd_0029-20-20editado.png?aspect_ratio=16:9&quality=90&",
   },
   {
-    idPelicula: 11,
+    idPelicula: 8,
     nombre: "Tacos al pastor",
     descripcion:
       "Tacos al pastor con carne sazonada, cebolla, cilantro y un toque de piña, inspirados en los sabores tradicionales de México.",
@@ -396,7 +407,7 @@ const PRODUCTOS_SEED = [
       "https://assets.tmecosys.com/image/upload/t_web_rdp_recipe_584x480/img/recipe/ras/Assets/C07AE049-11C3-4672-A96A-A547C15F0116/Derivates/FE1D05A4-0A44-4007-9A42-5CAFD9F8F798.jpg",
   },
   {
-    idPelicula: 11,
+    idPelicula: 8,
     nombre: "Elote mexicano",
     descripcion:
       "Elote asado acompañado de mayonesa, queso y un toque de limón, inspirado en la comida callejera mexicana.",
@@ -407,7 +418,7 @@ const PRODUCTOS_SEED = [
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYzDDOr92mY5MMMXnA8JFLdwrsqjY-TXFDjhvsOV-hfWrm30bQqG-8x8Iy&s=10",
   },
   {
-    idPelicula: 11,
+    idPelicula: 8,
     nombre: "Agua de jamaica",
     descripcion:
       "Bebida refrescante de flor de jamaica con un sabor dulce y ligeramente ácido.",
@@ -418,7 +429,7 @@ const PRODUCTOS_SEED = [
       "https://cloudfront-us-east-1.images.arcpublishing.com/infobae/IDNEPYYXRJBFHBLLZZ5BO5OJDY.jpg",
   },
   {
-    idPelicula: 11,
+    idPelicula: 8,
     nombre: "Chocolate mexicano",
     descripcion:
       "Chocolate caliente de textura cremosa con un toque de canela, inspirado en los sabores tradicionales mexicanos.",
@@ -429,7 +440,7 @@ const PRODUCTOS_SEED = [
       "https://www.piloncilloyvainilla.com/wp-content/uploads/2025/01/spiced-mexican-chocolate9.webp",
   },
   {
-    idPelicula: 11,
+    idPelicula: 8,
     nombre: "Churros con canela",
     descripcion:
       "Churros crujientes por fuera y suaves por dentro, acompañadoscon azúcar y canela.",
@@ -440,7 +451,7 @@ const PRODUCTOS_SEED = [
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSzzXaAqxJmerLKnE_aMhPiak9Fb8ZgShZJuw2yxgO2w0Z6s4FeoRbwreV1&s=10",
   },
   {
-    idPelicula: 15,
+    idPelicula: 7,
     nombre: "Noodles",
     descripcion:
       "Fideos estirados a mano del agreste noroeste de China",
@@ -451,7 +462,7 @@ const PRODUCTOS_SEED = [
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTencXo-DV1-f_4kwCU9cdcQ0lrGTl8JQ1HgfmMuIpIw-h9n5r5YqgUlP3K&s=10",
   },
   {
-    idPelicula: 15,
+    idPelicula: 7,
     nombre: "Dumplings",
     descripcion: "Dumplings de la pelicula",
     categoria: "Entrada",
@@ -461,10 +472,6 @@ const PRODUCTOS_SEED = [
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlPdzgGXlrXUYAO3CbeZ5JqsbxiaepGhVaC_A3k3jEoQ1Wj_qeeEkaDhKk&s=10",
   },
 ];
-
-async function seedAdmin(): Promise<void> {
-  const adminEmail = "admin@sensacine.com";
-  const existingAdmin = await prisma.usuario.findUnique({ where: { email: adminEmail } });
 
 function getFechasDinamicas(): string[] {
   const fechas: string[] = [];
