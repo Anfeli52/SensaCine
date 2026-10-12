@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Film, Calendar, Armchair, Users } from "lucide-react";
+import { Film, Calendar, Armchair, Users, UtensilsCrossed, ListCheck } from "lucide-react";
 
 
 export function AdminNavTabs() {
@@ -32,7 +32,12 @@ export function AdminNavTabs() {
     { id: "productos", 
       label: "Catálogo de Productos Gastronómicos", 
       path: "/admin/productos", 
-      icon: Users, 
+      icon: UtensilsCrossed, 
+    },
+    { id: "reservas",
+      label: "Gestión de Reservas",
+      path: "/admin/reservas",
+      icon: ListCheck,
     },
   ];
 

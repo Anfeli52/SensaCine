@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { asyncHandler } from "../../common/helpers/asyncHandler";
-import { authenticate } from "../../common/middlewares/authMiddleware";
-import { asientoController, historialReservaController } from "../../di/container";
+import { authenticate, requireRole } from "../../common/middlewares/authMiddleware";
+import { asientoController, historialReservaController, reservasAdminController } from "../../di/container";
 const router = Router();
 
 router.get(
@@ -26,6 +26,20 @@ router.get(
     "/historial/:id",
     authenticate,
     asyncHandler(historialReservaController.getDetalleReserva)
+);
+
+router.get(
+    "/admin",
+    authenticate,
+    requireRole("admin"),
+    asyncHandler(reservasAdminController.getAllReservas)
+);
+
+router.get(
+    "/admin/:id",
+    authenticate,
+    requireRole("admin"),
+    asyncHandler(reservasAdminController.getReservaById)
 );
 
 router.post(

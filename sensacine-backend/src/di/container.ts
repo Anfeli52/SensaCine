@@ -32,6 +32,9 @@ import { AdminController } from "../modules/admin/admin.controller";
 import { AdminService } from "../modules/admin/admin.service";
 import { AdminRepository } from "../modules/admin/admin.repository";
 
+import { ReservasAdminRepository } from "../modules/reservas/reservasAdmin.repository";
+import { ReservasAdminService } from "../modules/reservas/reservasAdmin.service";
+import { ReservasAdminController } from "../modules/reservas/reservasAdmin.controller";
 import { TarjetaController } from "../modules/pagos/tarjeta.controller";
 import { TarjetaService } from "../modules/pagos/tarjeta.servicie";
 import { TarjetaRepository } from "../modules/pagos/tarjeta.repository";
@@ -75,6 +78,10 @@ const adminRepository = new AdminRepository();
 const adminService = new AdminService(adminRepository);
 export const adminController = new AdminController(adminService);
 
+// Módulo Reservas Admin
+const reservasAdminRepository = new ReservasAdminRepository();
+const reservasAdminService = new ReservasAdminService(reservasAdminRepository);
+export const reservasAdminController = new ReservasAdminController(reservasAdminService);
 //Módulo Pagos
 const tarjetaRepository = new TarjetaRepository();
 const tarjetaService = new TarjetaService(tarjetaRepository);
