@@ -1,5 +1,3 @@
--- AlterTable
-ALTER TABLE "reserva_asiento" ADD COLUMN     "nombre_persona" VARCHAR(100);
 -- CreateTable
 CREATE TABLE "tarjeta" (
     "id_tarjeta" SERIAL NOT NULL,
