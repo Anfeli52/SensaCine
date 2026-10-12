@@ -35,12 +35,26 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
     Array.from(new Set(funciones.map((f: any) => f.fecha.split("T")[0]))) as string[]
   ).sort((a, b) => a.localeCompare(b));
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const getLocalDateStr = (d: Date = new Date()) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  const todayStr = getLocalDateStr();
+  const tomorrowObj = new Date();
+  tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+  const tomorrowStr = getLocalDateStr(tomorrowObj);
 
   useEffect(() => {
     if (uniqueDates.length > 0) {
       if (!selectedDate || !uniqueDates.includes(selectedDate)) {
-        setSelectedDate(uniqueDates[0]);
+        if (uniqueDates.includes(todayStr)) {
+          setSelectedDate(todayStr);
+        } else {
+          setSelectedDate(uniqueDates[0]);
+        }
       }
     } else {
       setSelectedDate("");
@@ -57,14 +71,10 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
 
   const formatTabDate = (dateStr: string) => {
     if (dateStr === todayStr) return "Hoy";
+    if (dateStr === tomorrowStr) return "Mañana";
+
     const [y, m, d] = dateStr.split("-").map(Number);
     const dateObj = new Date(y, m - 1, d);
-
-    // Si es mañana
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split("T")[0];
-    if (dateStr === tomorrowStr) return "Mañana";
 
     return dateObj.toLocaleDateString("es-CO", {
       weekday: "short",

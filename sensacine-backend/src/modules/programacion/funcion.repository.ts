@@ -1,6 +1,7 @@
 import { prisma } from "../../infrastructure/prisma/client";
 import { FuncionConDetalles, FuncionFilterOptions, IFuncionRepository } from "./funcion.types";
 import { Prisma } from "@prisma/client";
+import { getCinemaTodayUtcMidnight } from "../../common/helpers/dateUtils";
 
 export class PrismaFuncionRepository implements IFuncionRepository {
   findAll(filters?: FuncionFilterOptions): Promise<FuncionConDetalles[]> {
@@ -32,10 +33,8 @@ export class PrismaFuncionRepository implements IFuncionRepository {
         lte: filters?.hastaFecha ? new Date(filters.hastaFecha) : undefined,
       };
     } else if (filters?.soloFuturas) {
-      const now = new Date();
-      const todayMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
       where.fecha = {
-        gte: todayMidnight,
+        gte: getCinemaTodayUtcMidnight(),
       };
     }
 
