@@ -8,6 +8,7 @@ import funcionRoutes from "./modules/programacion/funcion.routes";
 import adminRoutes from "./modules/admin/admin.routes";
 import reservaRoutes from "./modules/reservas/reserva.routes";
 import menuRoutes from "./modules/menu/menu.routes";
+import tarjetaRoutes from "./modules/pagos/tarjeta.routes";
 import { errorHandler } from "./common/middlewares/errorHandler";
 
 export const app = express();
@@ -25,6 +26,7 @@ app.use("/api/funciones", funcionRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/reservas", reservaRoutes);
 app.use("/api/productos", menuRoutes);
+app.use("/api/tarjetas", tarjetaRoutes);
 
 // El errorHandler SIEMPRE va de último, después de montar todas las rutas.
 

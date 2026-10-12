@@ -56,6 +56,7 @@ model Usuario {
 
   reservas Reserva[]
   logs     LogAuditoria[]
+  tarjetas Tarjeta[]
 
   @@map("usuario")
 }
@@ -263,4 +264,19 @@ model OrdenCocina {
   fechaActualizacion DateTime          @default(now()) @updatedAt @map("fecha_actualizacion")
 
   @@map("orden_cocina")
+}
+
+model Tarjeta {
+  id              Int      @id @default(autoincrement()) @map("id_tarjeta")
+  idUsuario       Int      @map("id_usuario")
+  usuario         Usuario  @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+  numeroTarjeta   String   @map("numero_tarjeta") @db.VarChar(19)
+  titular         String   @db.VarChar(100)
+  fechaExpiracion String   @map("fecha_expiracion") @db.VarChar(7) // Ej: "12/28"
+  tipo            String   @default("Crédito") @db.VarChar(30)     // "Crédito" | "Débito"
+  franquicia      String   @default("Visa") @db.VarChar(30)        // "Visa" | "Mastercard" | "Amex"
+  saldo           Decimal  @default(100000.00) @db.Decimal(12, 2)  // Saldo simulado recargable
+  estado          String   @default("activa") @db.VarChar(20)
+  fechaCreacion   DateTime @default(now()) @map("fecha_creacion")
+  @@map("tarjeta")
 }

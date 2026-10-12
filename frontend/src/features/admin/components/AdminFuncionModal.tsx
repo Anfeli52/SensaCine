@@ -37,7 +37,13 @@ export function AdminFuncionModal({
 }: Readonly<AdminFuncionModalProps>) {
   const isEditing = !funcionToEdit ? false : true;
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const getLocalDateStr = (d: Date = new Date()) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+  const todayStr = getLocalDateStr();
 
   const [idPelicula, setIdPelicula] = useState<number>(peliculas[0]?.id || 0);
   const [idSala, setIdSala] = useState<number>(salas[0]?.id || 0);

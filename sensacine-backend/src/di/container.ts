@@ -27,6 +27,10 @@ import { AdminController } from "../modules/admin/admin.controller";
 import { AdminService } from "../modules/admin/admin.service";
 import { AdminRepository } from "../modules/admin/admin.repository";
 
+import { TarjetaController } from "../modules/pagos/tarjeta.controller";
+import { TarjetaService } from "../modules/pagos/tarjeta.servicie";
+import { TarjetaRepository } from "../modules/pagos/tarjeta.repository";
+
 // Módulo Auth
 const usuarioRepository = new PrismaUsuarioRepository();
 const authService = new AuthService(usuarioRepository);
@@ -60,3 +64,8 @@ export const menuController = new MenuController(menuService);
 const adminRepository = new AdminRepository();
 const adminService = new AdminService(adminRepository);
 export const adminController = new AdminController(adminService);
+
+//Módulo Pagos
+const tarjetaRepository = new TarjetaRepository();
+const tarjetaService = new TarjetaService(tarjetaRepository);
+export const tarjetaController = new TarjetaController(tarjetaService);

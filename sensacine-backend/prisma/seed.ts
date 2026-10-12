@@ -6,6 +6,7 @@ import {
   EstadoOrdenCocina 
 } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { getCinemaDateStr } from "../src/common/helpers/dateUtils";
 
 const prisma = new PrismaClient();
 
@@ -467,13 +468,13 @@ async function seedAdmin(): Promise<void> {
 
 function getFechasDinamicas(): string[] {
   const fechas: string[] = [];
-  const now = new Date();
+  const todayStr = getCinemaDateStr();
+  const [year, month, day] = todayStr.split("-").map(Number);
   for (let i = 0; i < 7; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() + i);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
+    const d = new Date(Date.UTC(year, month - 1, day + i));
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
     fechas.push(`${yyyy}-${mm}-${dd}`);
   }
   return fechas;
@@ -703,10 +704,10 @@ async function seedFunciones(): Promise<void> {
   for (let peliculaIndex = 0; peliculaIndex < peliculas.length; peliculaIndex++) {
     const pelicula = peliculas[peliculaIndex];
 
-    for (let slotIndex = 0; slotIndex < 3; slotIndex++) {
-      const fecha = fechas[slotIndex % fechas.length];
-      const sala = salas[(peliculaIndex + slotIndex) % salas.length];
-      const horaInicio = horasInicio[(peliculaIndex * 2 + slotIndex) % horasInicio.length];
+    for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
+      const fecha = fechas[dayIndex % fechas.length];
+      const sala = salas[(peliculaIndex + dayIndex) % salas.length];
+      const horaInicio = horasInicio[(peliculaIndex * 2 + dayIndex) % horasInicio.length];
       
       const fechaFuncion = createUtcDate(fecha, 0);
       const inicio = createUtcDate(fecha, horaInicio);

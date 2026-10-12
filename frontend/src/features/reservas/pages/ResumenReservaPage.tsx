@@ -15,6 +15,8 @@ import { useAuthStore } from "@/features/auth/authStore";
 import { Button } from "../../../shared/components/Button";
 import { Pelicula } from "@/features/catalogo/types";
 import { Asiento, AsientoDetalleReserva } from "../types";
+import { PasarelaPagoModal } from "../../pagos/components/PasarelaPagoModal";
+import { useState } from "react";
 
 interface FuncionState {
     id: number;
@@ -38,6 +40,7 @@ export function ResumenReservaPage() {
     const { isAuthenticated } = useAuthStore();
     const navigate = useNavigate();
     const state = useLocation().state as LocationState | null;
+    const [isPasarelaOpen, setIsPasarelaOpen] = useState(false);
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
     if (!state || !state.selectedAsientos) return <Navigate to="/" replace />;
@@ -58,8 +61,7 @@ export function ResumenReservaPage() {
     const comensalesConRestriccion = comensales.filter(c => c.tieneAlergias && c.alergias.length > 0);
 
     const handlePagar = () => {
-        alert("¡Redirigiendo a pasarela de pagos (Próximamente)!");
-        navigate("/");
+        setIsPasarelaOpen(true);
     };
 
     const formatPrice = (price: number) => {
@@ -242,6 +244,20 @@ export function ResumenReservaPage() {
                     Proceder al Pago
                 </Button>
             </div>
+
+            {/* Modal de Pasarela de Pagos (HU-12 & HU-13) */}
+            <PasarelaPagoModal
+                isOpen={isPasarelaOpen}
+                onClose={() => setIsPasarelaOpen(false)}
+                totalPagar={precioTotal}
+                peliculaTitulo={pelicula.titulo}
+                detallesCompra={{
+                    fecha: formatDate(funcion.fecha),
+                    hora: `${funcion.horaInicio} - ${funcion.horaFin}`,
+                    sala: funcion.sala?.nombre || "Sala Estándar",
+                    asientosCount: selectedAsientos.length,
+                }}
+            />
         </div>
     );
 }
