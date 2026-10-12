@@ -1,4 +1,10 @@
-import { PrismaClient, Rol } from "@prisma/client";
+import { 
+  PrismaClient, 
+  Rol, 
+  TipoRestriccion, 
+  EstadoReserva, 
+  EstadoOrdenCocina 
+} from "@prisma/client";
 import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
@@ -60,94 +66,6 @@ const PELICULAS_SEED = [
     precioBaseExperiencia: 29000,
   },
   {
-    titulo: "Inside Out 2 (Intensamente 2)",
-    sinopsis:
-      "Las vocecitas dentro de la cabeza de Riley la conocen a la perfección, pero con la llegada de la adolescencia, el cuartel general es renovado repentinamente para dar la bienvenida a nuevas y complejas emociones como Ansiedad, Envidia, Vergüenza y Ennui.",
-    duracionMinutos: 96,
-    genero: "Animación / Comedia / Familiar",
-    clasificacion: "PG",
-    posterUrl: "https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg",
-    estado: "activa",
-    precioBaseExperiencia: 25000,
-  },
-  {
-    titulo: "El Padrino",
-    sinopsis:
-      "Don Vito Corleone es el respetado y temido jefe de una de las cinco familias de la mafia de Nueva York. Cuando un capo rival atenta contra su vida, su hijo Michael, que había estado alejado de los negocios familiares, toma el control para proteger a su dinastía.",
-    duracionMinutos: 175,
-    genero: "Crimen / Drama",
-    clasificacion: "R",
-    posterUrl: "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
-    estado: "activa",
-    precioBaseExperiencia: 27000,
-  },
-  {
-    titulo: "Avatar: The Way of Water",
-    sinopsis:
-      "Ambientada más de una década después de los acontecimientos de la primera película, sigue a la familia Sully, los peligros que los persiguen, los esfuerzos que hacen para mantenerse a salvo y las batallas que libran en los océanos de Pandora.",
-    duracionMinutos: 192,
-    genero: "Ciencia Ficción / Acción / Aventura",
-    clasificacion: "PG-13",
-    posterUrl: "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg",
-    estado: "activa",
-    precioBaseExperiencia: 32000,
-  },
-  {
-    titulo: "Your Name (Kimi no Na wa)",
-    sinopsis:
-      "Mitsuha vive en un pueblo rural y sueña con la vida en Tokio, mientras que Taki es un estudiante de secundaria en Tokio. Sus vidas se entrelazan de forma mágica cuando comienzan a intercambiar cuerpos de manera inexplicable.",
-    duracionMinutos: 106,
-    genero: "Animación / Romance / Fantasía",
-    clasificacion: "PG",
-    posterUrl: "https://image.tmdb.org/t/p/w500/q719jXXEzOoYaps6qFsKnWaVeG0.jpg",
-    estado: "activa",
-    precioBaseExperiencia: 26000,
-  },
-  {
-    titulo: "The Dark Knight",
-    sinopsis:
-      "Con la ayuda del teniente Jim Gordon y el fiscal de distrito Harvey Dent, Batman se propone desmantelar las organizaciones criminales de Gotham. Sin embargo, la aparición del Guasón sumerge a la ciudad en una ola de caos y anarquía sin precedentes.",
-    duracionMinutos: 152,
-    genero: "Acción / Crimen / Drama",
-    clasificacion: "PG-13",
-    posterUrl: "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
-    estado: "activa",
-    precioBaseExperiencia: 28000,
-  },
-  {
-    titulo: "Coco",
-    sinopsis:
-      "Miguel es un niño con un gran talento musical que sueña con convertirse en un cantante consagrado como su ídolo Ernesto de la Cruz. Una misteriosa cadena de eventos lo lleva a la deslumbrante y colorida Tierra de los Muertos en el Día de los Muertos.",
-    duracionMinutos: 105,
-    genero: "Animación / Familiar / Fantasía",
-    clasificacion: "PG",
-    posterUrl: "https://image.tmdb.org/t/p/w500/gGEsBPAijhVUFoiNpgZXqRVWJt2.jpg",
-    estado: "activa",
-    precioBaseExperiencia: 25000,
-  },
-  {
-    titulo: "Inception (El Origen)",
-    sinopsis:
-      "Dom Cobb es un ladrón experto en el peligroso arte de la extracción: robar valiosos secretos desde las profundidades del subconsciente durante el estado de sueño. Para redimirse, se le ofrece una última tarea inversa: implantar una idea en lugar de robarla.",
-    duracionMinutos: 148,
-    genero: "Ciencia Ficción / Acción / Suspenso",
-    clasificacion: "PG-13",
-    posterUrl: "https://image.tmdb.org/t/p/w500/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg",
-    estado: "activa",
-    precioBaseExperiencia: 28000,
-  },
-  {
-    titulo: "Super Mario Bros. La Película",
-    sinopsis:
-      "Mientras trabajan bajo tierra para reparar una tubería de agua, los plomeros de Brooklyn Mario y su hermano Luigi son transportados a través de una tubería misteriosa y terminan en un nuevo mundo mágico dominado por el Rey Bowser.",
-    duracionMinutos: 92,
-    genero: "Animación / Aventura / Comedia",
-    clasificacion: "PG",
-    posterUrl: "https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggV6.jpg",
-    estado: "activa",
-    precioBaseExperiencia: 25000,
-  },
-  {
     titulo: "Gladiador",
     sinopsis:
       "El leal general romano Máximo Décimo Meridio es traicionado cuando Cómodo, el ambicioso hijo del emperador Marco Aurelio, asesina a su padre y toma el trono. Convertido en esclavo y gladiador, Máximo lucha para regresar a Roma y vengar a su familia.",
@@ -171,6 +89,223 @@ const PELICULAS_SEED = [
   },
 ];
 
+const RESTRICCIONES_SEED = [
+  { nombre: "Maní", tipo: TipoRestriccion.alergia, descripcion: "Alergia a cacahuates o maní" },
+  { nombre: "Gluten", tipo: TipoRestriccion.intolerancia, descripcion: "Intolerancia al gluten / enfermedad celíaca" },
+  { nombre: "Lácteos", tipo: TipoRestriccion.intolerancia, descripcion: "Intolerancia a la lactosa o proteína de leche" },
+  { nombre: "Mariscos", tipo: TipoRestriccion.alergia, descripcion: "Alergia a mariscos y crustáceos" },
+  { nombre: "Huevos", tipo: TipoRestriccion.alergia, descripcion: "Alergia al huevo y derivados" },
+  { nombre: "Frutos Secos", tipo: TipoRestriccion.alergia, descripcion: "Alergia a nueces, almendras, pistachos y avellanas" },
+  { nombre: "Pescado", tipo: TipoRestriccion.alergia, descripcion: "Alergia a pescados de agua dulce o salada" },
+  { nombre: "Soja", tipo: TipoRestriccion.alergia, descripcion: "Alergia a la soja y derivados de leguminosas" },
+  { nombre: "Vegetariano", tipo: TipoRestriccion.preferencia, descripcion: "Dieta vegetariana sin carnes ni pescados" },
+  { nombre: "Vegano", tipo: TipoRestriccion.preferencia, descripcion: "Dieta 100% basada en vegetales sin productos de origen animal" },
+];
+
+const PRODUCTOS_POR_PELICULA: Record<string, Array<{
+  nombre: string;
+  descripcion: string;
+  categoria: string;
+  ordenMenu: number;
+  imagenUrl: string;
+  restricciones: string[];
+}>> = {
+  "El Viaje de Chihiro": [
+    {
+      nombre: "Onigiri Mágico de Haku",
+      descripcion: "Bocadillo de arroz japonés al vapor envuelto en alga nori crujiente con relleno de salmón ahumado.",
+      categoria: "Entrada",
+      ordenMenu: 1,
+      imagenUrl: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Pescado"],
+    },
+    {
+      nombre: "Ramen Humeante de los Dioses",
+      descripcion: "Caldo artesanal con fideos tradicionales, chashu de cerdo caramelizado, huevo ajitsuke marinado y cebollín fresco.",
+      categoria: "Plato Fuerte",
+      ordenMenu: 2,
+      imagenUrl: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Huevos", "Soja"],
+    },
+    {
+      nombre: "Baozi Dulce de Sin Cara",
+      descripcion: "Panecillos suaves al vapor rellenos de frijol rojo dulce y toque de matcha ceremonial.",
+      categoria: "Postre",
+      ordenMenu: 3,
+      imagenUrl: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten"],
+    },
+    {
+      nombre: "Té Floral de Yubaba",
+      descripcion: "Infusión aromática de flor de cerezo silvestre, jazmín y gotas de miel pura.",
+      categoria: "Bebida",
+      ordenMenu: 4,
+      imagenUrl: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80",
+      restricciones: [],
+    },
+  ],
+  "Oppenheimer": [
+    {
+      nombre: "Cóctel Manhattan Cuántico",
+      descripcion: "Elíxir ahumado servido bajo campana de cristal con infusión de frutos rojos y romero flameado.",
+      categoria: "Bebida",
+      ordenMenu: 1,
+      imagenUrl: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=600&q=80",
+      restricciones: [],
+    },
+    {
+      nombre: "Trinity Smoked Brisket",
+      descripcion: "Corte de res angus ahumado a baja temperatura con leña de mezquite por 14 horas, puré rústico y salsa BBQ de carbón.",
+      categoria: "Plato Fuerte",
+      ordenMenu: 2,
+      imagenUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Lácteos"],
+    },
+    {
+      nombre: "Volcán Fisión de Chocolate",
+      descripcion: "Soufflé tibio de chocolate amargo 70% con centro fundido y helado artesanal de vainilla Bourbon.",
+      categoria: "Postre",
+      ordenMenu: 3,
+      imagenUrl: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Lácteos", "Huevos"],
+    },
+  ],
+  "Dune: Part Two": [
+    {
+      nombre: "Elíxir de Especia Melange",
+      descripcion: "Bebida cítrica infusionada con canela de Ceilán, jengibre y polvo dorado comestible de Arrakis.",
+      categoria: "Bebida",
+      ordenMenu: 1,
+      imagenUrl: "https://images.unsplash.com/photo-1556881286-fc6915169721?auto=format&fit=crop&w=600&q=80",
+      restricciones: [],
+    },
+    {
+      nombre: "Festín del Desierto Fremen",
+      descripcion: "Cordero braseado al azafrán servido sobre cuscús perlado con dátiles, piñones y almendras tostadas.",
+      categoria: "Plato Fuerte",
+      ordenMenu: 2,
+      imagenUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Frutos Secos"],
+    },
+    {
+      nombre: "Arena Crujiente de Shai-Hulud",
+      descripcion: "Capas de masa filo crocante con crema de naranja, pistachos molidos y miel del desierto.",
+      categoria: "Postre",
+      ordenMenu: 3,
+      imagenUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Frutos Secos", "Lácteos"],
+    },
+  ],
+  "Interstellar": [
+    {
+      nombre: "Crema de Maíz Cooper Station",
+      descripcion: "Crema aterciopelada de maíz dulce con aceite de trufa blanca y crutones de pan rústico.",
+      categoria: "Entrada",
+      ordenMenu: 1,
+      imagenUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Lácteos", "Gluten"],
+    },
+    {
+      nombre: "Medallón Agujero Negro Gargantúa",
+      descripcion: "Solomillo de res en reducción de vino tinto con risotto nero al calamar y espárragos grillados.",
+      categoria: "Plato Fuerte",
+      ordenMenu: 2,
+      imagenUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Lácteos", "Mariscos"],
+    },
+    {
+      nombre: "Esferas de la Quinta Dimensión",
+      descripcion: "Mousse de moras y arándanos encapsulado en esfera de caramelo soplado con niebla helada.",
+      categoria: "Postre",
+      ordenMenu: 3,
+      imagenUrl: "https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Lácteos"],
+    },
+  ],
+  "Spider-Man: Across the Spider-Verse": [
+    {
+      nombre: "Pizza Slice Brooklyn Multiverse",
+      descripcion: "Focaccia artesanal con salsa pomodoro, mozzarella di bufala fresca y hojas de albahaca.",
+      categoria: "Entrada",
+      ordenMenu: 1,
+      imagenUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Lácteos"],
+    },
+    {
+      nombre: "Smash Burger Miles Morales",
+      descripcion: "Doble carne jugosa con queso cheddar madurado, cebolla caramelizada y salsa casera en pan brioche.",
+      categoria: "Plato Fuerte",
+      ordenMenu: 2,
+      imagenUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Lácteos", "Huevos"],
+    },
+    {
+      nombre: "Dona Glaseada Spidey",
+      descripcion: "Dona artesanal horneada con glaseado de frambuesa silvestre y telaraña de chocolate blanco.",
+      categoria: "Postre",
+      ordenMenu: 3,
+      imagenUrl: "https://images.unsplash.com/photo-1527515545081-5db817172677?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Lácteos", "Huevos"],
+    },
+  ],
+  "Kung Fu Panda 4": [
+    {
+      nombre: "Dumplings del Valle de la Paz",
+      descripcion: "Empanaditas al vapor rellenas de carne magra, jengibre y shiitake servidas con salsa de soja dulce.",
+      categoria: "Entrada",
+      ordenMenu: 1,
+      imagenUrl: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Soja"],
+    },
+    {
+      nombre: "Fideos de la Sabiduría del Sr. Ping",
+      descripcion: "Tallarines salteados al wok con pollo tierno, verduras crujientes y aceite de sésamo tostado.",
+      categoria: "Plato Fuerte",
+      ordenMenu: 2,
+      imagenUrl: "https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten", "Soja"],
+    },
+    {
+      nombre: "Bao Dulce de Luna Dorada",
+      descripcion: "Panecillos esponjosos rellenos de frijol rojo dulce y miel de flores silvestres.",
+      categoria: "Postre",
+      ordenMenu: 3,
+      imagenUrl: "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Gluten"],
+    },
+  ],
+  "Gladiador": [
+    {
+      nombre: "Tabla Imperial del Senado",
+      descripcion: "Prosciutto di Parma, queso pecorino romano madurado, uvas frescas y pan tostado con hierbas.",
+      categoria: "Entrada",
+      ordenMenu: 1,
+      imagenUrl: "https://images.unsplash.com/photo-1541529086526-db283c563270?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Lácteos", "Gluten"],
+    },
+    {
+      nombre: "Costillar Máximo al Romero",
+      descripcion: "Costillas asadas a las brasas con papas rústicas al horno y reducción de vino tinto especiado.",
+      categoria: "Plato Fuerte",
+      ordenMenu: 2,
+      imagenUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80",
+      restricciones: [],
+    },
+    {
+      nombre: "Higos Glaseados con Mascarpone",
+      descripcion: "Higos asados con miel silvestre, crema de mascarpone suave y nueces tostadas.",
+      categoria: "Postre",
+      ordenMenu: 3,
+      imagenUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
+      restricciones: ["Lácteos", "Frutos Secos"],
+    },
+  ],
+};
+
+function createUtcDate(dateStr: string, hours: number, minutes = 0): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, hours, minutes));
+}
 const PRODUCTOS_SEED = [
   {
     idPelicula: 1,
@@ -330,34 +465,99 @@ async function seedAdmin(): Promise<void> {
   const adminEmail = "admin@sensacine.com";
   const existingAdmin = await prisma.usuario.findUnique({ where: { email: adminEmail } });
 
-  if (!existingAdmin) {
-    const passwordHash = await bcrypt.hash("Admin1234!", 10);
-    const admin = await prisma.usuario.create({
-      data: {
-        nombre: "Administrador SensaCine",
-        email: adminEmail,
-        passwordHash,
-        rol: Rol.admin,
-        estado: "activo",
-      },
+function getFechasDinamicas(): string[] {
+  const fechas: string[] = [];
+  const now = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    fechas.push(`${yyyy}-${mm}-${dd}`);
+  }
+  return fechas;
+}
+
+async function seedUsuarios(): Promise<void> {
+  console.log("👥 Configurando usuarios...");
+  const passwordHashAdmin = await bcrypt.hash("Admin1234!", 10);
+  const passwordHashUser = await bcrypt.hash("Cliente1234!", 10);
+  const passwordHashCocina = await bcrypt.hash("Cocina1234!", 10);
+
+  const usuarios = [
+    {
+      nombre: "Administrador SensaCine",
+      email: "admin@sensacine.com",
+      passwordHash: passwordHashAdmin,
+      rol: Rol.admin,
+      estado: "activo",
+    },
+    {
+      nombre: "Carlos Mendoza",
+      email: "cliente@sensacine.com",
+      passwordHash: passwordHashUser,
+      rol: Rol.cliente,
+      estado: "activo",
+    },
+    {
+      nombre: "María Rodríguez",
+      email: "maria@sensacine.com",
+      passwordHash: passwordHashUser,
+      rol: Rol.cliente,
+      estado: "activo",
+    },
+    {
+      nombre: "Andrés Felipe",
+      email: "andres@sensacine.com",
+      passwordHash: passwordHashUser,
+      rol: Rol.cliente,
+      estado: "activo",
+    },
+    {
+      nombre: "Chef Chef Gourmet",
+      email: "cocina@sensacine.com",
+      passwordHash: passwordHashCocina,
+      rol: Rol.cocina,
+      estado: "activo",
+    },
+  ];
+
+  for (const u of usuarios) {
+    const existing = await prisma.usuario.findUnique({ where: { email: u.email } });
+    if (!existing) {
+      await prisma.usuario.create({ data: u });
+      console.log(`  ➕ Usuario creado: ${u.email} (${u.rol})`);
+    } else {
+      console.log(`  ℹ️ Usuario ya existía: ${u.email}`);
+    }
+  }
+}
+
+async function seedRestricciones(): Promise<void> {
+  console.log("🥗 Configurando restricciones alimentarias...");
+  for (const r of RESTRICCIONES_SEED) {
+    const existing = await prisma.restriccionAlimentaria.findFirst({
+      where: { nombre: r.nombre },
     });
-    console.log(`✅ Usuario Administrador creado: ${admin.email} (Password: Admin1234!)`);
-  } else {
-    console.log(`ℹ️ Usuario Administrador ya existe: ${adminEmail}`);
+    if (!existing) {
+      await prisma.restriccionAlimentaria.create({ data: r });
+      console.log(`  ➕ Restricción agregada: ${r.nombre} (${r.tipo})`);
+    } else {
+      console.log(`  ℹ️ Restricción ya existía: ${r.nombre}`);
+    }
   }
 }
 
 async function seedPeliculas(): Promise<void> {
-  console.log(`🎬 Insertando ${PELICULAS_SEED.length} películas...`);
+  console.log(`🎬 Configurando ${PELICULAS_SEED.length} películas...`);
   for (const pelicula of PELICULAS_SEED) {
     const existing = await prisma.pelicula.findFirst({
       where: { titulo: pelicula.titulo },
     });
 
     if (!existing) {
-      await prisma.pelicula.create({
-        data: pelicula,
-      });
+      await prisma.pelicula.create({ data: pelicula });
       console.log(`  ➕ Película agregada: "${pelicula.titulo}"`);
     } else {
       console.log(`  ℹ️ Película ya existía: "${pelicula.titulo}"`);
@@ -411,12 +611,69 @@ async function seedSalas(): Promise<void> {
   }
 }
 
-function createUtcDate(date: string, hours: number, minutes = 0): Date {
-  const [year, month, day] = date.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day, hours, minutes));
+async function seedMenu(): Promise<void> {
+  console.log("🍽️ Configurando Menú Sensorial y Gastronómico por Película...");
+  const todasRestricciones = await prisma.restriccionAlimentaria.findMany();
+  const restriccionMap = new Map(todasRestricciones.map(r => [r.nombre, r.id]));
+
+  for (const [tituloPelicula, platos] of Object.entries(PRODUCTOS_POR_PELICULA)) {
+    const pelicula = await prisma.pelicula.findFirst({
+      where: { titulo: tituloPelicula },
+    });
+
+    if (!pelicula) {
+      console.warn(`  ⚠️ No se encontró la película "${tituloPelicula}" para asociar menú.`);
+      continue;
+    }
+
+    for (const plato of platos) {
+      let producto = await prisma.producto.findFirst({
+        where: {
+          idPelicula: pelicula.id,
+          nombre: plato.nombre,
+        },
+      });
+
+      if (!producto) {
+        producto = await prisma.producto.create({
+          data: {
+            nombre: plato.nombre,
+            descripcion: plato.descripcion,
+            categoria: plato.categoria,
+            estado: "activo",
+            idPelicula: pelicula.id,
+            ordenMenu: plato.ordenMenu,
+            imagenUrl: plato.imagenUrl,
+          },
+        });
+        console.log(`  ➕ Plato creado: "${plato.nombre}" (Orden: ${plato.ordenMenu}) para ${tituloPelicula}`);
+      }
+
+      // Asociar restricciones alimentarias del plato
+      for (const nombreRestriccion of plato.restricciones) {
+        const idRestriccion = restriccionMap.get(nombreRestriccion);
+        if (idRestriccion) {
+          await prisma.productoRestriccion.upsert({
+            where: {
+              idProducto_idRestriccion: {
+                idProducto: producto.id,
+                idRestriccion,
+              },
+            },
+            create: {
+              idProducto: producto.id,
+              idRestriccion,
+            },
+            update: {},
+          });
+        }
+      }
+    }
+  }
 }
 
 async function seedFunciones(): Promise<void> {
+  console.log("🎥 Configurando Funciones de Cine (Horarios vigentes)...");
   const salas = await prisma.sala.findMany({
     where: {
       nombre: {
@@ -439,20 +696,18 @@ async function seedFunciones(): Promise<void> {
     throw new Error("No se encontraron todas las salas o películas necesarias para crear funciones.");
   }
 
-  const fechas = ["2026-09-21", "2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25"];
-  const horasInicio = [9, 14, 19];
+  const fechas = getFechasDinamicas();
+  const horasInicio = [11, 15, 19, 21];
   let funcionesCreadas = 0;
-
-  console.log("🎥 Configurando funciones...");
 
   for (let peliculaIndex = 0; peliculaIndex < peliculas.length; peliculaIndex++) {
     const pelicula = peliculas[peliculaIndex];
 
-    for (let funcionIndex = 0; funcionIndex < 2; funcionIndex++) {
-      const slotIndex = peliculaIndex * 2 + funcionIndex;
-      const fecha = fechas[Math.floor(slotIndex / (salas.length * horasInicio.length)) % fechas.length];
-      const sala = salas[Math.floor(slotIndex / horasInicio.length) % salas.length];
-      const horaInicio = horasInicio[slotIndex % horasInicio.length];
+    for (let slotIndex = 0; slotIndex < 3; slotIndex++) {
+      const fecha = fechas[slotIndex % fechas.length];
+      const sala = salas[(peliculaIndex + slotIndex) % salas.length];
+      const horaInicio = horasInicio[(peliculaIndex * 2 + slotIndex) % horasInicio.length];
+      
       const fechaFuncion = createUtcDate(fecha, 0);
       const inicio = createUtcDate(fecha, horaInicio);
       const fin = new Date(inicio.getTime() + pelicula.duracionMinutos * 60 * 1000);
@@ -467,7 +722,6 @@ async function seedFunciones(): Promise<void> {
       });
 
       if (existing) {
-        console.log(`  ℹ️ Función ya existía: "${pelicula.titulo}" ${fecha} ${String(horaInicio).padStart(2, "0")}:00`);
         continue;
       }
 
@@ -483,11 +737,181 @@ async function seedFunciones(): Promise<void> {
         },
       });
       funcionesCreadas++;
-      console.log(`  ➕ Función agregada: "${pelicula.titulo}" ${fecha} ${String(horaInicio).padStart(2, "0")}:00 - ${sala.nombre}`);
     }
   }
 
-  console.log(`🎟️ ${funcionesCreadas} funciones nuevas creadas.`);
+  console.log(`🎟️ ${funcionesCreadas} funciones vigentes creadas para los próximos días.`);
+}
+
+async function seedReservasYAsientosOcupados(): Promise<void> {
+  console.log("🎫 Configurando Reservas, Asientos Ocupados y Órdenes de Cocina...");
+
+  const clientes = await prisma.usuario.findMany({
+    where: { rol: Rol.cliente },
+    orderBy: { id: "asc" },
+  });
+
+  if (clientes.length === 0) {
+    console.warn("  ⚠️ No hay usuarios clientes para asociar reservas.");
+    return;
+  }
+
+  const todasRestricciones = await prisma.restriccionAlimentaria.findMany();
+  const restriccionLacteos = todasRestricciones.find(r => r.nombre === "Lácteos");
+  const restriccionGluten = todasRestricciones.find(r => r.nombre === "Gluten");
+  const restriccionMariscos = todasRestricciones.find(r => r.nombre === "Mariscos");
+  const restriccionMani = todasRestricciones.find(r => r.nombre === "Maní");
+
+  // Obtener las primeras 3 funciones para simular reservas y asientos ocupados
+  const funciones = await prisma.funcion.findMany({
+    include: {
+      sala: {
+        include: { asientos: { orderBy: [{ fila: "asc" }, { numero: "asc" }] } },
+      },
+      pelicula: true,
+    },
+    take: 3,
+    orderBy: { id: "asc" },
+  });
+
+  for (let i = 0; i < funciones.length; i++) {
+    const funcion = funciones[i];
+    const salaAsientos = funcion.sala.asientos;
+
+    if (salaAsientos.length < 8) continue;
+
+    // Verificar si ya existen reservas para esta función
+    const reservasExistentes = await prisma.reserva.count({
+      where: { idFuncion: funcion.id },
+    });
+
+    if (reservasExistentes > 0) {
+      console.log(`  ℹ️ La función #${funcion.id} (${funcion.pelicula.titulo}) ya tiene reservas.`);
+      continue;
+    }
+
+    const cliente1 = clientes[0];
+    const cliente2 = clientes[1 % clientes.length];
+
+    // Asientos para Reserva 1 (ej: A1, A2, A3)
+    const asientosReserva1 = salaAsientos.slice(0, 3);
+    const monto1 = Number(funcion.precioAsientoOficial) * asientosReserva1.length;
+
+    const reserva1 = await prisma.reserva.create({
+      data: {
+        idUsuario: cliente1.id,
+        idFuncion: funcion.id,
+        montoTotal: monto1,
+        estado: EstadoReserva.Confirmado,
+      },
+    });
+
+    const ocupantesReserva1 = [
+      { nombre: "Carlos Mendoza", restriccion: null },
+      { nombre: "Camila Ortiz", restriccion: restriccionLacteos },
+      { nombre: "Santiago Vera", restriccion: restriccionGluten },
+    ];
+
+    for (let rIdx = 0; rIdx < asientosReserva1.length; rIdx++) {
+      const a = asientosReserva1[rIdx];
+      const ocupante = ocupantesReserva1[rIdx];
+
+      const reservaAsiento = await prisma.reservaAsiento.create({
+        data: {
+          idReserva: reserva1.id,
+          idAsiento: a.id,
+          nombrePersona: ocupante.nombre,
+        },
+      });
+
+      if (ocupante.restriccion) {
+        await prisma.reservaRestriccion.create({
+          data: {
+            idReservaAsiento: reservaAsiento.id,
+            idRestriccion: ocupante.restriccion.id,
+            notas: `Comensal ${ocupante.nombre}: Evitar totalmente en platos de la función`,
+          },
+        });
+      }
+
+      await prisma.ordenCocina.create({
+        data: {
+          idReservaAsiento: reservaAsiento.id,
+          estado: EstadoOrdenCocina.Pendiente,
+        },
+      });
+    }
+
+    await prisma.pago.create({
+      data: {
+        idReserva: reserva1.id,
+        medioPago: "tarjeta_credito",
+        monto: monto1,
+        estado: "aprobado",
+        referenciaTransaccion: `TX-SENSA-${Date.now()}-1`,
+      },
+    });
+
+    // Asientos para Reserva 2 (ej: B4, B5)
+    const asientosReserva2 = salaAsientos.slice(4, 6);
+    const monto2 = Number(funcion.precioAsientoOficial) * asientosReserva2.length;
+
+    const reserva2 = await prisma.reserva.create({
+      data: {
+        idUsuario: cliente2.id,
+        idFuncion: funcion.id,
+        montoTotal: monto2,
+        estado: EstadoReserva.Confirmado,
+      },
+    });
+
+    const ocupantesReserva2 = [
+      { nombre: "María Rodríguez", restriccion: null },
+      { nombre: "David Morales", restriccion: restriccionMariscos || restriccionMani },
+    ];
+
+    for (let rIdx = 0; rIdx < asientosReserva2.length; rIdx++) {
+      const a = asientosReserva2[rIdx];
+      const ocupante = ocupantesReserva2[rIdx];
+
+      const reservaAsiento = await prisma.reservaAsiento.create({
+        data: {
+          idReserva: reserva2.id,
+          idAsiento: a.id,
+          nombrePersona: ocupante.nombre,
+        },
+      });
+
+      if (ocupante.restriccion) {
+        await prisma.reservaRestriccion.create({
+          data: {
+            idReservaAsiento: reservaAsiento.id,
+            idRestriccion: ocupante.restriccion.id,
+            notas: `Alergia severa informada por ${ocupante.nombre}`,
+          },
+        });
+      }
+
+      await prisma.ordenCocina.create({
+        data: {
+          idReservaAsiento: reservaAsiento.id,
+          estado: EstadoOrdenCocina.Pendiente,
+        },
+      });
+    }
+
+    await prisma.pago.create({
+      data: {
+        idReserva: reserva2.id,
+        medioPago: "pse",
+        monto: monto2,
+        estado: "aprobado",
+        referenciaTransaccion: `TX-SENSA-${Date.now()}-2`,
+      },
+    });
+
+    console.log(`  ➕ 2 Reservas con 5 asientos ocupados generadas para Función #${funcion.id} (${funcion.pelicula.titulo})`);
+  }
 }
 
 async function seedProductos(): Promise<void> {
@@ -517,13 +941,16 @@ async function seedProductos(): Promise<void> {
 }
 
 async function main() {
-  console.log("🌱 Iniciando proceso de Seed...");
-  await seedAdmin();
+  console.log("🌱 Iniciando proceso de Seed Enriquecido para SensaCine...\n");
+  await seedUsuarios();
+  await seedRestricciones();
   await seedPeliculas();
   await seedProductos();
   await seedSalas();
+  await seedMenu();
   await seedFunciones();
-  console.log("✨ Seed completado exitosamente.");
+  await seedReservasYAsientosOcupados();
+  console.log("\n✨ ¡Seed Enriquecido completado exitosamente con películas, comidas, restricciones y asientos ocupados!");
 }
 
 main()
