@@ -19,6 +19,11 @@ import { AsientoService } from "../modules/reservas/asiento.service";
 import { PrismaAsientoRepository } from "../modules/reservas/asiento.repository";
 import { SocketAsientoNotifier } from "../infrastructure/socket/SocketAsientoNotifier";
 
+
+import { HistorialReservaRepository } from "../modules/reservas/historial.repository";
+import { HistorialReservaService } from "../modules/reservas/historial.service";
+import { HistorialReservaController } from "../modules/reservas/historial.controller";
+
 import { MenuController } from "../modules/menu/menu.controller";
 import { MenuService } from "../modules/menu/menu.service";
 import { MenuRepository } from "../modules/menu/menu.repository";
@@ -54,6 +59,11 @@ export const funcionController = new FuncionController(funcionService);
 const asientoRepository = new PrismaAsientoRepository();
 export const asientoService = new AsientoService(asientoRepository, new SocketAsientoNotifier());
 export const asientoController = new AsientoController(asientoService);
+
+// Módulo Reservas (Historial de Reservas)
+const historialReservaRepository = new HistorialReservaRepository();
+const historialReservaService = new HistorialReservaService(historialReservaRepository);
+export const historialReservaController = new HistorialReservaController(historialReservaService);
 
 // Módulo Menú
 const menuRepository = new MenuRepository();
