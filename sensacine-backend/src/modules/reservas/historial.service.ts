@@ -4,6 +4,10 @@ import { HistorialReservaRepository } from "./historial.repository";
 export class HistorialReservaService {
     constructor(private historialRepository: HistorialReservaRepository) { }
 
+    async getReservasActivasByUsuario(idUsuario: number) {
+        return this.historialRepository.getReservasActivasByUsuario(idUsuario);
+    }
+
     async getHistorialByUsuario(idUsuario: number) {
         return this.historialRepository.getHistorialByUsuario(idUsuario);
     }

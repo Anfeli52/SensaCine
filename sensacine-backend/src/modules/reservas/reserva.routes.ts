@@ -46,6 +46,12 @@ router.delete(
 );
 
 router.get(
+    "/activas",
+    authenticate,
+    asyncHandler(historialReservaController.getReservasActivas)
+);
+
+router.get(
     "/historial",
     authenticate,
     asyncHandler(historialReservaController.getHistorial)

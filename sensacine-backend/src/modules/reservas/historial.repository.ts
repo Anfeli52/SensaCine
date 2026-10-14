@@ -1,5 +1,10 @@
 import { EstadoReserva, Prisma } from "@prisma/client";
 import { prisma } from "../../infrastructure/prisma/client";
+import { 
+    getCinemaDateStr, 
+    getCinemaTimeStr, 
+    getCinemaTodayUtcMidnight 
+} from "../../common/helpers/dateUtils";
 
 
 const historialInclude = {
@@ -72,34 +77,65 @@ const historialInclude = {
 export type ReservaHistorial = Prisma.ReservaGetPayload<{ include: typeof historialInclude; }>;
 
 export class HistorialReservaRepository {
+    async getReservasActivasByUsuario(idUsuario: number) {
+        const todayUtc = getCinemaTodayUtcMidnight();
+        const currentTimeStr = getCinemaTimeStr();
+        const todayStr = getCinemaDateStr();
+
+        const reservas = await prisma.reserva.findMany({
+            where: {
+                idUsuario,
+                estado: EstadoReserva.Confirmado,
+                funcion: {
+                    fecha: { gte: todayUtc },
+                },
+            },
+            include: historialInclude,
+            orderBy: [
+                { funcion: { fecha: "asc" } },
+                { funcion: { horaInicio: "asc" } },
+            ],
+        });
+
+        return reservas.filter((reserva) => {
+            const f = reserva.funcion;
+            const fDateStr = f.fecha.toISOString().split("T")[0];
+            if (fDateStr > todayStr) return true;
+            if (fDateStr === todayStr) {
+                const horaFinStr = f.horaFin.toISOString().slice(11, 16);
+                const horaInicioStr = f.horaInicio.toISOString().slice(11, 16);
+                return horaFinStr >= currentTimeStr || horaInicioStr >= currentTimeStr;
+            }
+            return false;
+        });
+    }
+
     async getHistorialByUsuario(idUsuario: number) {
-        const ahora = new Date();
+        const todayUtc = getCinemaTodayUtcMidnight();
+        const todayStr = getCinemaDateStr();
+        const currentTimeStr = getCinemaTimeStr();
 
-        const inicioHoy = new Date(
-            ahora.getFullYear(),
-            ahora.getMonth(),
-            ahora.getDate()
-        );
-
-        const horaActual = new Date(ahora);
-        horaActual.setFullYear(1970, 0, 1);
-
-        return prisma.reserva.findMany({
+        const reservas = await prisma.reserva.findMany({
             where: {
                 idUsuario,
                 estado: { not: EstadoReserva.Cancelado },
                 funcion: {
-                    OR: [
-                        { fecha: { lt: inicioHoy } },
-                        {
-                            fecha: inicioHoy,
-                            horaFin: { lt: horaActual },
-                        },
-                    ],
+                    fecha: { lte: todayUtc },
                 },
             },
             include: historialInclude,
             orderBy: { fechaReserva: "desc" },
+        });
+
+        return reservas.filter((reserva) => {
+            const f = reserva.funcion;
+            const fDateStr = f.fecha.toISOString().split("T")[0];
+            if (fDateStr < todayStr) return true;
+            if (fDateStr === todayStr) {
+                const horaFinStr = f.horaFin.toISOString().slice(11, 16);
+                return horaFinStr < currentTimeStr;
+            }
+            return false;
         });
     }
 
