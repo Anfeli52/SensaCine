@@ -1,12 +1,12 @@
-import { 
-  PrismaClient, 
-  Rol, 
-  TipoRestriccion, 
-  EstadoReserva, 
-  EstadoOrdenCocina 
+import {
+  PrismaClient,
+  Rol,
+  TipoRestriccion,
+  EstadoReserva,
+  EstadoOrdenCocina
 } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { getCinemaDateStr } from "../src/common/helpers/dateUtils";
+import { getCinemaDateStr, getCinemaTodayUtcMidnight } from "../src/common/helpers/dateUtils";
 
 const prisma = new PrismaClient();
 
@@ -547,7 +547,7 @@ async function seedMenu(): Promise<void> {
             idPelicula: pelicula.id,
             ordenMenu: plato.ordenMenu,
             imagenUrl: plato.imagenUrl,
-          },
+          } as any,
         });
         console.log(`  ➕ Plato creado: "${plato.nombre}" (Orden: ${plato.ordenMenu}) para ${tituloPelicula}`);
       }
@@ -610,7 +610,7 @@ async function seedFunciones(): Promise<void> {
       const fecha = fechas[dayIndex % fechas.length];
       const sala = salas[(peliculaIndex + dayIndex) % salas.length];
       const horaInicio = horasInicio[(peliculaIndex * 2 + dayIndex) % horasInicio.length];
-      
+
       const fechaFuncion = createUtcDate(fecha, 0);
       const inicio = createUtcDate(fecha, horaInicio);
       const fin = new Date(inicio.getTime() + pelicula.duracionMinutos * 60 * 1000);
@@ -665,8 +665,10 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
   const restriccionMariscos = todasRestricciones.find(r => r.nombre === "Mariscos");
   const restriccionMani = todasRestricciones.find(r => r.nombre === "Maní");
 
-  // Obtener las primeras 3 funciones para simular reservas y asientos ocupados
+  // Obtener funciones vigentes estrictamente futuras para simular reservas activas
+  const todayUtc = getCinemaTodayUtcMidnight();
   const funciones = await prisma.funcion.findMany({
+    where: { fecha: { gt: todayUtc } },
     include: {
       sala: {
         include: { asientos: { orderBy: [{ fila: "asc" }, { numero: "asc" }] } },
@@ -674,7 +676,7 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
       pelicula: true,
     },
     take: 3,
-    orderBy: { id: "asc" },
+    orderBy: [{ fecha: "asc" }, { horaInicio: "asc" }],
   });
 
   for (let i = 0; i < funciones.length; i++) {
@@ -724,7 +726,7 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
           idReserva: reserva1.id,
           idAsiento: a.id,
           nombrePersona: ocupante.nombre,
-        },
+        } as any,
       });
 
       if (ocupante.restriccion) {
@@ -782,7 +784,7 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
           idReserva: reserva2.id,
           idAsiento: a.id,
           nombrePersona: ocupante.nombre,
-        },
+        } as any,
       });
 
       if (ocupante.restriccion) {

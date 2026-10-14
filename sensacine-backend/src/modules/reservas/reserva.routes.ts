@@ -1,8 +1,17 @@
 import { Router } from "express";
 import { asyncHandler } from "../../common/helpers/asyncHandler";
 import { authenticate, requireRole } from "../../common/middlewares/authMiddleware";
+import { validateSchema } from "../../common/middlewares/validateSchema";
+import { crearReservaSchema } from "./reserva.validator";
 import { asientoController, historialReservaController, reservasAdminController } from "../../di/container";
 const router = Router();
+
+router.post(
+    "/",
+    authenticate,
+    validateSchema(crearReservaSchema),
+    asyncHandler(historialReservaController.crearReserva)
+);
 
 router.get(
     "/halls/:id/seats", 
@@ -14,6 +23,12 @@ router.get(
     "/funciones/:id/seats",
     authenticate,
     asyncHandler(asientoController.getDisponibilidadByFuncion)
+);
+
+router.get(
+    "/activas",
+    authenticate,
+    asyncHandler(historialReservaController.getReservasActivas)
 );
 
 router.get(

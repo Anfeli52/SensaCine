@@ -15,3 +15,20 @@ export async function getDisponibilidadByFuncion(idFuncion: number): Promise<Dis
     const { data } = await apiClient.get<DisponibilidadFuncion>(`/reservas/funciones/${idFuncion}/seats`);
     return data;
 }
+
+export interface CrearReservaPayload {
+    idFuncion: number;
+    montoTotal: number;
+    medioPago?: string;
+    referenciaTransaccion?: string;
+    asientos: Array<{
+        idAsiento: number;
+        nombrePersona?: string;
+        alergias?: string[];
+    }>;
+}
+
+export async function crearReserva(payload: CrearReservaPayload): Promise<any> {
+    const { data } = await apiClient.post("/reservas", payload);
+    return data;
+}

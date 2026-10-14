@@ -1,5 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { getDetalleReserva, getHistorialReservas } from "../api/historialApi";
+import { getDetalleReserva, getHistorialReservas, getReservasActivas } from "../api/historialApi";
+
+export function useReservasActivas() {
+    return useQuery({
+        queryKey: ["reservas", "activas"],
+        queryFn: getReservasActivas,
+    });
+}
 
 export function useHistorialReservas() {
     return useQuery({

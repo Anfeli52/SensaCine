@@ -43,7 +43,7 @@ export function Navbar() {
               to="/reservas/historial"
               className="text-[#1d1d1f] hover:text-[#0071e3] transition-colors font-medium"
             >
-              Mis reservas anteriores
+              Mis reservas
             </Link>
           )}
           {usuario?.rol === "admin" && (

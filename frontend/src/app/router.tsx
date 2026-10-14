@@ -45,7 +45,17 @@ export const router = createBrowserRouter([
   {
     path: "/reservas/historial",
     element: <MainLayout />,
-    children: [{ index: true, element: <MisReservasPage />, },],
+    children: [{ index: true, element: <MisReservasPage /> }],
+  },
+  {
+    path: "/reservas/activas",
+    element: <MainLayout />,
+    children: [{ index: true, element: <MisReservasPage /> }],
+  },
+  {
+    path: "/reservas/mis-reservas",
+    element: <MainLayout />,
+    children: [{ index: true, element: <MisReservasPage /> }],
   },
   
   {

@@ -257,6 +257,14 @@ export function ResumenReservaPage() {
                     sala: funcion.sala?.nombre || "Sala Estándar",
                     asientosCount: selectedAsientos.length,
                 }}
+                reservaPayload={{
+                    idFuncion: funcion.id,
+                    asientos: comensales.map((c) => ({
+                        idAsiento: c.asiento.id,
+                        nombrePersona: c.nombrePersona,
+                        alergias: c.alergias || [],
+                    })),
+                }}
             />
         </div>
     );

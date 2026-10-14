@@ -54,3 +54,5 @@ export interface ReservaHistorial {
         restricciones: RestriccionReservaHistorial[];
     }[];
 }
+
+export type ReservaActiva = ReservaHistorial;
