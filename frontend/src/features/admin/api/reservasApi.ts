@@ -10,3 +10,8 @@ export async function getReservaAdminById(id: number): Promise<Reserva> {
     const { data } = await apiClient.get<Reserva>(`/reservas/admin/${id}`);
     return data;
 }
+
+export async function updateEstadoReservaAdmin(id: number, estado: string): Promise<Reserva> {
+    const { data } = await apiClient.patch<Reserva>(`/reservas/admin/${id}/estado`, { estado });
+    return data;
+}

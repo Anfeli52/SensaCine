@@ -1,8 +1,16 @@
 import { useState } from "react";
-import { useAdminReservas } from "../hooks/useAdminReservas";
+import { useAdminReservas, useActualizarEstadoReserva } from "../hooks/useAdminReservas";
 import { AdminNavTabs } from "../components/AdminNavTabs";
-import { ListCheck } from "lucide-react";
+import { ListCheck, CheckCircle2, XCircle, Clock, AlertCircle, Loader2 } from "lucide-react";
 import type { Reserva } from "../types/reservas.types";
+
+type EstadoReservaKey = "Confirmado" | "Cancelado" | "Finalizado";
+
+const ESTADOS: { valor: EstadoReservaKey; etiqueta: string }[] = [
+    { valor: "Confirmado", etiqueta: "Confirmado" },
+    { valor: "Cancelado", etiqueta: "Cancelado" },
+    { valor: "Finalizado", etiqueta: "Finalizado" },
+];
 
 function formatearFecha(fecha: string): string {
     const fechaLimpia = fecha.split("T")[0];
@@ -42,18 +50,27 @@ function obtenerAsientos(reserva: Reserva): string {
         .join(", ");
 }
 
-function EstadoReserva({ estado }: { estado: string }) {
-    const estadoNormalizado = estado.toLowerCase();
-
-    const clasesEstado =
-        estadoNormalizado === "confirmado"
-            ? "bg-green-100 text-green-700"
-            : estadoNormalizado === "cancelado"
-                ? "bg-red-100 text-red-700"
-                : "bg-gray-100 text-gray-600";
-
+function BadgeEstado({ estado }: { estado: string }) {
+    const e = estado.toLowerCase();
+    if (e === "confirmado") {
+        return (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Confirmado
+            </span>
+        );
+    }
+    if (e === "cancelado") {
+        return (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 border border-red-200">
+                <XCircle className="w-3.5 h-3.5" />
+                Cancelado
+            </span>
+        );
+    }
     return (
-        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${clasesEstado}`}>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 border border-gray-200">
+            <Clock className="w-3.5 h-3.5" />
             {estado}
         </span>
     );
@@ -61,7 +78,12 @@ function EstadoReserva({ estado }: { estado: string }) {
 
 export function AdminReservasPage() {
     const { data: reservas, isLoading, isError, refetch, isFetching } = useAdminReservas();
+    const actualizarEstado = useActualizarEstadoReserva();
+
     const [reservaSeleccionada, setReservaSeleccionada] = useState<Reserva | null>(null);
+    const [estadoPendiente, setEstadoPendiente] = useState<string>("");
+    const [guardadoOk, setGuardadoOk] = useState(false);
+    const [errorGuardado, setErrorGuardado] = useState("");
 
     const [fechaFiltro, setFechaFiltro] = useState("");
     const [peliculaFiltro, setPeliculaFiltro] = useState("");
@@ -102,6 +124,48 @@ export function AdminReservasPage() {
 
         setFechaFiltro(`${anio}-${mes}-${dia}`);
     }
+
+    function abrirDetalle(reserva: Reserva) {
+        setReservaSeleccionada(reserva);
+        setEstadoPendiente(reserva.estado);
+        setGuardadoOk(false);
+        setErrorGuardado("");
+    }
+
+    function cerrarDetalle() {
+        setReservaSeleccionada(null);
+        setEstadoPendiente("");
+        setGuardadoOk(false);
+        setErrorGuardado("");
+    }
+
+    async function handleGuardarEstado() {
+        if (!reservaSeleccionada) return;
+        if (estadoPendiente === reservaSeleccionada.estado) {
+            cerrarDetalle();
+            return;
+        }
+
+        setGuardadoOk(false);
+        setErrorGuardado("");
+
+        actualizarEstado.mutate(
+            { id: reservaSeleccionada.id, estado: estadoPendiente },
+            {
+                onSuccess: (reservaActualizada) => {
+                    setReservaSeleccionada(reservaActualizada);
+                    setGuardadoOk(true);
+                    setErrorGuardado("");
+                },
+                onError: () => {
+                    setErrorGuardado("No se pudo actualizar el estado. Intenta de nuevo.");
+                    setGuardadoOk(false);
+                },
+            }
+        );
+    }
+
+    const estadoCambio = reservaSeleccionada && estadoPendiente !== reservaSeleccionada.estado;
 
     return (
         <main className="min-h-screen px-4 py-8 sm:px-8">
@@ -245,7 +309,7 @@ export function AdminReservasPage() {
                         <h2 className="text-lg font-semibold text-[#1d1d1f]">
                             {reservas && reservas.length > 0
                                 ? "No hay reservas que coincidan con los filtros"
-                                : "No hay reservas disponibles"}
+                                : "No hay reservas registradas"}
                         </h2>
                         <p className="mt-2 text-sm text-[#86868b]">
                             Cuando existan reservas registradas, aparecerán en esta sección.
@@ -280,7 +344,11 @@ export function AdminReservasPage() {
                                         {reservasFiltradas.map((reserva) => (
                                             <tr
                                                 key={reserva.id}
-                                                className="transition hover:bg-gray-50"
+                                                className={`transition hover:bg-gray-50 ${
+                                                    reserva.estado.toLowerCase() === "cancelado"
+                                                        ? "bg-red-50/40"
+                                                        : ""
+                                                }`}
                                             >
                                                 <td className="px-5 py-4 font-semibold text-[#1d1d1f]">
                                                     #{reserva.id}
@@ -309,15 +377,15 @@ export function AdminReservasPage() {
                                                     {obtenerAsientos(reserva)}
                                                 </td>
                                                 <td className="px-5 py-4">
-                                                    <EstadoReserva estado={reserva.estado} />
+                                                    <BadgeEstado estado={reserva.estado} />
                                                 </td>
                                                 <td className="px-5 py-4">
                                                     <button
                                                         type="button"
-                                                        onClick={() => setReservaSeleccionada(reserva)}
+                                                        onClick={() => abrirDetalle(reserva)}
                                                         className="font-semibold text-[#0071e3] hover:underline"
                                                     >
-                                                        Ver detalle
+                                                        Ver / Editar
                                                     </button>
                                                 </td>
                                             </tr>
@@ -330,10 +398,11 @@ export function AdminReservasPage() {
                 )}
             </div>
 
+            {/* ── Modal Detalle + Edición de estado ── */}
             {reservaSeleccionada && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-                    onClick={() => setReservaSeleccionada(null)}
+                    onClick={cerrarDetalle}
                 >
                     <section
                         role="dialog"
@@ -356,7 +425,7 @@ export function AdminReservasPage() {
                             </div>
                             <button
                                 type="button"
-                                onClick={() => setReservaSeleccionada(null)}
+                                onClick={cerrarDetalle}
                                 aria-label="Cerrar detalle"
                                 className="rounded-full px-3 py-1 text-xl text-[#86868b] hover:bg-gray-100"
                             >
@@ -415,18 +484,86 @@ export function AdminReservasPage() {
                                 </p>
                             </div>
 
-                            <div>
-                                <p className="text-[#86868b]">Estado</p>
-                                <div className="mt-2">
-                                    <EstadoReserva estado={reservaSeleccionada.estado} />
+                            {/* ── Selector de estado (nueva funcionalidad) ── */}
+                            <div className="rounded-2xl border border-[#e5e5ea] bg-[#fafafa] p-4 space-y-3">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-[#86868b]">
+                                    Estado de la reserva
+                                </p>
+
+                                <div className="flex items-center gap-3">
+                                    <BadgeEstado estado={reservaSeleccionada.estado} />
+                                    {estadoCambio && (
+                                        <span className="text-xs text-[#86868b]">
+                                            → cambiar a{" "}
+                                            <strong className="text-[#1d1d1f]">{estadoPendiente}</strong>
+                                        </span>
+                                    )}
                                 </div>
+
+                                <div className="grid grid-cols-3 gap-2 pt-1">
+                                    {ESTADOS.map(({ valor, etiqueta }) => {
+                                        const activo = estadoPendiente === valor;
+                                        return (
+                                            <button
+                                                key={valor}
+                                                type="button"
+                                                onClick={() => {
+                                                    setEstadoPendiente(valor);
+                                                    setGuardadoOk(false);
+                                                    setErrorGuardado("");
+                                                }}
+                                                className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                                                    activo
+                                                        ? valor === "Confirmado"
+                                                            ? "border-emerald-400 bg-emerald-50 text-emerald-700"
+                                                            : valor === "Cancelado"
+                                                            ? "border-red-400 bg-red-50 text-red-700"
+                                                            : "border-gray-400 bg-gray-100 text-gray-700"
+                                                        : "border-gray-200 bg-white text-[#424245] hover:border-gray-300 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                {etiqueta}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Feedback */}
+                                {guardadoOk && !estadoCambio && (
+                                    <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs font-medium text-emerald-700">
+                                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                        Estado actualizado correctamente
+                                    </div>
+                                )}
+                                {errorGuardado && (
+                                    <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2 text-xs font-medium text-red-700">
+                                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                        {errorGuardado}
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={handleGuardarEstado}
+                                    disabled={actualizarEstado.isPending || (!estadoCambio && !guardadoOk)}
+                                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#0071e3] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0077ed] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {actualizarEstado.isPending ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Guardando...
+                                        </>
+                                    ) : (
+                                        "Guardar cambio de estado"
+                                    )}
+                                </button>
                             </div>
                         </div>
 
                         <button
                             type="button"
-                            onClick={() => setReservaSeleccionada(null)}
-                            className="mt-8 w-full rounded-xl bg-[#1d1d1f] px-5 py-3 font-semibold text-white hover:bg-black"
+                            onClick={cerrarDetalle}
+                            className="mt-6 w-full rounded-xl bg-[#1d1d1f] px-5 py-3 font-semibold text-white hover:bg-black"
                         >
                             Cerrar
                         </button>

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { EstadoReserva, Prisma } from "@prisma/client";
 import { prisma } from "../../infrastructure/prisma/client";
 
 const reservasAdminInclude = {
@@ -54,6 +54,14 @@ export class ReservasAdminRepository {
             where: {
                 id: idReserva,
             },
+            include: reservasAdminInclude,
+        });
+    }
+
+    async updateEstado(idReserva: number, estado: EstadoReserva) {
+        return prisma.reserva.update({
+            where: { id: idReserva },
+            data: { estado },
             include: reservasAdminInclude,
         });
     }

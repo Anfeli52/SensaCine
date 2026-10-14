@@ -118,16 +118,26 @@ export class HistorialReservaRepository {
         const reservas = await prisma.reserva.findMany({
             where: {
                 idUsuario,
-                estado: { not: EstadoReserva.Cancelado },
-                funcion: {
-                    fecha: { lte: todayUtc },
-                },
+                OR: [
+                    // Canceladas o Finalizadas: siempre van al historial, sin importar la fecha
+                    { estado: EstadoReserva.Cancelado },
+                    { estado: EstadoReserva.Finalizado },
+                    // Confirmadas cuya función ya ocurrió (fecha pasada)
+                    {
+                        estado: EstadoReserva.Confirmado,
+                        funcion: { fecha: { lte: todayUtc } },
+                    },
+                ],
             },
             include: historialInclude,
             orderBy: { fechaReserva: "desc" },
         });
 
         return reservas.filter((reserva) => {
+            // Canceladas y Finalizadas siempre aparecen
+            if (reserva.estado !== EstadoReserva.Confirmado) return true;
+
+            // Para las Confirmadas solo se muestran si la función ya terminó
             const f = reserva.funcion;
             const fDateStr = f.fecha.toISOString().split("T")[0];
             if (fDateStr < todayStr) return true;
@@ -138,6 +148,7 @@ export class HistorialReservaRepository {
             return false;
         });
     }
+
 
     async getReservaById(idReserva: number, idUsuario: number) {
         return prisma.reserva.findFirst({

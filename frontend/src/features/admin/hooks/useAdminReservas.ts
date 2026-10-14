@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { getReservaAdminById, getReservasAdmin } from "../api/reservasApi";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getReservaAdminById, getReservasAdmin, updateEstadoReservaAdmin } from "../api/reservasApi";
 
 export const ADMIN_RESERVAS_QUERY_KEY = ["reservas", "admin"];
 
@@ -17,3 +17,15 @@ export function useAdminReservaDetalle(id: number) {
         enabled: Number.isInteger(id) && id > 0,
     });
 }
+
+export function useActualizarEstadoReserva() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, estado }: { id: number; estado: string }) =>
+            updateEstadoReservaAdmin(id, estado),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: ADMIN_RESERVAS_QUERY_KEY });
+        },
+    });
+}

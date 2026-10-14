@@ -77,6 +77,13 @@ router.get(
     asyncHandler(reservasAdminController.getReservaById)
 );
 
+router.patch(
+    "/admin/:id/estado",
+    authenticate,
+    requireRole("admin"),
+    asyncHandler(reservasAdminController.updateEstado)
+);
+
 router.post(
     "/halls/:id_hall/seats/:id_seat/reserve",
     authenticate,
