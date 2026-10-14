@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, ArrowLeft, Armchair, Calendar, Clock } from "lucide-react";
 import { useAuthStore } from "@/features/auth/authStore";
 import { Pelicula } from "@/features/catalogo/types";
 import { Button } from "../../../shared/components/Button";
 import { Spinner } from "../../../shared/components/Spinner";
 import { SeatMap } from "../components/SeatMap";
-import { useAsientos } from "../hooks/useAsientos";
+import { useAsientos, asientosQueryKey } from "../hooks/useAsientos";
+import { bloquearAsientos, liberarAsientos } from "../api/bookingApi";
+import { useBloqueoStore } from "../bloqueoStore";
 import { Asiento } from "../types";
 
 interface FuncionState {
@@ -22,6 +26,7 @@ interface FuncionState {
 interface LocationState {
     pelicula: Pelicula;
     funcion: FuncionState;
+    aviso?: string;
 }
 
 const MAX_SEATS = 8;
@@ -37,13 +42,19 @@ export function SeatSelectionPage() {
     const { isAuthenticated } = useAuthStore();
     const navigate = useNavigate();
     const state = useLocation().state as LocationState | null;
+    const queryClient = useQueryClient();
     const [selected, setSelected] = useState<Asiento[]>([]);
+    const [aviso, setAviso] = useState<string | null>(state?.aviso ?? null);
+    const [isBlocking, setIsBlocking] = useState(false);
+    const bloqueo = useBloqueoStore((s) => s.bloqueo);
+    const setBloqueo = useBloqueoStore((s) => s.setBloqueo);
+    const clearBloqueo = useBloqueoStore((s) => s.clear);
+    const sincronizado = useRef(false);
 
-    const [aviso, setAviso] = useState<string | null>(null);
-
-    const { filas, occupiedIds, isLoading, isError, refetch } = useAsientos(
+    const { filas, occupiedIds, pendingIds, miBloqueo, data, isLoading, isError, isFetching, refetch } = useAsientos(
         state?.funcion.id,
         (ids) =>
+            // Si otro usuario dejó pendientes u ocupó asientos que teníamos seleccionados, los quitamos y avisamos
             setSelected((prev) => {
                 const perdidos = prev.filter((s) => ids.includes(s.id));
                 if (perdidos.length === 0) return prev;
@@ -53,6 +64,17 @@ export function SeatSelectionPage() {
                 return prev.filter((s) => !ids.includes(s.id));
             })
     );
+
+    useEffect(() => {
+        if (!data || isFetching || sincronizado.current || !state) return;
+        sincronizado.current = true;
+        const tengoBloqueo = !!miBloqueo || useBloqueoStore.getState().bloqueo?.idFuncion === state.funcion.id;
+        if (!tengoBloqueo) return;
+        clearBloqueo();
+        liberarAsientos(state.funcion.id)
+            .catch(() => undefined)
+            .finally(() => queryClient.invalidateQueries({ queryKey: asientosQueryKey(state.funcion.id) }));
+    }, [data, isFetching]);
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
     if (!state) return <Navigate to="/" replace />;
@@ -65,6 +87,39 @@ export function SeatSelectionPage() {
             if (prev.some((s) => s.id === a.id)) return prev.filter((s) => s.id !== a.id);
             return prev.length >= MAX_SEATS ? prev : [...prev, a];
         });
+
+    const handleContinuar = async () => {
+        setIsBlocking(true);
+        setAviso(null);
+        try {
+            if (bloqueo && bloqueo.idFuncion !== funcion.id) {
+                await liberarAsientos(bloqueo.idFuncion).catch(() => undefined);
+            }
+            const creado = await bloquearAsientos(funcion.id, selected.map((s) => s.id));
+            setBloqueo(creado.id_funcion, creado.ids_asiento, creado.segundos_restantes);
+            queryClient.invalidateQueries({ queryKey: asientosQueryKey(funcion.id) });
+            navigate("/reservas/alergenos", { state: { pelicula, funcion, selectedAsientos: selected } });
+        } catch (e) {
+            setAviso(
+                axios.isAxiosError(e) && e.response?.data?.error
+                    ? e.response.data.error
+                    : "No se pudieron reservar los asientos. Inténtalo de nuevo."
+            );
+            
+            const { data: fresco } = await refetch();
+            if (fresco) {
+                const mios = fresco.mi_bloqueo?.ids_asiento ?? [];
+                setSelected((prev) =>
+                    prev.filter((s) => {
+                        const estado = fresco.asientos.find((a) => a.id === s.id)?.estado;
+                        return estado === "disponible" || mios.includes(s.id);
+                    })
+                );
+            }
+        } finally {
+            setIsBlocking(false);
+        }
+    };
 
     const renderMap = () => {
         if (isLoading) {
@@ -100,6 +155,7 @@ export function SeatSelectionPage() {
                 filas={filas}
                 selectedIds={selected.map((s) => s.id)}
                 occupiedIds={occupiedIds}
+                pendingIds={pendingIds}
                 onToggle={toggle}
             />
         );
@@ -108,6 +164,7 @@ export function SeatSelectionPage() {
     const legend = [
         { label: "Disponible", cls: "bg-white border-[#d2d2d7]" },
         { label: "Seleccionado", cls: "bg-[#0071e3] border-[#0071e3]" },
+        { label: "Pendiente", cls: "bg-amber-50 border-amber-400 border-dashed" },
         { label: "Ocupado", cls: "bg-[#e8e8ed] border-[#e8e8ed]" },
     ];
 
@@ -189,9 +246,10 @@ export function SeatSelectionPage() {
                 <Button 
                     variant="primary" 
                     size="sm" 
-                    disabled={selected.length === 0} 
+                    disabled={selected.length === 0 || isBlocking}
+                    isLoading={isBlocking}
                     className="px-5"
-                    onClick={() => navigate('/reservas/alergenos', { state: { ...state, selectedAsientos: selected } })}
+                    onClick={handleContinuar}
                 >
                     Continuar
                 </Button>

@@ -57,6 +57,7 @@ model Usuario {
   reservas Reserva[]
   logs     LogAuditoria[]
   tarjetas Tarjeta[]
+  bloqueos BloqueoAsiento[]
 
   @@map("usuario")
 }
@@ -76,15 +77,15 @@ model LogAuditoria {
 }
 
 model Pelicula {
-  id                    Int      @id @default(autoincrement()) @map("id_pelicula")
-  titulo                String   @db.VarChar(200)
-  sinopsis              String?  @db.Text
-  duracionMinutos       Int      @map("duracion_minutos")
-  genero                String?  @db.VarChar(80)
-  clasificacion         String?  @db.VarChar(20)
-  posterUrl             String?  @map("poster_url") @db.VarChar(500)
-  estado                String   @default("activa") @db.VarChar(30)
-  precioBaseExperiencia Decimal  @map("precio_base_experiencia") @db.Decimal(10, 2)
+  id                    Int     @id @default(autoincrement()) @map("id_pelicula")
+  titulo                String  @db.VarChar(200)
+  sinopsis              String? @db.Text
+  duracionMinutos       Int     @map("duracion_minutos")
+  genero                String? @db.VarChar(80)
+  clasificacion         String? @db.VarChar(20)
+  posterUrl             String? @map("poster_url") @db.VarChar(500)
+  estado                String  @default("activa") @db.VarChar(30)
+  precioBaseExperiencia Decimal @map("precio_base_experiencia") @db.Decimal(10, 2)
 
   funciones Funcion[]
   productos Producto[]
@@ -112,20 +113,21 @@ model Asiento {
   numero Int
 
   reservaAsientos ReservaAsiento[]
+  bloqueos        BloqueoAsiento[]
 
   @@unique([idSala, fila, numero])
   @@map("asiento")
 }
 
 model Producto {
-  id          Int      @id @default(autoincrement()) @map("id_producto")
-  nombre      String   @db.VarChar(150)
-  descripcion String?  @db.Text
-  categoria   String?  @db.VarChar(50)
-  estado      String   @default("activo") @db.VarChar(30)
-  idPelicula  Int?     @map("id_pelicula")
+  id          Int       @id @default(autoincrement()) @map("id_producto")
+  nombre      String    @db.VarChar(150)
+  descripcion String?   @db.Text
+  categoria   String?   @db.VarChar(50)
+  estado      String    @default("activo") @db.VarChar(30)
+  idPelicula  Int?      @map("id_pelicula")
   pelicula    Pelicula? @relation(fields: [idPelicula], references: [id])
-  ordenMenu   Int?     @map("orden_menu")
+  ordenMenu   Int?      @map("orden_menu")
   imagenUrl   String?   @map("imagen_url") @db.VarChar(500)
 
   restricciones      ProductoRestriccion[]
@@ -147,11 +149,11 @@ model RestriccionAlimentaria {
 }
 
 model ProductoRestriccion {
-  id            Int                     @id @default(autoincrement()) @map("id_producto_restriccion")
-  idProducto    Int                     @map("id_producto")
-  producto      Producto                @relation(fields: [idProducto], references: [id])
-  idRestriccion Int                     @map("id_restriccion")
-  restriccion   RestriccionAlimentaria  @relation(fields: [idRestriccion], references: [id])
+  id            Int                    @id @default(autoincrement()) @map("id_producto_restriccion")
+  idProducto    Int                    @map("id_producto")
+  producto      Producto               @relation(fields: [idProducto], references: [id])
+  idRestriccion Int                    @map("id_restriccion")
+  restriccion   RestriccionAlimentaria @relation(fields: [idRestriccion], references: [id])
 
   @@unique([idProducto, idRestriccion])
   @@map("producto_restriccion")
@@ -170,6 +172,7 @@ model Funcion {
   estado               String   @default("programada") @db.VarChar(30)
 
   reservas Reserva[]
+  bloqueos BloqueoAsiento[]
 
   @@map("funcion")
 }
@@ -192,13 +195,32 @@ model Reserva {
   @@map("reserva")
 }
 
+// Asiento retenido temporalmente ("Pendiente") mientras un usuario completa su reserva.
+// La unicidad (idFuncion, idAsiento) garantiza en BD que dos usuarios no retengan el mismo asiento.
+model BloqueoAsiento {
+  id        Int      @id @default(autoincrement()) @map("id_bloqueo")
+  idFuncion Int      @map("id_funcion")
+  funcion   Funcion  @relation(fields: [idFuncion], references: [id], onDelete: Cascade)
+  idAsiento Int      @map("id_asiento")
+  asiento   Asiento  @relation(fields: [idAsiento], references: [id], onDelete: Cascade)
+  idUsuario Int      @map("id_usuario")
+  usuario   Usuario  @relation(fields: [idUsuario], references: [id], onDelete: Cascade)
+  creadoEn  DateTime @default(now()) @map("creado_en")
+  expiraEn  DateTime @map("expira_en")
+
+  @@unique([idFuncion, idAsiento])
+  @@index([expiraEn])
+  @@index([idUsuario, idFuncion])
+  @@map("bloqueo_asiento")
+}
+
 model ReservaAsiento {
-  id            Int      @id @default(autoincrement()) @map("id_reserva_asiento")
-  idReserva     Int      @map("id_reserva")
-  reserva       Reserva  @relation(fields: [idReserva], references: [id])
-  idAsiento     Int      @map("id_asiento")
-  asiento       Asiento  @relation(fields: [idAsiento], references: [id])
-  nombrePersona String?  @map("nombre_persona") @db.VarChar(100)
+  id            Int     @id @default(autoincrement()) @map("id_reserva_asiento")
+  idReserva     Int     @map("id_reserva")
+  reserva       Reserva @relation(fields: [idReserva], references: [id])
+  idAsiento     Int     @map("id_asiento")
+  asiento       Asiento @relation(fields: [idAsiento], references: [id])
+  nombrePersona String? @map("nombre_persona") @db.VarChar(100)
 
   restricciones ReservaRestriccion[]
   ordenesCocina OrdenCocina[]
@@ -208,14 +230,14 @@ model ReservaAsiento {
 }
 
 model ReservaRestriccion {
-  id               Int                     @id @default(autoincrement()) @map("id_reserva_asiento_restriccion")
-  idReservaAsiento Int                     @map("id_reserva_asiento")
-  reservaAsiento   ReservaAsiento          @relation(fields: [idReservaAsiento], references: [id])
-  idRestriccion    Int                     @map("id_restriccion")
-  restriccion      RestriccionAlimentaria  @relation(fields: [idRestriccion], references: [id])
-  notas            String?                 @db.VarChar(255)
-  idProducto       Int?                    @map("id_producto")
-  producto         Producto?               @relation(fields: [idProducto], references: [id])
+  id               Int                    @id @default(autoincrement()) @map("id_reserva_asiento_restriccion")
+  idReservaAsiento Int                    @map("id_reserva_asiento")
+  reservaAsiento   ReservaAsiento         @relation(fields: [idReservaAsiento], references: [id])
+  idRestriccion    Int                    @map("id_restriccion")
+  restriccion      RestriccionAlimentaria @relation(fields: [idRestriccion], references: [id])
+  notas            String?                @db.VarChar(255)
+  idProducto       Int?                   @map("id_producto")
+  producto         Producto?              @relation(fields: [idProducto], references: [id])
 
   @@map("reserva_restriccion")
 }
@@ -273,10 +295,11 @@ model Tarjeta {
   numeroTarjeta   String   @map("numero_tarjeta") @db.VarChar(19)
   titular         String   @db.VarChar(100)
   fechaExpiracion String   @map("fecha_expiracion") @db.VarChar(7) // Ej: "12/28"
-  tipo            String   @default("Crédito") @db.VarChar(30)     // "Crédito" | "Débito"
-  franquicia      String   @default("Visa") @db.VarChar(30)        // "Visa" | "Mastercard" | "Amex"
-  saldo           Decimal  @default(100000.00) @db.Decimal(12, 2)  // Saldo simulado recargable
+  tipo            String   @default("Crédito") @db.VarChar(30) // "Crédito" | "Débito"
+  franquicia      String   @default("Visa") @db.VarChar(30) // "Visa" | "Mastercard" | "Amex"
+  saldo           Decimal  @default(100000.00) @db.Decimal(12, 2) // Saldo simulado recargable
   estado          String   @default("activa") @db.VarChar(20)
   fechaCreacion   DateTime @default(now()) @map("fecha_creacion")
+
   @@map("tarjeta")
 }

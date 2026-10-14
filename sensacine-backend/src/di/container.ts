@@ -17,6 +17,12 @@ import { PrismaFuncionRepository } from "../modules/programacion/funcion.reposit
 import { AsientoController } from "../modules/reservas/asiento.controller";
 import { AsientoService } from "../modules/reservas/asiento.service";
 import { PrismaAsientoRepository } from "../modules/reservas/asiento.repository";
+import { PrismaBloqueoRepository } from "../modules/reservas/bloqueo.repository";
+import { BloqueoService } from "../modules/reservas/bloqueo.service";
+import { BloqueoController } from "../modules/reservas/bloqueo.controller";
+import { PrismaReservaRepository } from "../modules/reservas/reserva.repository";
+import { ReservaService } from "../modules/reservas/reserva.service";
+import { ReservaController } from "../modules/reservas/reserva.controller";
 import { SocketAsientoNotifier } from "../infrastructure/socket/SocketAsientoNotifier";
 
 
@@ -62,6 +68,14 @@ export const funcionController = new FuncionController(funcionService);
 const asientoRepository = new PrismaAsientoRepository();
 export const asientoService = new AsientoService(asientoRepository, new SocketAsientoNotifier());
 export const asientoController = new AsientoController(asientoService);
+
+// Módulo Reservas (Bloqueo temporal de asientos "Pendiente")
+export const bloqueoService = new BloqueoService(new PrismaBloqueoRepository(), new SocketAsientoNotifier());
+export const bloqueoController = new BloqueoController(bloqueoService);
+
+// Módulo Reservas (Creación de la reserva real: pago + asientos + comensales + cocina)
+export const reservaService = new ReservaService(new PrismaReservaRepository(), bloqueoService, new SocketAsientoNotifier());
+export const reservaController = new ReservaController(reservaService);
 
 // Módulo Reservas (Historial de Reservas)
 const historialReservaRepository = new HistorialReservaRepository();

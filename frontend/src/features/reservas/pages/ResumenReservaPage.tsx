@@ -16,7 +16,12 @@ import { Button } from "../../../shared/components/Button";
 import { Pelicula } from "@/features/catalogo/types";
 import { Asiento, AsientoDetalleReserva } from "../types";
 import { PasarelaPagoModal } from "../../pagos/components/PasarelaPagoModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { BloqueoTimer } from "../components/BloqueoTimer";
+import { useBloqueoStore } from "../bloqueoStore";
+import { useRestaurarBloqueo } from "../hooks/useRestaurarBloqueo";
+import { useCrearReserva } from "../hooks/useCrearReserva";
+import { Spinner } from "../../../shared/components/Spinner";
 
 interface FuncionState {
     id: number;
@@ -34,6 +39,8 @@ interface LocationState {
     selectedAsientos: Asiento[];
     asientosDetalle?: AsientoDetalleReserva[];
     alergias?: string[];
+    /** Se agrega al historial del navegador al confirmar: al recargar se muestra la reserva ya creada */
+    reservaConfirmada?: number;
 }
 
 export function ResumenReservaPage() {
@@ -41,11 +48,44 @@ export function ResumenReservaPage() {
     const navigate = useNavigate();
     const state = useLocation().state as LocationState | null;
     const [isPasarelaOpen, setIsPasarelaOpen] = useState(false);
+    const bloqueo = useBloqueoStore((s) => s.bloqueo);
+    const clearBloqueo = useBloqueoStore((s) => s.clear);
+    const crearReserva = useCrearReserva();
+    const [reservaId, setReservaId] = useState<number | null>(state?.reservaConfirmada ?? null);
+    // Con la reserva ya creada no hay bloqueo que recuperar ni vigilar
+    const verificando = useRestaurarBloqueo(
+        reservaId ? undefined : state?.funcion.id,
+        state?.selectedAsientos?.map((a) => a.id)
+    );
+
+    // El servidor consumió el bloqueo al crear la reserva: se limpia el estado local (después del render, para no disparar el guard)
+    useEffect(() => {
+        if (reservaId) clearBloqueo();
+    }, [reservaId]);
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
     if (!state || !state.selectedAsientos) return <Navigate to="/" replace />;
 
     const { pelicula, funcion, selectedAsientos, asientosDetalle, alergias = [] } = state;
+
+    if (verificando) {
+        return (
+            <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3">
+                <Spinner size="md" />
+                <p className="text-[13px] text-[#86868b]">Recuperando tu reserva...</p>
+            </div>
+        );
+    }
+
+    if (!reservaId && bloqueo?.idFuncion !== funcion.id) {
+        return (
+            <Navigate
+                to="/reservas/asientos"
+                replace
+                state={{ pelicula, funcion, aviso: "Tus asientos ya no están reservados temporalmente. Selecciónalos de nuevo." }}
+            />
+        );
+    }
 
     // Normalizar detalles por asiento si provienen de asientosDetalle o fallback
     const comensales: AsientoDetalleReserva[] = asientosDetalle && asientosDetalle.length > 0
@@ -62,6 +102,32 @@ export function ResumenReservaPage() {
 
     const handlePagar = () => {
         setIsPasarelaOpen(true);
+    };
+
+    // Una sola llamada: el servidor cobra la tarjeta y crea la reserva (asientos, comensales, cocina y pago) de forma atómica
+    const handleConfirmarPago = async (idTarjeta: number) => {
+        const reserva = await crearReserva.mutateAsync({
+            idFuncion: funcion.id,
+            idTarjeta,
+            comensales: comensales.map((c) => ({
+                idAsiento: c.asiento.id,
+                nombrePersona: c.nombrePersona,
+                restricciones: c.alergias.filter((a) => a !== c.otraAlergia),
+                ...(c.otraAlergia ? { otraRestriccion: c.otraAlergia } : {}),
+            })),
+        });
+        setReservaId(reserva.idReserva);
+        navigate(".", { replace: true, state: { ...state, reservaConfirmada: reserva.idReserva } });
+        return {
+            exitoso: true,
+            mensaje: "Reserva confirmada",
+            referenciaTransaccion: reserva.pago.referenciaTransaccion,
+            montoPagado: reserva.pago.montoPagado,
+            nuevoSaldo: reserva.pago.nuevoSaldo,
+            tarjetaId: reserva.pago.tarjetaId,
+            fechaPago: reserva.pago.fechaPago,
+            idReserva: reserva.idReserva,
+        };
     };
 
     const formatPrice = (price: number) => {
@@ -85,13 +151,34 @@ export function ResumenReservaPage() {
 
     return (
         <div className="max-w-[850px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-            <button
-                type="button"
-                onClick={() => navigate(-1)}
-                className="inline-flex items-center gap-1.5 text-[13px] text-[#0071e3] hover:underline"
-            >
-                <ArrowLeft className="w-4 h-4" /> Volver a datos de comensales
-            </button>
+            {reservaId ? (
+                <div
+                    role="status"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-appleLg px-4 py-3 text-[13px]"
+                >
+                    <span className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                        <span>
+                            Reserva <strong>#{reservaId}</strong> confirmada y pagada. Te esperamos en la función.
+                        </span>
+                    </span>
+                    <Button variant="secondary" size="sm" onClick={() => navigate("/")} className="px-4">
+                        Ir a la cartelera
+                    </Button>
+                </div>
+            ) : (
+                <>
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="inline-flex items-center gap-1.5 text-[13px] text-[#0071e3] hover:underline"
+                    >
+                        <ArrowLeft className="w-4 h-4" /> Volver a datos de comensales
+                    </button>
+
+                    <BloqueoTimer idFuncion={funcion.id} />
+                </>
+            )}
 
             <div className="space-y-1">
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#1d1d1f] tracking-tight">
@@ -233,17 +320,19 @@ export function ResumenReservaPage() {
                 </div>
             </div>
 
-            <div className="flex justify-end pt-2">
-                <Button 
-                    variant="primary" 
-                    size="lg" 
-                    onClick={handlePagar}
-                    className="px-8 w-full sm:w-auto"
-                >
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    Proceder al Pago
-                </Button>
-            </div>
+            {!reservaId && (
+                <div className="flex justify-end pt-2">
+                    <Button 
+                        variant="primary" 
+                        size="lg" 
+                        onClick={handlePagar}
+                        className="px-8 w-full sm:w-auto"
+                    >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Proceder al Pago
+                    </Button>
+                </div>
+            )}
 
             {/* Modal de Pasarela de Pagos (HU-12 & HU-13) */}
             <PasarelaPagoModal
@@ -251,6 +340,7 @@ export function ResumenReservaPage() {
                 onClose={() => setIsPasarelaOpen(false)}
                 totalPagar={precioTotal}
                 peliculaTitulo={pelicula.titulo}
+                onConfirmarPago={handleConfirmarPago}
                 detallesCompra={{
                     fecha: formatDate(funcion.fecha),
                     hora: `${funcion.horaInicio} - ${funcion.horaFin}`,

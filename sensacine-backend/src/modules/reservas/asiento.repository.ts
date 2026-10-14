@@ -20,4 +20,12 @@ export class PrismaAsientoRepository implements IAsientoRepository {
         });
         return filas.map((f) => f.idAsiento);
     }
+
+    // Solo bloqueos vigentes: los vencidos se ignoran aunque el barrendero aún no los haya borrado
+    getBloqueosActivos(idFuncion: number) {
+        return prisma.bloqueoAsiento.findMany({
+            where: { idFuncion, expiraEn: { gt: new Date() } },
+            select: { idAsiento: true, idUsuario: true, expiraEn: true },
+        });
+    }
 }

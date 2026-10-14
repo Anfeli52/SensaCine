@@ -5,13 +5,15 @@ interface SeatMapProps {
     filas: { fila: string; asientos: Asiento[] }[];
     selectedIds: number[];
     occupiedIds?: number[];
+    pendingIds?: number[];
     onToggle: (asiento: Asiento) => void;
 }
 
-export function SeatMap({ filas, selectedIds, occupiedIds = [], onToggle, }: Readonly<SeatMapProps>) {
+export function SeatMap({ filas, selectedIds, occupiedIds = [], pendingIds = [], onToggle, }: Readonly<SeatMapProps>) {
     const statusOf = (id: number): SeatStatus => {
         if (occupiedIds.includes(id)) return "occupied";
-        return selectedIds.includes(id) ? "selected" : "available";
+        if (selectedIds.includes(id)) return "selected";
+        return pendingIds.includes(id) ? "pending" : "available";
     };
 
     return (
