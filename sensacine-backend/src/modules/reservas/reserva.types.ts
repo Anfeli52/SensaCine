@@ -78,6 +78,11 @@ export interface IBloqueoVerificador {
     verificarBloqueoVigente(idFuncion: number, idUsuario: number, idsAsiento: number[]): Promise<void>;
 }
 
+// Correo de confirmación: lo implementa el módulo de notificaciones
+export interface IConfirmacionCorreo {
+    enviarConfirmacionReserva(idReserva: number): Promise<void>;
+}
+
 export interface IReservaNotifier {
     asientosOcupados(idFuncion: number, idsAsiento: number[]): void;
 }

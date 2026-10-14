@@ -103,6 +103,30 @@ JWT_SECRET="sensacine-super-secreto-desarrollo-2026"
 BCRYPT_SALT_ROUNDS=10
 ```
 
+#### Correo de confirmación de reservas (opcional)
+Al confirmarse una reserva se envía un correo al email registrado del usuario. Sin configuración la app funciona igual, pero esos correos quedan en estado `fallido` en la tabla `notificacion` y se avisa en el log.
+
+**Opción A (recomendada): API de Gmail por HTTPS.** No usa los puertos de correo, así que funciona aunque tu red los bloquee.
+1. En <https://console.cloud.google.com> crea un proyecto y activa la **Gmail API** (APIs y servicios > Biblioteca).
+2. En *Pantalla de consentimiento de OAuth*: tipo **Externo**, agrega tu Gmail como *usuario de prueba* y el permiso `https://www.googleapis.com/auth/gmail.send`.
+3. En *Credenciales* crea un **ID de cliente OAuth** de tipo *Aplicación web*, con `https://developers.google.com/oauthplayground` como URI de redirección autorizado.
+4. En <https://developers.google.com/oauthplayground>: engranaje ⚙ > *Use your own OAuth credentials* (pega el ID y el secreto) > autoriza el permiso `gmail.send` con tu Gmail > *Exchange authorization code for tokens* y copia el **Refresh token**.
+5. En `.env`:
+   ```env
+   GMAIL_CLIENT_ID=xxxx.apps.googleusercontent.com
+   GMAIL_CLIENT_SECRET=el_secreto_del_cliente
+   GMAIL_REFRESH_TOKEN=1//el_refresh_token
+   MAIL_FROM="SensaCine <tu_correo@gmail.com>"
+   ```
+> ⚠️ Mientras la app esté en modo *Prueba* el refresh token **caduca a los 7 días**. Para evitarlo, pulsa **Publicar aplicación** en la pantalla de consentimiento (seguirá marcada como "no verificada", lo cual sirve para uso personal). El refresh token equivale a una contraseña para enviar como tú: solo va en `.env`.
+
+**Opción B: SMTP** (solo si tu red permite los puertos 587/465). Crea una *contraseña de aplicación* en <https://myaccount.google.com/apppasswords> (requiere verificación en dos pasos) y define `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_USER`, `SMTP_PASS` y `MAIL_FROM`.
+
+Si están las tres variables `GMAIL_*` se usa la Opción A; si no, SMTP. Comprueba la configuración enviando un correo de ejemplo (reinicia el backend después de editar `.env`):
+```bash
+npm run mail:test -- destino@correo.com
+```
+
 ---
 
 ### Paso 3: Generar el Cliente de Prisma

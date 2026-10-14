@@ -6,6 +6,7 @@ import {
     CrearReservaInput,
     FuncionParaReserva,
     IBloqueoVerificador,
+    IConfirmacionCorreo,
     IReservaNotifier,
     IReservaRepository,
     ReservaConflictoError,
@@ -17,7 +18,8 @@ export class ReservaService {
     constructor(
         private repo: IReservaRepository,
         private bloqueos: IBloqueoVerificador,
-        private notifier: IReservaNotifier
+        private notifier: IReservaNotifier,
+        private correo: IConfirmacionCorreo
     ) {}
 
     async crear(idUsuario: number, input: CrearReservaInput): Promise<ReservaCreadaDTO> {
@@ -73,6 +75,11 @@ export class ReservaService {
 
         // Se notifica DESPUÉS de confirmar en BD: los demás ven estos asientos como ocupados al instante
         this.notifier.asientosOcupados(idFuncion, idsAsiento);
+
+        // El correo es un efecto secundario: el pago ya está hecho, así que no se espera ni puede hacer fallar la respuesta
+        Promise.resolve()
+            .then(() => this.correo.enviarConfirmacionReserva(persistida.idReserva))
+            .catch(() => undefined);
 
         return {
             idReserva: persistida.idReserva,
