@@ -97,19 +97,32 @@ Se eligió este flujo en lugar de Git Flow porque el equipo está conformado por
 5. **Integración:** una vez completada la revisión y cumplidas las condiciones de aprobación, el PR se fusiona con `main`.
 
 ### Diagrama de la estrategia de ramas
+```mermaid
+flowchart TB
+    A["🌿 main<br/>Rama principal"] 
 
-```text
-                  main
-                    |
-          ┌─────────┼─────────┐
-          ▼         ▼         ▼
-     feature/   feature/   feature/
-      HU-15      HU-16      HU-17
-          │         │         │
-          └─────────┴─────────┘
-                    │
-                    ▼
-                   main
+    A --> B["🛠️ feature/HU-15<br/>Desarrollo de HU-15"]
+    A --> C["🛠️ feature/HU-16<br/>Desarrollo de HU-16"]
+    A --> D["🛠️ feature/HU-17<br/>Desarrollo de HU-17"]
+
+    B --> E["🔀 Pull Request"]
+    C --> E
+    D --> E
+
+    E --> F["🔍 Revisión del código"]
+    F --> G["✅ Aprobación"]
+    G --> H["🚀 Fusión en main"]
+    H --> I["🎉 Cambios integrados"]
+
+    style A fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    style B fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style C fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style D fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style E fill:#fef3c7,stroke:#d97706,color:#78350f
+    style F fill:#ffedd5,stroke:#ea580c,color:#9a3412
+    style G fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style H fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+    style I fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
 ```
 
 **Posible evolución:** en futuros sprints se contempla incorporar una rama `staging` para realizar pruebas en un entorno similar al de producción antes de los despliegues. Esta rama no forma parte de la estrategia actual.
