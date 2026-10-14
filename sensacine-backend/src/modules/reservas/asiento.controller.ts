@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../../common/middlewares/authMiddleware";
 import { AsientoService } from "./asiento.service";
 
 export class AsientoController {
@@ -11,9 +12,9 @@ export class AsientoController {
         res.status(200).json(seats);
     }
 
-    getDisponibilidadByFuncion = async (req: Request, res: Response) => {
+    getDisponibilidadByFuncion = async (req: AuthRequest, res: Response) => {
         const idFuncion = parseInt(req.params.id, 10);
-        const disponibilidad = await this.seatService.getDisponibilidadByFuncion(idFuncion);
+        const disponibilidad = await this.seatService.getDisponibilidadByFuncion(idFuncion, req.usuario!.id);
 
         res.status(200).json(disponibilidad);
     }

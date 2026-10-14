@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "../../../shared/components/Modal";
 import { Button } from "../../../shared/components/Button";
 import { Spinner } from "../../../shared/components/Spinner";
-import { useTarjetas, useProcesarPago, useEliminarTarjeta } from "../hooks/useTarjetas";
+import { useTarjetas, useEliminarTarjeta } from "../hooks/useTarjetas";
 import { Tarjeta, ResultadoPago } from "../types";
 import { TarjetaCard } from "./TarjetaCard";
 import { CrearTarjetaModal } from "./CrearTarjetaModal";
@@ -14,8 +14,7 @@ import {
   CheckCircle2, 
   Film, 
   Receipt, 
-  ArrowRight,
-  ShieldCheck
+  ArrowRight
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -24,6 +23,11 @@ interface PasarelaPagoModalProps {
   onClose: () => void;
   totalPagar: number;
   peliculaTitulo: string;
+  /**
+   * Cobra la tarjeta elegida Y crea la reserva (una sola operación en el servidor).
+   * Si lanza, el modal muestra el mensaje de error del backend y no se cobra nada.
+   */
+  onConfirmarPago: (idTarjeta: number) => Promise<ResultadoPago & { idReserva?: number }>;
   detallesCompra?: {
     fecha: string;
     hora: string;
@@ -44,11 +48,11 @@ export const PasarelaPagoModal: React.FC<PasarelaPagoModalProps> = ({
   onClose,
   totalPagar,
   peliculaTitulo,
+  onConfirmarPago,
   detallesCompra,
 }) => {
   const navigate = useNavigate();
   const { data: tarjetas = [], isLoading, isError, refetch } = useTarjetas();
-  const procesarPagoMutation = useProcesarPago();
   const eliminarTarjetaMutation = useEliminarTarjeta();
 
   const [selectedTarjetaId, setSelectedTarjetaId] = useState<number | null>(null);
@@ -56,7 +60,8 @@ export const PasarelaPagoModal: React.FC<PasarelaPagoModalProps> = ({
   const [isRecargarModalOpen, setIsRecargarModalOpen] = useState(false);
   const [tarjetaParaRecargar, setTarjetaParaRecargar] = useState<Tarjeta | null>(null);
 
-  const [resultadoPago, setResultadoPago] = useState<ResultadoPago | null>(null);
+  const [resultadoPago, setResultadoPago] = useState<(ResultadoPago & { idReserva?: number }) | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
   const [errorPago, setErrorPago] = useState<string | null>(null);
 
   // Auto-seleccionar primera tarjeta disponible si no hay una seleccionada
@@ -82,27 +87,15 @@ export const PasarelaPagoModal: React.FC<PasarelaPagoModalProps> = ({
   const handlePagar = async () => {
     if (!selectedTarjeta) return;
     setErrorPago(null);
+    setIsPaying(true);
 
     try {
-      const resultado = await procesarPagoMutation.mutateAsync({
-        id: selectedTarjeta.id,
-        input: {
-          monto: totalPagar,
-          descripcion: `Reserva SensaCine: ${peliculaTitulo}`,
-        },
-      });
-
-      // =========================================================================
-      // TODO (Siguiente HU - Creación de Reserva):
-      // Aquí se invocará la creación formal de la reserva en el backend
-      // con sus asientos, comensales y orden en cocina una vez esté implementada.
-      // Por ahora registramos el éxito del pago simulado con su transacción.
-      // =========================================================================
-
-      setResultadoPago(resultado);
+      setResultadoPago(await onConfirmarPago(selectedTarjeta.id));
     } catch (err: any) {
       const msg = err.response?.data?.error || "Error al procesar el pago.";
       setErrorPago(msg);
+    } finally {
+      setIsPaying(false);
     }
   };
 
@@ -127,9 +120,11 @@ export const PasarelaPagoModal: React.FC<PasarelaPagoModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold text-[#1d1d1f]">¡Pago Simulado Exitoso!</h2>
+              <h2 className="text-2xl font-bold text-[#1d1d1f]">¡Reserva Confirmada!</h2>
               <p className="text-sm text-[#86868b]">
-                Tu transacción ha sido validada y procesada correctamente en la pasarela.
+                {resultadoPago.idReserva
+                  ? `Tu reserva #${resultadoPago.idReserva} quedó registrada y el pago fue aprobado.`
+                  : "Tu transacción ha sido validada y procesada correctamente."}
               </p>
             </div>
 
@@ -181,17 +176,6 @@ export const PasarelaPagoModal: React.FC<PasarelaPagoModalProps> = ({
                   </strong>
                 </div>
               </div>
-            </div>
-
-            {/* Nota Informativa sobre la Próxima HU */}
-            <div className="max-w-md mx-auto p-3.5 bg-blue-50/80 border border-blue-200 rounded-appleMd text-left text-xs text-blue-900 space-y-1">
-              <div className="flex items-center gap-1.5 font-semibold">
-                <ShieldCheck className="w-4 h-4 text-[#0071e3]" />
-                <span>Módulo de Creación de Reserva en Camino</span>
-              </div>
-              <p className="text-[11px] text-blue-800 leading-relaxed">
-                El pago y descuento de saldo han sido completados en el backend. En la siguiente historia de usuario se conectará la persistencia final de la reserva en base de datos.
-              </p>
             </div>
 
             <div className="pt-2">
@@ -385,7 +369,7 @@ export const PasarelaPagoModal: React.FC<PasarelaPagoModalProps> = ({
                 size="md"
                 type="button"
                 disabled={!selectedTarjeta || !esSaldoSuficiente}
-                isLoading={procesarPagoMutation.isPending}
+                isLoading={isPaying}
                 onClick={handlePagar}
                 className="px-7 bg-[#0071e3] hover:bg-[#0077ed]"
                 rightIcon={<ArrowRight className="w-4 h-4" />}

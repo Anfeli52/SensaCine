@@ -112,6 +112,7 @@ const RESTRICCIONES_SEED = [
   { nombre: "Soja", tipo: TipoRestriccion.alergia, descripcion: "Alergia a la soja y derivados de leguminosas" },
   { nombre: "Vegetariano", tipo: TipoRestriccion.preferencia, descripcion: "Dieta vegetariana sin carnes ni pescados" },
   { nombre: "Vegano", tipo: TipoRestriccion.preferencia, descripcion: "Dieta 100% basada en vegetales sin productos de origen animal" },
+  { nombre: "Otra restricción", tipo: TipoRestriccion.alergia, descripcion: "Restricción indicada manualmente por el comensal (ver notas)" },
 ];
 
 const PRODUCTOS_POR_PELICULA: Record<string, Array<{
