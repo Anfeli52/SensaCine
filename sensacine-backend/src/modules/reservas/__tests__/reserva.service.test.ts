@@ -3,6 +3,7 @@ import { AppError } from "../../../common/errors/AppError";
 import {
     CrearReservaInput,
     IBloqueoVerificador,
+    IConfirmacionCorreo,
     IReservaNotifier,
     IReservaRepository,
     ReservaConflictoError,
@@ -38,11 +39,16 @@ function makeFakeRepo(overrides: Partial<IReservaRepository> = {}): IReservaRepo
     };
 }
 
-function setup(repoOverrides: Partial<IReservaRepository> = {}, verificador?: IBloqueoVerificador) {
+function setup(
+    repoOverrides: Partial<IReservaRepository> = {},
+    verificador?: IBloqueoVerificador,
+    correo?: IConfirmacionCorreo
+) {
     const repo = makeFakeRepo(repoOverrides);
     const bloqueos: IBloqueoVerificador = verificador ?? { verificarBloqueoVigente: jest.fn(async () => undefined) };
     const notifier: IReservaNotifier = { asientosOcupados: jest.fn() };
-    return { repo, bloqueos, notifier, service: new ReservaService(repo, bloqueos, notifier) };
+    const correoFake: IConfirmacionCorreo = correo ?? { enviarConfirmacionReserva: jest.fn(async () => undefined) };
+    return { repo, bloqueos, notifier, correo: correoFake, service: new ReservaService(repo, bloqueos, notifier, correoFake) };
 }
 
 const input: CrearReservaInput = {
@@ -183,5 +189,32 @@ describe("ReservaService.crear", () => {
         });
         await expect(service.crear(7, input)).rejects.toThrow("db caída");
         expect(notifier.asientosOcupados).not.toHaveBeenCalled();
+    });
+
+    it("pide el correo de confirmación de la reserva creada", async () => {
+        const { service, correo } = setup();
+        await service.crear(7, input);
+        await new Promise((r) => setImmediate(r)); // el envío se dispara sin esperarse
+        expect(correo.enviarConfirmacionReserva).toHaveBeenCalledWith(77);
+    });
+
+    it("un fallo del correo (rechazo o error síncrono) no afecta la reserva", async () => {
+        const rechaza = setup({}, undefined, { enviarConfirmacionReserva: jest.fn(async () => { throw new Error("smtp caído"); }) });
+        await expect(rechaza.service.crear(7, input)).resolves.toMatchObject({ idReserva: 77 });
+
+        const lanza = setup({}, undefined, { enviarConfirmacionReserva: jest.fn(() => { throw new Error("boom"); }) });
+        await expect(lanza.service.crear(7, input)).resolves.toMatchObject({ idReserva: 77 });
+        await new Promise((r) => setImmediate(r));
+    });
+
+    it("no envía correo si la reserva no se pudo crear", async () => {
+        const { service, correo } = setup({
+            crearReservaConfirmada: jest.fn(async () => {
+                throw new ReservaConflictoError("saldo_insuficiente");
+            }),
+        });
+        await expect(service.crear(7, input)).rejects.toBeDefined();
+        await new Promise((r) => setImmediate(r));
+        expect(correo.enviarConfirmacionReserva).not.toHaveBeenCalled();
     });
 });

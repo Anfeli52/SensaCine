@@ -1,4 +1,4 @@
-import { EstadoOrdenCocina, EstadoReserva, TipoRestriccion } from "@prisma/client";
+import { EstadoOrdenCocina, EstadoReserva, TipoNotificacion, TipoRestriccion } from "@prisma/client";
 import { prisma } from "../../infrastructure/prisma/client";
 import {
     CrearReservaPersistir,
@@ -116,7 +116,10 @@ export class PrismaReservaRepository implements IReservaRepository {
                 },
             });
 
-            // 7. El bloqueo cumplió su función: los asientos pasan de "pendiente" a reservados
+            // 7. Deja registrada la notificación de confirmación (se envía después de confirmar la transacción)
+            await tx.notificacion.create({ data: { idReserva: reserva.id, tipo: TipoNotificacion.confirmacion } });
+
+            // 8. El bloqueo cumplió su función: los asientos pasan de "pendiente" a reservados
             await tx.bloqueoAsiento.deleteMany({ where: { idFuncion, idUsuario } });
 
             return {

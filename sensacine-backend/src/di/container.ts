@@ -23,6 +23,10 @@ import { BloqueoController } from "../modules/reservas/bloqueo.controller";
 import { PrismaReservaRepository } from "../modules/reservas/reserva.repository";
 import { ReservaService } from "../modules/reservas/reserva.service";
 import { ReservaController } from "../modules/reservas/reserva.controller";
+import { NotificacionService } from "../modules/notificaciones/notificacion.service";
+import { PrismaNotificacionRepository } from "../modules/notificaciones/notificacion.repository";
+import { createEmailSender } from "../infrastructure/email/createEmailSender";
+import { logger } from "../infrastructure/logger/winston";
 import { SocketAsientoNotifier } from "../infrastructure/socket/SocketAsientoNotifier";
 
 
@@ -74,7 +78,17 @@ export const bloqueoService = new BloqueoService(new PrismaBloqueoRepository(), 
 export const bloqueoController = new BloqueoController(bloqueoService);
 
 // Módulo Reservas (Creación de la reserva real: pago + asientos + comensales + cocina)
-export const reservaService = new ReservaService(new PrismaReservaRepository(), bloqueoService, new SocketAsientoNotifier());
+// Módulo Notificaciones (correo de confirmación de la reserva)
+const { sender: emailSender, proveedor: proveedorCorreo } = createEmailSender();
+logger.info(`Correo de confirmación: ${proveedorCorreo === "gmail_api" ? "Gmail API (HTTPS)" : "SMTP"}`);
+export const notificacionService = new NotificacionService(new PrismaNotificacionRepository(), emailSender);
+
+export const reservaService = new ReservaService(
+  new PrismaReservaRepository(),
+  bloqueoService,
+  new SocketAsientoNotifier(),
+  notificacionService
+);
 export const reservaController = new ReservaController(reservaService);
 
 // Módulo Reservas (Historial de Reservas)
