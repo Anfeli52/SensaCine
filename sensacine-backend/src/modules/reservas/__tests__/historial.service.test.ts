@@ -11,27 +11,8 @@ describe("HistorialReservaService", () => {
       getReservasActivasByUsuario: jest.fn(),
       getHistorialByUsuario: jest.fn(),
       getReservaById: jest.fn(),
-      crearReserva: jest.fn(),
     };
     service = new HistorialReservaService(mockRepo as HistorialReservaRepository);
-  });
-
-  describe("crearReserva", () => {
-    it("debe delegar la creación de la reserva al repositorio", async () => {
-      const mockInput = {
-        idFuncion: 32,
-        montoTotal: 60000,
-        medioPago: "tarjeta_credito",
-        asientos: [{ idAsiento: 10, nombrePersona: "Carlos", alergias: [] }],
-      };
-      const mockResult = { id: 99, ...mockInput } as any;
-      (mockRepo.crearReserva as jest.Mock).mockResolvedValue(mockResult);
-
-      const result = await service.crearReserva(2, mockInput);
-
-      expect(mockRepo.crearReserva).toHaveBeenCalledWith(2, mockInput);
-      expect(result).toEqual(mockResult);
-    });
   });
 
   describe("getReservasActivasByUsuario", () => {

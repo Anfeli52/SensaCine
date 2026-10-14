@@ -1,13 +1,8 @@
 import { AppError } from "../../common/errors/AppError";
 import { HistorialReservaRepository } from "./historial.repository";
-import { CrearReservaDTO } from "./reserva.validator";
 
 export class HistorialReservaService {
     constructor(private historialRepository: HistorialReservaRepository) { }
-
-    async crearReserva(idUsuario: number, input: CrearReservaDTO) {
-        return this.historialRepository.crearReserva(idUsuario, input);
-    }
 
     async getReservasActivasByUsuario(idUsuario: number) {
         return this.historialRepository.getReservasActivasByUsuario(idUsuario);

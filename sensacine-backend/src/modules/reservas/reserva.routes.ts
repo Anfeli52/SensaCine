@@ -2,15 +2,16 @@ import { Router } from "express";
 import { asyncHandler } from "../../common/helpers/asyncHandler";
 import { authenticate, requireRole } from "../../common/middlewares/authMiddleware";
 import { validateSchema } from "../../common/middlewares/validateSchema";
+import { bloquearAsientosSchema } from "./bloqueo.validator";
 import { crearReservaSchema } from "./reserva.validator";
-import { asientoController, historialReservaController, reservasAdminController } from "../../di/container";
+import { asientoController, bloqueoController, historialReservaController, reservaController, reservasAdminController } from "../../di/container";
 const router = Router();
 
 router.post(
     "/",
     authenticate,
     validateSchema(crearReservaSchema),
-    asyncHandler(historialReservaController.crearReserva)
+    asyncHandler(reservaController.crear)
 );
 
 router.get(
@@ -23,6 +24,25 @@ router.get(
     "/funciones/:id/seats",
     authenticate,
     asyncHandler(asientoController.getDisponibilidadByFuncion)
+);
+
+router.post(
+    "/funciones/:id/bloqueos",
+    authenticate,
+    validateSchema(bloquearAsientosSchema),
+    asyncHandler(bloqueoController.bloquear)
+);
+
+router.get(
+    "/funciones/:id/bloqueos/mio",
+    authenticate,
+    asyncHandler(bloqueoController.getMio)
+);
+
+router.delete(
+    "/funciones/:id/bloqueos",
+    authenticate,
+    asyncHandler(bloqueoController.liberar)
 );
 
 router.get(

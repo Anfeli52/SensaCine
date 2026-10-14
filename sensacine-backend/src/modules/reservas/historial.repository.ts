@@ -1,7 +1,5 @@
-import { EstadoOrdenCocina, EstadoReserva, Prisma } from "@prisma/client";
+import { EstadoReserva, Prisma } from "@prisma/client";
 import { prisma } from "../../infrastructure/prisma/client";
-import { AppError } from "../../common/errors/AppError";
-import { CrearReservaDTO } from "./reserva.validator";
 import { 
     getCinemaDateStr, 
     getCinemaTimeStr, 
@@ -150,103 +148,5 @@ export class HistorialReservaRepository {
             },
             include: historialInclude,
         });
-    }
-
-    async crearReserva(idUsuario: number, input: CrearReservaDTO) {
-        const { idFuncion, montoTotal, medioPago, referenciaTransaccion, asientos } = input;
-
-        const funcion = await prisma.funcion.findUnique({
-            where: { id: idFuncion },
-        });
-
-        if (!funcion) {
-            throw new AppError("La función seleccionada no existe", 404);
-        }
-
-        if (asientos.length === 0) {
-            throw new AppError("Debe seleccionar al menos un asiento", 400);
-        }
-
-        const idsAsientos = asientos.map((a) => a.idAsiento);
-
-        const ocupados = await prisma.reservaAsiento.findMany({
-            where: {
-                reserva: {
-                    idFuncion,
-                    estado: { not: EstadoReserva.Cancelado },
-                },
-                idAsiento: { in: idsAsientos },
-            },
-            select: { idAsiento: true },
-        });
-
-        if (ocupados.length > 0) {
-            throw new AppError("Uno o más asientos seleccionados ya han sido reservados", 409);
-        }
-
-        const restriccionesCatalogo = await prisma.restriccionAlimentaria.findMany();
-
-        const reservaCreada = await prisma.$transaction(async (tx) => {
-            const nuevaReserva = await tx.reserva.create({
-                data: {
-                    idUsuario,
-                    idFuncion,
-                    montoTotal,
-                    estado: EstadoReserva.Confirmado,
-                },
-            });
-
-            for (const item of asientos) {
-                const reservaAsiento = await tx.reservaAsiento.create({
-                    data: {
-                        idReserva: nuevaReserva.id,
-                        idAsiento: item.idAsiento,
-                        nombrePersona: item.nombrePersona || "Comensal",
-                    },
-                });
-
-                await tx.ordenCocina.create({
-                    data: {
-                        idReservaAsiento: reservaAsiento.id,
-                        estado: EstadoOrdenCocina.Pendiente,
-                    },
-                });
-
-                if (item.alergias && item.alergias.length > 0) {
-                    for (const alergiaNombre of item.alergias) {
-                        const encontrada = restriccionesCatalogo.find(
-                            (r) => r.nombre.toLowerCase() === alergiaNombre.trim().toLowerCase()
-                        );
-
-                        if (encontrada) {
-                            await tx.reservaRestriccion.create({
-                                data: {
-                                    idReservaAsiento: reservaAsiento.id,
-                                    idRestriccion: encontrada.id,
-                                    notas: `Comensal ${item.nombrePersona || "Comensal"}: ${alergiaNombre}`,
-                                },
-                            });
-                        }
-                    }
-                }
-            }
-
-            await tx.pago.create({
-                data: {
-                    idReserva: nuevaReserva.id,
-                    medioPago: medioPago || "tarjeta_credito",
-                    monto: montoTotal,
-                    estado: "aprobado",
-                    referenciaTransaccion: referenciaTransaccion || `TX-SENSA-${Date.now()}`,
-                },
-            });
-
-            return tx.reserva.findUnique({
-                where: { id: nuevaReserva.id },
-                include: historialInclude,
-            });
-        });
-
-        return reservaCreada!;
     }
 }

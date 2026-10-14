@@ -14,6 +14,11 @@ import { useAuthStore } from "@/features/auth/authStore";
 import { Button } from "../../../shared/components/Button";
 import { Asiento, AsientoDetalleReserva } from "../types";
 import { Pelicula } from "@/features/catalogo/types";
+import { BloqueoTimer } from "../components/BloqueoTimer";
+import { liberarAsientos } from "../api/bookingApi";
+import { useBloqueoStore } from "../bloqueoStore";
+import { useRestaurarBloqueo } from "../hooks/useRestaurarBloqueo";
+import { Spinner } from "../../../shared/components/Spinner";
 
 interface FuncionState {
     id: number;
@@ -54,6 +59,12 @@ export function AlergenosPage() {
     const { isAuthenticated, usuario } = useAuthStore();
     const navigate = useNavigate();
     const locationState = useLocation().state as LocationState | null;
+    const bloqueo = useBloqueoStore((s) => s.bloqueo);
+    const clearBloqueo = useBloqueoStore((s) => s.clear);
+    const verificando = useRestaurarBloqueo(
+        locationState?.funcion.id,
+        locationState?.selectedAsientos?.map((a) => a.id)
+    );
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
     if (!locationState || !locationState.selectedAsientos || locationState.selectedAsientos.length === 0) {
@@ -152,15 +163,42 @@ export function AlergenosPage() {
         });
     };
 
+    if (verificando) {
+        return (
+            <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3">
+                <Spinner size="md" />
+                <p className="text-[13px] text-[#86868b]">Recuperando tu reserva...</p>
+            </div>
+        );
+    }
+
+    if (bloqueo?.idFuncion !== funcion.id) {
+        return (
+            <Navigate
+                to="/reservas/asientos"
+                replace
+                state={{ pelicula, funcion, aviso: "Tus asientos ya no están reservados temporalmente. Selecciónalos de nuevo." }}
+            />
+        );
+    }
+
+    const handleVolver = async () => {
+        await liberarAsientos(funcion.id).catch(() => undefined);
+        clearBloqueo();
+        navigate("/reservas/asientos", { state: { pelicula, funcion } });
+    };
+
     return (
         <div className="max-w-[850px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <button
                 type="button"
-                onClick={() => navigate(-1)}
+                onClick={handleVolver}
                 className="inline-flex items-center gap-1.5 text-[13px] text-[#0071e3] hover:underline"
             >
                 <ArrowLeft className="w-4 h-4" /> Volver a selección de asientos
             </button>
+
+            <BloqueoTimer idFuncion={funcion.id} />
 
             {/* Cabecera Principal */}
             <div className="space-y-1.5">
