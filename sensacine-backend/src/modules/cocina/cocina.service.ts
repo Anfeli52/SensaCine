@@ -1,0 +1,55 @@
+import { AppError } from "../../common/errors/AppError";
+import { ICocinaRepository, ListadoCocinaResponse } from "./cocina.types";
+
+export class CocinaService {
+  constructor(private readonly cocinaRepo: ICocinaRepository) {}
+
+  async listarFuncionesProgramadas(): Promise<ListadoCocinaResponse> {
+    // 1. Encontrar las funciones programadas a futuro (ordenadas cronológicamente)
+    const funciones = await this.cocinaRepo.getFuncionesFuturas();
+
+    if (!funciones || funciones.length === 0) {
+      return {
+        mensaje: "No hay funciones disponibles",
+        total: 0,
+        funciones: [],
+      };
+    }
+
+    // 2. Obtener las reservas asociadas a las funciones
+    const idsFunciones = funciones.map((f) => f.id);
+    const reservas = await this.cocinaRepo.getReservasPorFunciones(idsFunciones);
+
+    // 3. Asociar a cada función sus reservas correspondientes
+    const funcionesConReservas = funciones.map((funcion) => {
+      const reservasDeFuncion = reservas.filter((r) => r.idFuncion === funcion.id);
+      return {
+        ...funcion,
+        totalReservas: reservasDeFuncion.length,
+        reservas: reservasDeFuncion,
+      };
+    });
+
+    return {
+      total: funcionesConReservas.length,
+      funciones: funcionesConReservas,
+    };
+  }
+
+  async obtenerFuncionConReservas(idFuncion: number) {
+    const funciones = await this.cocinaRepo.getFuncionesFuturas();
+    const funcion = funciones.find((f) => f.id === idFuncion);
+
+    if (!funcion) {
+      throw new AppError("Función no encontrada", 404);
+    }
+
+    const reservas = await this.cocinaRepo.getReservasPorFuncion(idFuncion);
+
+    return {
+      ...funcion,
+      totalReservas: reservas.length,
+      reservas,
+    };
+  }
+}
