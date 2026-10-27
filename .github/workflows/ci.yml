@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  # Validación temprana: pruebas unitarias en ramas de funcionalidad
+  push:
+    branches:
+      - "feature/**"
+      - "feat/**"
+      - "main"
+  # CI completo antes de integrar a main
+  pull_request:
+    branches:
+      - main
+
+# Si llega un push nuevo a la misma rama/PR, se cancela la ejecución anterior
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------
+  # Pruebas unitarias + cobertura (siempre: feature, PR y main)
+  # ---------------------------------------------------------------
+  backend-tests:
+    name: Backend - Pruebas unitarias y cobertura
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sensacine-backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: sensacine-backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Los tests importan tipos de @prisma/client, que se generan desde el schema
+      - name: Generar cliente de Prisma
+        run: npx prisma generate
+
+      # Falla si la cobertura baja del 70 % (ver coverageThreshold en jest.config.js)
+      - name: Ejecutar pruebas con cobertura
+        run: npm run test:coverage
+
+      - name: Publicar reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-backend
+          path: sensacine-backend/coverage
+          if-no-files-found: ignore
+
+  # ---------------------------------------------------------------
+  # Build y linter: PR hacia main y push a main
+  # ---------------------------------------------------------------
+  backend-build-lint:
+    name: Backend - Build y linter
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sensacine-backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: sensacine-backend/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Análisis estático (ESLint)
+        run: npm run lint
+      - name: Build (compilación TypeScript)
+        run: npm run build
+
+  frontend-build-lint:
+    name: Frontend - Build y linter
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Análisis estático (ESLint)
+        run: npm run lint
+      - name: Build (tsc + vite)
+        run: npm run build
