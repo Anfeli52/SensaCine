@@ -9,8 +9,8 @@ module.exports = {
   // controllers/routes/repositorios, que dependen de Express o de la BD real.
   collectCoverageFrom: ["src/modules/**/*.service.ts", "src/modules/**/*.template.ts"],
   coverageReporters: ["text", "lcov", "json-summary"],
-  // Si la cobertura baja de 70 %, `npm run test:coverage` falla y bloquea el PR.
+  // Si la cobertura baja de 99 %, `npm run test:coverage` falla y bloquea el PR.
   coverageThreshold: {
-    global: { statements: 70, branches: 70, functions: 70, lines: 70 },
+    global: { statements: 99, branches: 99, functions: 99, lines: 99 },
   },
 };
