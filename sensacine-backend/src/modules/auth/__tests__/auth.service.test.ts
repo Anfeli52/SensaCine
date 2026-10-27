@@ -47,3 +47,38 @@ describe("AuthService.register", () => {
     ).rejects.toThrow(AppError);
   });
 });
+
+describe("AuthService.login", () => {
+  const makeRepoConUsuario = async (estado = "activo") => {
+    const bcrypt = await import("bcrypt");
+    const passwordHash = await bcrypt.hash("supersecreta123", 4);
+    return {
+      findByEmail: jest.fn(async () => ({
+        id: 1, nombre: "Ana", email: "ana@example.com", passwordHash, rol: "cliente", estado,
+      })),
+      create: jest.fn(),
+    } as unknown as IUsuarioRepository;
+  };
+
+  it("devuelve un token y el usuario sin passwordHash con credenciales válidas", async () => {
+    const service = new AuthService(await makeRepoConUsuario());
+    const res = await service.login({ email: "ana@example.com", password: "supersecreta123" });
+    expect(res.token).toEqual(expect.any(String));
+    expect(res.usuario).toEqual({ id: 1, nombre: "Ana", email: "ana@example.com", rol: "cliente" });
+  });
+
+  it("rechaza con 401 si el usuario no existe", async () => {
+    const service = new AuthService(makeFakeRepo());
+    await expect(service.login({ email: "no@example.com", password: "x" })).rejects.toMatchObject({ statusCode: 401 });
+  });
+
+  it("rechaza con 401 si la contraseña es incorrecta", async () => {
+    const service = new AuthService(await makeRepoConUsuario());
+    await expect(service.login({ email: "ana@example.com", password: "incorrecta" })).rejects.toMatchObject({ statusCode: 401 });
+  });
+
+  it("rechaza con 403 si el usuario está inactivo", async () => {
+    const service = new AuthService(await makeRepoConUsuario("inactivo"));
+    await expect(service.login({ email: "ana@example.com", password: "supersecreta123" })).rejects.toMatchObject({ statusCode: 403 });
+  });
+});
