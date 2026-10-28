@@ -19,6 +19,9 @@ function setup(over: Partial<INotificacionRepository> = {}, sender?: IEmailSende
     const repo: INotificacionRepository = {
         obtenerOCrearConfirmacion: jest.fn(async () => ({ id: 5, estado: "pendiente" })),
         getDatosConfirmacion: jest.fn(async () => datos),
+        getCandidatasSolicitudResena: jest.fn(async () => []),
+        obtenerOCrearSolicitudResena: jest.fn(async () => ({ id: 7, estado: "pendiente" })),
+        getDatosSolicitudResena: jest.fn(async () => null),
         marcarEnviada: jest.fn(async () => undefined),
         marcarFallida: jest.fn(async () => undefined),
         ...over,
