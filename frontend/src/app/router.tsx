@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import { useAuthStore } from "../features/auth/authStore";
 import { MainLayout } from "../shared/layouts/MainLayout";
 import { AuthLayout } from "../shared/layouts/AuthLayout";
 import { ProtectedRoute } from "../routes/ProtectedRoute";
@@ -16,13 +17,25 @@ import { AdminProductosPage } from "../features/admin/pages/AdminProductosPage";
 import { MenuPage } from "../features/menu/pages/MenuPage";
 import { MisReservasPage } from "../features/reservas/pages/MisReservasPage";
 import { AdminReservasPage } from "../features/admin/pages/AdminReservasPage";
+import { FuncionesCocinaPage } from "../features/cocina/pages/FuncionesCocinaPage";
+import { DetalleFuncionCocinaPage } from "../features/cocina/pages/DetalleFuncionCcinaPage";
+
+function HomeRedirect() {
+  const { isAuthenticated, usuario } = useAuthStore();
+
+  if (isAuthenticated && usuario?.rol === "cocina") {
+    return <Navigate to="/cocina" replace />;
+  }
+
+  return <HomePage />;
+}
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <MainLayout />,
     children: [
-      { index: true, element: <HomePage /> },
+      { index: true, element: <HomeRedirect /> },
       { path: "menu/:peliculaId", element: <MenuPage /> },
     ],
 
@@ -57,7 +70,7 @@ export const router = createBrowserRouter([
     element: <MainLayout />,
     children: [{ index: true, element: <MisReservasPage /> }],
   },
-  
+
   {
     path: "/admin",
     element: <ProtectedRoute rolesPermitidos={["admin"]} />,
@@ -97,6 +110,27 @@ export const router = createBrowserRouter([
       },
     ],
   },
+
+  {
+    path: "/cocina",
+    element: <ProtectedRoute rolesPermitidos={["cocina"]} />,
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          {
+            index: true,
+            element: <FuncionesCocinaPage />,
+          },
+          {
+            path: "funciones/:id",
+            element: <DetalleFuncionCocinaPage />,
+          },
+        ],
+      },
+    ],
+  },
+
   {
     path: "/auth",
     element: <AuthLayout />,

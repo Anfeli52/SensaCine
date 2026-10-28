@@ -1,3 +1,4 @@
+import { useAuthStore } from "../authStore";
 import { Link, useNavigate } from "react-router-dom";
 import { Clapperboard } from "lucide-react";
 
@@ -6,6 +7,16 @@ import backgroundImage from "../../../image/imagen.jfif";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+
+  const handleLoginSuccess = () => {
+    const usuario = useAuthStore.getState().usuario;
+
+    if (usuario?.rol === "cocina") {
+      navigate("/cocina", { replace: true });
+      return;
+    }
+    navigate("/", { replace: true });
+  };
 
   return (
     <main
@@ -79,7 +90,7 @@ export const LoginPage = () => {
                 </p>
               </div>
 
-              <LoginForm onSuccess={() => navigate("/")}/>
+              <LoginForm onSuccess={handleLoginSuccess} />
 
               <div className="mt-7 border-t border-slate-100 pt-6 text-center">
                 <p className="text-sm text-slate-500">

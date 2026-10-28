@@ -1,13 +1,13 @@
 import { Prisma } from "@prisma/client";
 
 export type FuncionCocina = Prisma.FuncionGetPayload<{
-  include: { pelicula: true; sala: true };
+  include: { pelicula: { include: { productos: { where: { estado: string }; orderBy: { ordenMenu: "asc" } } } }; sala: true };
 }>;
 
 export type ReservaCocina = Prisma.ReservaGetPayload<{
   include: {
     usuario: { select: { id: true; nombre: true; email: true } };
-    asientos: { include: { asiento: true } };
+    asientos: { include: { asiento: true; restricciones: { include: { restriccion: true; producto: true } } } };
   };
 }>;
 
