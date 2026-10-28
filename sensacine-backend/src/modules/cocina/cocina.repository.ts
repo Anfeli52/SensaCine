@@ -12,7 +12,18 @@ export class CocinaRepository implements ICocinaRepository {
         fecha: { gte: getCinemaTodayUtcMidnight() },
       },
       include: {
-        pelicula: true,
+        pelicula: {
+          include: {
+            productos: {
+              where: {
+                estado: "activo",
+              },
+              orderBy: {
+                ordenMenu: "asc",
+              },
+            },
+          },
+        },
         sala: true,
       },
       orderBy: [
@@ -40,6 +51,12 @@ export class CocinaRepository implements ICocinaRepository {
         asientos: {
           include: {
             asiento: true,
+            restricciones: {
+              include: {
+                restriccion: true,
+                producto: true,
+              },
+            },
           },
         },
       },
@@ -64,6 +81,12 @@ export class CocinaRepository implements ICocinaRepository {
         asientos: {
           include: {
             asiento: true,
+            restricciones: {
+              include: {
+                restriccion: true,
+                producto: true,
+              },
+            },
           },
         },
       },
