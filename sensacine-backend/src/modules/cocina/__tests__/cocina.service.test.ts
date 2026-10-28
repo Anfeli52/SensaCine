@@ -1,10 +1,11 @@
+import { EstadoOrdenCocina } from "@prisma/client";
 import { CocinaService } from "../cocina.service";
 import { FuncionCocina, ICocinaRepository, ReservaCocina } from "../cocina.types";
 
 const asFunciones = (data: unknown) => data as FuncionCocina[];
 const asReservas = (data: unknown) => data as ReservaCocina[];
 
-describe("CocinaService (HU-29)", () => {
+describe("CocinaService (HU-29 y HU Cambio de Estado Orden)", () => {
   let mockRepo: jest.Mocked<ICocinaRepository>;
   let service: CocinaService;
 
@@ -13,6 +14,8 @@ describe("CocinaService (HU-29)", () => {
       getFuncionesFuturas: jest.fn(),
       getReservasPorFuncion: jest.fn(),
       getReservasPorFunciones: jest.fn(),
+      actualizarEstadoOrden: jest.fn(),
+      obtenerOrdenPorId: jest.fn(),
     };
     service = new CocinaService(mockRepo);
   });
@@ -99,6 +102,117 @@ describe("CocinaService (HU-29)", () => {
       await expect(service.obtenerFuncionConReservas(99)).rejects.toMatchObject({
         statusCode: 404,
         message: "Función no encontrada",
+      });
+    });
+  });
+
+  describe("actualizarEstadoOrden", () => {
+    it("debe actualizar el estado de una orden a 'En_preparacion' exitosamente", async () => {
+      const mockOrdenActualizada = {
+        id: 10,
+        idReservaAsiento: 5,
+        estado: EstadoOrdenCocina.En_preparacion,
+        fechaActualizacion: new Date(),
+      };
+
+      mockRepo.actualizarEstadoOrden.mockResolvedValue(mockOrdenActualizada);
+
+      const resultado = await service.actualizarEstadoOrden(10, EstadoOrdenCocina.En_preparacion);
+
+      expect(mockRepo.actualizarEstadoOrden).toHaveBeenCalledWith(10, EstadoOrdenCocina.En_preparacion);
+      expect(resultado).toEqual({
+        mensaje: "Estado de la orden actualizado exitosamente",
+        orden: mockOrdenActualizada,
+      });
+    });
+
+    it("debe actualizar el estado de una orden a 'Lista' exitosamente", async () => {
+      const mockOrdenActualizada = {
+        id: 10,
+        idReservaAsiento: 5,
+        estado: EstadoOrdenCocina.Lista,
+        fechaActualizacion: new Date(),
+      };
+
+      mockRepo.actualizarEstadoOrden.mockResolvedValue(mockOrdenActualizada);
+
+      const resultado = await service.actualizarEstadoOrden(10, EstadoOrdenCocina.Lista);
+
+      expect(mockRepo.actualizarEstadoOrden).toHaveBeenCalledWith(10, EstadoOrdenCocina.Lista);
+      expect(resultado.orden.estado).toBe(EstadoOrdenCocina.Lista);
+    });
+
+    it("debe actualizar el estado de una orden a 'Pendiente' exitosamente", async () => {
+      const mockOrdenActualizada = {
+        id: 10,
+        idReservaAsiento: 5,
+        estado: EstadoOrdenCocina.Pendiente,
+        fechaActualizacion: new Date(),
+      };
+
+      mockRepo.actualizarEstadoOrden.mockResolvedValue(mockOrdenActualizada);
+
+      const resultado = await service.actualizarEstadoOrden(10, EstadoOrdenCocina.Pendiente);
+
+      expect(mockRepo.actualizarEstadoOrden).toHaveBeenCalledWith(10, EstadoOrdenCocina.Pendiente);
+      expect(resultado.orden.estado).toBe(EstadoOrdenCocina.Pendiente);
+    });
+
+    it("debe lanzar 400 si el identificador no es válido", async () => {
+      await expect(service.actualizarEstadoOrden(0, EstadoOrdenCocina.En_preparacion)).rejects.toMatchObject({
+        statusCode: 400,
+        message: "El identificador de la orden no es válido",
+      });
+
+      await expect(service.actualizarEstadoOrden(-5, EstadoOrdenCocina.En_preparacion)).rejects.toMatchObject({
+        statusCode: 400,
+      });
+    });
+
+    it("debe lanzar 400 si el estado no es uno de los permitidos", async () => {
+      await expect(service.actualizarEstadoOrden(10, "Cancelado" as any)).rejects.toMatchObject({
+        statusCode: 400,
+        message: "Estado no válido. Los estados permitidos son: Pendiente, En preparación y Lista",
+      });
+    });
+
+    it("debe lanzar 404 si la orden no existe", async () => {
+      mockRepo.actualizarEstadoOrden.mockResolvedValue(null);
+
+      await expect(service.actualizarEstadoOrden(999, EstadoOrdenCocina.Lista)).rejects.toMatchObject({
+        statusCode: 404,
+        message: "Orden de cocina no encontrada",
+      });
+    });
+  });
+
+  describe("obtenerOrdenPorId", () => {
+    it("debe retornar la orden si existe", async () => {
+      const mockOrden = {
+        id: 10,
+        idReservaAsiento: 5,
+        estado: EstadoOrdenCocina.Pendiente,
+        fechaActualizacion: new Date(),
+      };
+      mockRepo.obtenerOrdenPorId.mockResolvedValue(mockOrden);
+
+      const resultado = await service.obtenerOrdenPorId(10);
+      expect(resultado).toEqual(mockOrden);
+      expect(mockRepo.obtenerOrdenPorId).toHaveBeenCalledWith(10);
+    });
+
+    it("debe lanzar 404 si la orden no existe", async () => {
+      mockRepo.obtenerOrdenPorId.mockResolvedValue(null);
+
+      await expect(service.obtenerOrdenPorId(999)).rejects.toMatchObject({
+        statusCode: 404,
+        message: "Orden de cocina no encontrada",
+      });
+    });
+
+    it("debe lanzar 400 si el ID es inválido", async () => {
+      await expect(service.obtenerOrdenPorId(-1)).rejects.toMatchObject({
+        statusCode: 400,
       });
     });
   });

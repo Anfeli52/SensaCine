@@ -30,4 +30,33 @@ export class CocinaController {
     const funcion = await this.cocinaService.obtenerFuncionConReservas(id);
     res.status(200).json(funcion);
   };
+
+  actualizarEstadoOrden = async (req: AuthRequest, res: Response) => {
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(400).json({
+        mensaje: "El identificador de la orden no es válido",
+      });
+      return;
+    }
+
+    const { estado } = req.body;
+    const resultado = await this.cocinaService.actualizarEstadoOrden(id, estado);
+    res.status(200).json(resultado);
+  };
+
+  obtenerOrdenPorId = async (req: AuthRequest, res: Response) => {
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      res.status(400).json({
+        mensaje: "El identificador de la orden no es válido",
+      });
+      return;
+    }
+
+    const orden = await this.cocinaService.obtenerOrdenPorId(id);
+    res.status(200).json(orden);
+  };
 }

@@ -1,3 +1,4 @@
+import { EstadoOrdenCocina } from "@prisma/client";
 import { AppError } from "../../common/errors/AppError";
 import { ICocinaRepository, ListadoCocinaResponse } from "./cocina.types";
 
@@ -51,5 +52,49 @@ export class CocinaService {
       totalReservas: reservas.length,
       reservas,
     };
+  }
+
+  async actualizarEstadoOrden(idOrden: number, estado: EstadoOrdenCocina) {
+    if (!Number.isInteger(idOrden) || idOrden <= 0) {
+      throw new AppError("El identificador de la orden no es válido", 400);
+    }
+
+    const estadosValidos = [
+      EstadoOrdenCocina.Pendiente,
+      EstadoOrdenCocina.En_preparacion,
+      EstadoOrdenCocina.Lista,
+    ];
+
+    if (!estadosValidos.includes(estado)) {
+      throw new AppError(
+        "Estado no válido. Los estados permitidos son: Pendiente, En preparación y Lista",
+        400
+      );
+    }
+
+    const ordenActualizada = await this.cocinaRepo.actualizarEstadoOrden(idOrden, estado);
+
+    if (!ordenActualizada) {
+      throw new AppError("Orden de cocina no encontrada", 404);
+    }
+
+    return {
+      mensaje: "Estado de la orden actualizado exitosamente",
+      orden: ordenActualizada,
+    };
+  }
+
+  async obtenerOrdenPorId(idOrden: number) {
+    if (!Number.isInteger(idOrden) || idOrden <= 0) {
+      throw new AppError("El identificador de la orden no es válido", 400);
+    }
+
+    const orden = await this.cocinaRepo.obtenerOrdenPorId(idOrden);
+
+    if (!orden) {
+      throw new AppError("Orden de cocina no encontrada", 404);
+    }
+
+    return orden;
   }
 }

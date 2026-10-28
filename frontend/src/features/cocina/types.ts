@@ -1,3 +1,12 @@
+export type EstadoOrden = "Pendiente" | "En_preparacion" | "Lista";
+
+export interface OrdenCocina {
+    id: number;
+    idReservaAsiento: number;
+    estado: EstadoOrden;
+    fechaActualizacion?: string;
+}
+
 export interface ProductoCocina {
     id: number;
     nombre: string;
@@ -52,6 +61,7 @@ export interface AsistenteCocina {
     nombrePersona: string | null;
     asiento: AsientoCocina;
     restricciones: RestriccionAsistenteCocina[];
+    ordenesCocina?: OrdenCocina[];
 }
 
 export interface ReservaCocina {
@@ -85,4 +95,18 @@ export interface ListadoFuncionesCocinaResponse {
     mensaje?: string;
     total: number;
     funciones: FuncionCocina[];
+}
+
+export function obtenerEstadoOrden(asistente: AsistenteCocina): EstadoOrden {
+    if (asistente.ordenesCocina && asistente.ordenesCocina.length > 0) {
+        return asistente.ordenesCocina[0].estado;
+    }
+    return "Pendiente";
+}
+
+export function obtenerIdOrden(asistente: AsistenteCocina): number | null {
+    if (asistente.ordenesCocina && asistente.ordenesCocina.length > 0) {
+        return asistente.ordenesCocina[0].id;
+    }
+    return null;
 }
