@@ -18,7 +18,9 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.get("/health", (_req, res) => res.json({ status: "ok" }));
+// RENDER_GIT_COMMIT lo define Render: el pipeline de CD lo compara con el commit que desplegó
+// para saber que la versión nueva (y no la anterior) es la que está respondiendo.
+app.get("/health", (_req, res) => res.json({ status: "ok", commit: process.env.RENDER_GIT_COMMIT }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/peliculas", peliculaRoutes);

@@ -1,0 +1,107 @@
+name: CD
+
+# Despliegue continuo: se ejecuta SOLO cuando el workflow "CI" termina con éxito
+# sobre un push a main (o a mano desde la pestaña Actions). Si el CI falla, no se despliega nada.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+# Un solo despliegue a la vez y sin cancelar el que está en curso (evita dejar un despliegue a medias)
+concurrency:
+  group: cd-produccion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # Commit exacto que pasó el CI (no "lo último de main", que podría haber cambiado)
+  DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+jobs:
+  deploy-backend:
+    name: CD - Desplegar backend (Render)
+    # Interruptor: no hace nada hasta definir la variable CD_HABILITADO=true en GitHub
+    if: >-
+      vars.CD_HABILITADO == 'true' &&
+      ((github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - name: Comprobar configuración
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          BACKEND_URL: ${{ vars.BACKEND_URL }}
+        run: |
+          test -n "$HOOK" || { echo "::error::Falta el secret RENDER_DEPLOY_HOOK_URL"; exit 1; }
+          test -n "$BACKEND_URL" || { echo "::error::Falta la variable BACKEND_URL"; exit 1; }
+
+      # ?ref= fuerza a Render a desplegar exactamente este commit
+      - name: Disparar despliegue en Render
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: curl --fail --silent --show-error --retry 3 --retry-delay 5 -X POST "${HOOK}&ref=${DEPLOY_SHA}" > /dev/null
+
+      - name: Esperar a que el backend responda con este commit
+        run: .github/scripts/esperar-despliegue.sh "${{ vars.BACKEND_URL }}" "$DEPLOY_SHA"
+
+  deploy-frontend:
+    name: CD - Desplegar frontend (Netlify)
+    if: >-
+      vars.CD_HABILITADO == 'true' &&
+      ((github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      # Vite incrusta estas URLs al compilar, por eso se construye aquí y no en Netlify
+      VITE_API_URL: ${{ vars.VITE_API_URL }}
+      VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - name: Comprobar configuración
+        run: |
+          test -n "$VITE_API_URL" || { echo "::error::Falta la variable VITE_API_URL"; exit 1; }
+          test -n "$VITE_SOCKET_URL" || { echo "::error::Falta la variable VITE_SOCKET_URL"; exit 1; }
+          test -n "$NETLIFY_AUTH_TOKEN" || { echo "::error::Falta el secret NETLIFY_AUTH_TOKEN"; exit 1; }
+          test -n "$NETLIFY_SITE_ID" || { echo "::error::Falta el secret NETLIFY_SITE_ID"; exit 1; }
+          test -n "${{ vars.FRONTEND_URL }}" || { echo "::error::Falta la variable FRONTEND_URL"; exit 1; }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - name: Build
+        run: npm run build
+
+      # Versión fijada: un cambio de la CLI no puede romper el despliegue
+      - name: Publicar en Netlify
+        run: npx --yes netlify-cli@27.14.0 deploy --prod --dir=dist --message "${DEPLOY_SHA}"
+
+      - name: Verificar el sitio publicado
+        run: ../.github/scripts/verificar-sitio.sh "${{ vars.FRONTEND_URL }}" / /reservas/historial

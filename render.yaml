@@ -1,0 +1,46 @@
+# Blueprint de Render: crea el backend y la base de datos PostgreSQL.
+# Se aplica una sola vez desde Render -> New -> Blueprint. Después, los despliegues
+# los dispara el pipeline de GitHub Actions (.github/workflows/cd.yml); por eso
+# el despliegue automático por commit está desactivado.
+databases:
+  - name: sensacine-db
+    plan: free
+    databaseName: sensacine
+    user: sensacine
+
+services:
+  - type: web
+    name: sensacine-backend
+    runtime: node
+    plan: free
+    rootDir: sensacine-backend
+    # prisma y typescript están en devDependencies, por eso --include=dev
+    buildCommand: npm ci --include=dev && npx prisma generate && npm run build
+    # Las migraciones se aplican al arrancar (idempotente): el plan gratuito no garantiza preDeployCommand
+    startCommand: npx prisma migrate deploy && npm start
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sensacine-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: BCRYPT_SALT_ROUNDS
+        value: "10"
+      # URL pública del frontend en Netlify (para los enlaces de los correos). Se pide al crear el Blueprint.
+      - key: FRONTEND_URL
+        sync: false
+      # Correo. Render gratuito BLOQUEA el SMTP (puertos 25/465/587): en producción hay que usar
+      # la API de Gmail (HTTPS) con las tres variables GMAIL_*. SMTP_* solo sirve en planes de pago.
+      - key: GMAIL_CLIENT_ID
+        sync: false
+      - key: GMAIL_CLIENT_SECRET
+        sync: false
+      - key: GMAIL_REFRESH_TOKEN
+        sync: false
+      - key: MAIL_FROM
+        sync: false
