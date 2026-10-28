@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, Clock3, MapPin, UtensilsCrossed, ChevronRight } from "lucide-react";
+import { CalendarDays, Clock3, MapPin, UtensilsCrossed, ChevronRight, ChefHat } from "lucide-react";
+import { obtenerEstadoOrden } from "../types";
 import { useFuncionesCocina } from "../hooks/useFuncionesCocina";
 
 type FiltroFecha = "hoy" | "semana" | "todas";
@@ -253,7 +254,44 @@ export function FuncionesCocinaPage() {
                                                         {funcion.totalReservas}{" "}
                                                         {funcion.totalReservas === 1
                                                             ? "reserva"
-                                                            : "reservas"}
+                                                            : "reservas"}{(() => {
+                                                        const ordenesTotales = funcion.reservas.reduce(
+                                                            (acc, r) => acc + (r.asientos?.length ?? 0),
+                                                            0,
+                                                        );
+                                                        const ordenesListas = funcion.reservas.reduce(
+                                                            (acc, r) =>
+                                                                acc +
+                                                                (r.asientos?.filter(
+                                                                    (a) => obtenerEstadoOrden(a) === "Lista",
+                                                                ).length ?? 0),
+                                                            0,
+                                                        );
+                                                        const ordenesEnPrep = funcion.reservas.reduce(
+                                                            (acc, r) =>
+                                                                acc +
+                                                                (r.asientos?.filter(
+                                                                    (a) =>
+                                                                        obtenerEstadoOrden(a) ===
+                                                                        "En_preparacion",
+                                                                ).length ?? 0),
+                                                            0,
+                                                        );
+
+                                                        if (ordenesTotales === 0) return null;
+
+                                                        return (
+                                                            <span className="inline-flex items-center gap-1.5 font-medium text-gray-700">
+                                                                <ChefHat className="h-3.5 w-3.5 text-[#0071e3]" />
+                                                                {ordenesListas} de {ordenesTotales} listas
+                                                                {ordenesEnPrep > 0 && (
+                                                                    <span className="text-xs text-blue-700">
+                                                                        ({ordenesEnPrep} en prep.)
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                     </span>
                                                 </div>
                                             </div>
