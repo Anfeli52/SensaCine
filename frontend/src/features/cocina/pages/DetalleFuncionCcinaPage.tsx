@@ -1,6 +1,5 @@
 import { Link, useParams } from "react-router-dom";
 import { useDetalleFuncionCocina } from "../hooks/useDetalleFuncionCocina";
-import type { RestriccionAsistenteCocina } from "../types";
 
 function formatearFecha(fecha: string): string {
     return new Date(fecha).toLocaleDateString("es-CO", {
@@ -13,23 +12,6 @@ function formatearFecha(fecha: string): string {
 
 function formatearHora(hora: string): string {
     return hora.slice(11, 16);
-}
-
-function obtenerTextoRestriccion(restriccion: RestriccionAsistenteCocina): string {
-    const nombre = restriccion.restriccion.nombre;
-    const tipo = restriccion.restriccion.tipo;
-    const notas = restriccion.notas;
-
-    return [
-        nombre,
-        tipo ? `Tipo: ${tipo}` : null,
-        notas ? `Notas: ${notas}` : null,
-        restriccion.producto
-            ? `Producto relacionado: ${restriccion.producto.nombre}`
-            : null,
-    ]
-        .filter(Boolean)
-        .join(" · ");
 }
 
 export function DetalleFuncionCocinaPage() {
