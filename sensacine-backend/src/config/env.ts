@@ -9,6 +9,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL es obligatorio"),
   JWT_SECRET: z.string().min(8, "JWT_SECRET debe tener al menos 8 caracteres"),
   BCRYPT_SALT_ROUNDS: z.coerce.number().default(10),
+  // URL pública del frontend: se usa para los enlaces de los correos (p. ej. la invitación a reseñar)
+  FRONTEND_URL: z.preprocess((v) => (v === "" ? undefined : v), z.string().url().default("http://localhost:5173")),
 
   // Correo (opcional). Sin SMTP la app arranca igual, pero los correos de confirmación
   // quedan registrados como "fallido" en la tabla notificacion y se avisa en el log.
