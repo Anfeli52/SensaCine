@@ -1,6 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { Film, Calendar, Armchair, Users, UtensilsCrossed, ListCheck } from "lucide-react";
-
+import {
+  Film,
+  Calendar,
+  Armchair,
+  Users,
+  UtensilsCrossed,
+  ListCheck,
+  ShieldCheck,
+} from "lucide-react";
 
 export function AdminNavTabs() {
   const location = useLocation();
@@ -24,20 +31,29 @@ export function AdminNavTabs() {
       path: "/admin/salas",
       icon: Armchair,
     },
-    { id: "usuarios", 
-      label: "Gestión de Usuarios", 
-      path: "/admin/usuarios", 
-      icon: Users, 
+    {
+      id: "usuarios",
+      label: "Gestión de Usuarios",
+      path: "/admin/usuarios",
+      icon: Users,
     },
-    { id: "productos", 
-      label: "Catálogo de Productos Gastronómicos", 
-      path: "/admin/productos", 
-      icon: UtensilsCrossed, 
+    {
+      id: "productos",
+      label: "Catálogo de Productos Gastronómicos",
+      path: "/admin/productos",
+      icon: UtensilsCrossed,
     },
-    { id: "reservas",
+    {
+      id: "reservas",
       label: "Gestión de Reservas",
       path: "/admin/reservas",
       icon: ListCheck,
+    },
+    {
+      id: "auditoria",
+      label: "Auditoría",
+      path: "/admin/auditoria",
+      icon: ShieldCheck,
     },
   ];
 
@@ -51,14 +67,16 @@ export function AdminNavTabs() {
           <Link
             key={tab.id}
             to={tab.path}
-            className={`flex items-center gap-2 px-4 py-2 rounded-appleMd text-[13px] font-medium transition-all duration-200 whitespace-nowrap ${isActive
+            className={`flex items-center gap-2 px-4 py-2 rounded-appleMd text-[13px] font-medium transition-all duration-200 whitespace-nowrap ${
+              isActive
                 ? "bg-white text-[#1d1d1f] shadow-sm font-semibold"
                 : "text-[#6e6e73] hover:text-[#1d1d1f] hover:bg-white/50"
-              }`}
+            }`}
           >
             <Icon
-              className={`w-4 h-4 transition-colors ${isActive ? "text-[#0071e3]" : "text-[#86868b]"
-                }`}
+              className={`w-4 h-4 transition-colors ${
+                isActive ? "text-[#0071e3]" : "text-[#86868b]"
+              }`}
             />
             <span>{tab.label}</span>
           </Link>

@@ -17,6 +17,7 @@ import { AdminProductosPage } from "../features/admin/pages/AdminProductosPage";
 import { MenuPage } from "../features/menu/pages/MenuPage";
 import { MisReservasPage } from "../features/reservas/pages/MisReservasPage";
 import { AdminReservasPage } from "../features/admin/pages/AdminReservasPage";
+import { AdminAuditoriaPage } from "../features/admin/pages/AdminAuditoriaPage";
 import { FuncionesCocinaPage } from "../features/cocina/pages/FuncionesCocinaPage";
 import { DetalleFuncionCocinaPage } from "../features/cocina/pages/DetalleFuncionCcinaPage";
 
@@ -105,6 +106,10 @@ export const router = createBrowserRouter([
           {
             path: "reservas",
             element: <AdminReservasPage />,
+          },
+          {
+            path: "auditoria",
+            element: <AdminAuditoriaPage />,
           },
         ],
       },
