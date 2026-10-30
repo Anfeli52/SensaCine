@@ -17,6 +17,7 @@ module.exports = {
   coverageThreshold: {
     global: umbral70,
     "./src/modules/admin/": umbral70,
+    "./src/modules/auditoria/": umbral70,
     "./src/modules/auth/": umbral70,
     "./src/modules/catalogo/": umbral70,
     "./src/modules/cocina/": umbral70,
