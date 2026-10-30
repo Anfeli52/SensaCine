@@ -1,4 +1,5 @@
 import { Sala, Asiento } from "@prisma/client";
+import { DbClient } from "../auditoria/auditoria.types";
 
 export interface CreateSalaInput {
   nombre: string;
@@ -23,10 +24,10 @@ export interface SalaConDetalles extends Sala {
 
 export interface ISalaRepository {
   findAll(): Promise<SalaConDetalles[]>;
-  findById(id: number): Promise<SalaConDetalles | null>;
-  create(data: { nombre: string; capacidad: number; estado?: string }): Promise<Sala>;
-  createAsientos(asientos: { idSala: number; fila: string; numero: number }[]): Promise<void>;
-  update(id: number, data: UpdateSalaInput): Promise<Sala>;
-  delete(id: number): Promise<Sala>;
-  deleteAsientosBySala(idSala: number): Promise<void>;
+  findById(id: number, tx?: DbClient): Promise<SalaConDetalles | null>;
+  create(data: { nombre: string; capacidad: number; estado?: string }, tx?: DbClient): Promise<Sala>;
+  createAsientos(asientos: { idSala: number; fila: string; numero: number }[], tx?: DbClient): Promise<void>;
+  update(id: number, data: UpdateSalaInput, tx?: DbClient): Promise<Sala>;
+  delete(id: number, tx?: DbClient): Promise<Sala>;
+  deleteAsientosBySala(idSala: number, tx?: DbClient): Promise<void>;
 }

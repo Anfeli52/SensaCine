@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../../common/middlewares/authMiddleware";
 import { FuncionService } from "./funcion.service";
 
 export class FuncionController {
@@ -15,7 +16,6 @@ export class FuncionController {
       soloFuturas: req.query.soloFuturas === "true",
     };
 
-
     const funciones = await this.funcionService.listar(filters);
     res.status(200).json(funciones);
   };
@@ -26,20 +26,26 @@ export class FuncionController {
     res.status(200).json(funcion);
   };
 
-  crear = async (req: Request, res: Response) => {
-    const nuevaFuncion = await this.funcionService.crear(req.body);
+  crear = async (req: AuthRequest, res: Response) => {
+    const nuevaFuncion = req.usuario
+      ? await this.funcionService.crear(req.body, req.usuario)
+      : await this.funcionService.crear(req.body);
     res.status(201).json(nuevaFuncion);
   };
 
-  actualizar = async (req: Request, res: Response) => {
+  actualizar = async (req: AuthRequest, res: Response) => {
     const id = Number(req.params.id);
-    const funcionActualizada = await this.funcionService.actualizar(id, req.body);
+    const funcionActualizada = req.usuario
+      ? await this.funcionService.actualizar(id, req.body, req.usuario)
+      : await this.funcionService.actualizar(id, req.body);
     res.status(200).json(funcionActualizada);
   };
 
-  eliminar = async (req: Request, res: Response) => {
+  eliminar = async (req: AuthRequest, res: Response) => {
     const id = Number(req.params.id);
-    const resultado = await this.funcionService.eliminar(id);
+    const resultado = req.usuario
+      ? await this.funcionService.eliminar(id, req.usuario)
+      : await this.funcionService.eliminar(id);
     res.status(200).json(resultado);
   };
 }

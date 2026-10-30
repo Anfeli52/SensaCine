@@ -117,6 +117,95 @@ describe("SalaService", () => {
     const result = await service.eliminar(1);
     expect(result.id).toBe(1);
     expect(repo.deleteAsientosBySala).toHaveBeenCalledWith(1);
+
     expect(repo.delete).toHaveBeenCalledWith(1);
+  });
+
+  describe("Auditoría en SalaService", () => {
+    const actor = { id: 1, email: "admin@sensacine.com", rol: "admin" };
+
+    it("crear registra auditoría cuando se pasa actor y auditoriaService", async () => {
+      const repo = makeFakeSalaRepo();
+      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
+      const service = new SalaService(repo, mockAuditoria as any);
+
+      const res = await service.crear({
+        nombre: "Sala VIP",
+        filas: 2,
+        asientosPorFila: 2,
+      }, actor);
+
+      expect(res.nombre).toBe("Sala VIP");
+      expect(mockAuditoria.registrar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor,
+          accion: "CREAR",
+          entidad: "Sala",
+        }),
+        expect.anything()
+      );
+    });
+
+    it("actualizar registra auditoría DESACTIVAR al cambiar a inactiva", async () => {
+      const repo = makeFakeSalaRepo([sampleSala]);
+      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
+      const service = new SalaService(repo, mockAuditoria as any);
+
+      const res = await service.actualizar(1, { estado: "inactiva" }, actor);
+      expect(res.estado).toBe("inactiva");
+      expect(mockAuditoria.registrar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor,
+          accion: "DESACTIVAR",
+          entidad: "Sala",
+          entidadId: 1,
+        }),
+        expect.anything()
+      );
+    });
+
+    it("actualizar registra auditoría ACTIVAR al cambiar a activa", async () => {
+      const repo = makeFakeSalaRepo([{ ...sampleSala, estado: "inactiva" }]);
+      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
+      const service = new SalaService(repo, mockAuditoria as any);
+
+      const res = await service.actualizar(1, { estado: "activa" }, actor);
+      expect(res.estado).toBe("activa");
+      expect(mockAuditoria.registrar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor,
+          accion: "ACTIVAR",
+          entidad: "Sala",
+          entidadId: 1,
+        }),
+        expect.anything()
+      );
+    });
+
+    it("eliminar registra auditoría ELIMINAR", async () => {
+      const repo = makeFakeSalaRepo([sampleSala]);
+      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
+      const service = new SalaService(repo, mockAuditoria as any);
+
+      const res = await service.eliminar(1, actor);
+      expect(res.id).toBe(1);
+      expect(mockAuditoria.registrar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor,
+          accion: "ELIMINAR",
+          entidad: "Sala",
+          entidadId: 1,
+        }),
+        expect.anything()
+      );
+    });
+
+    it("eliminar traduce error P2003 a AppError 400", async () => {
+      const repo = makeFakeSalaRepo([sampleSala]);
+      repo.delete = jest.fn().mockRejectedValue({ code: "P2003" });
+      const service = new SalaService(repo);
+
+      await expect(service.eliminar(1)).rejects.toMatchObject({ statusCode: 400 });
+    });
   });
 });

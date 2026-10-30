@@ -64,15 +64,22 @@ model Usuario {
 
 model LogAuditoria {
   id            Int      @id @default(autoincrement()) @map("id_log")
-  idUsuario     Int      @map("id_usuario")
-  usuario       Usuario  @relation(fields: [idUsuario], references: [id])
+  idUsuario     Int?     @map("id_usuario")
+  usuario       Usuario? @relation(fields: [idUsuario], references: [id], onDelete: SetNull)
+  usuarioEmail  String?  @map("usuario_email") @db.VarChar(150)
+  usuarioRol    String?  @map("usuario_rol") @db.VarChar(50)
   accion        String   @db.VarChar(100)
   entidad       String   @db.VarChar(100)
   entidadId     Int      @map("entidad_id")
-  valorAnterior String?  @map("valor_anterior") @db.Text
-  valorNuevo    String?  @map("valor_nuevo") @db.Text
+  valorAnterior Json?    @map("valor_anterior")
+  valorNuevo    Json?    @map("valor_nuevo")
+  metadata      Json?    @map("metadata")
   fechaHora     DateTime @default(now()) @map("fecha_hora")
 
+  @@index([fechaHora(sort: Desc)])
+  @@index([entidad, entidadId])
+  @@index([idUsuario])
+  @@index([accion])
   @@map("log_auditoria")
 }
 

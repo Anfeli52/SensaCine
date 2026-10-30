@@ -141,6 +141,95 @@ describe("PeliculaService", () => {
 
     const result = await service.eliminar(1);
     expect(result.id).toBe(1);
+
     expect(result.mensaje).toContain("eliminada exitosamente");
+  });
+
+  describe("Auditoría en PeliculaService", () => {
+    const actor = { id: 1, email: "admin@sensacine.com", rol: "admin" };
+
+    it("crear registra auditoría cuando se pasa actor y auditoriaService", async () => {
+      const repo = makeFakePeliculaRepo();
+      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
+      const service = new PeliculaService(repo, mockAuditoria as any);
+
+      const res = await service.crear({
+        titulo: "Avatar",
+        duracionMinutos: 160,
+        precioBaseExperiencia: 25000,
+      }, actor);
+
+      expect(res.titulo).toBe("Avatar");
+      expect(mockAuditoria.registrar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor,
+          accion: "CREAR",
+          entidad: "Pelicula",
+        }),
+        expect.anything()
+      );
+    });
+
+    it("actualizar registra auditoría DESACTIVAR al cambiar a inactiva", async () => {
+      const repo = makeFakePeliculaRepo([samplePelicula]);
+      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
+      const service = new PeliculaService(repo, mockAuditoria as any);
+
+      const res = await service.actualizar(1, { estado: "inactiva" }, actor);
+      expect(res.estado).toBe("inactiva");
+      expect(mockAuditoria.registrar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor,
+          accion: "DESACTIVAR",
+          entidad: "Pelicula",
+          entidadId: 1,
+        }),
+        expect.anything()
+      );
+    });
+
+    it("actualizar registra auditoría ACTIVAR al cambiar a activa", async () => {
+      const repo = makeFakePeliculaRepo([{ ...samplePelicula, estado: "inactiva" }]);
+      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
+      const service = new PeliculaService(repo, mockAuditoria as any);
+
+      const res = await service.actualizar(1, { estado: "activa" }, actor);
+      expect(res.estado).toBe("activa");
+      expect(mockAuditoria.registrar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor,
+          accion: "ACTIVAR",
+          entidad: "Pelicula",
+          entidadId: 1,
+        }),
+        expect.anything()
+      );
+    });
+
+    it("eliminar registra auditoría ELIMINAR", async () => {
+      const repo = makeFakePeliculaRepo([samplePelicula]);
+      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
+      const service = new PeliculaService(repo, mockAuditoria as any);
+
+      const res = await service.eliminar(1, actor);
+      expect(res.id).toBe(1);
+      expect(mockAuditoria.registrar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actor,
+          accion: "ELIMINAR",
+          entidad: "Pelicula",
+          entidadId: 1,
+        }),
+        expect.anything()
+      );
+    });
+
+    it("eliminar traduce error P2003 a AppError 400", async () => {
+      const repo = makeFakePeliculaRepo([samplePelicula]);
+      repo.delete = jest.fn().mockRejectedValue({ code: "P2003" });
+      const service = new PeliculaService(repo);
+
+      await expect(service.eliminar(1)).rejects.toMatchObject({ statusCode: 400 });
+    });
   });
 });

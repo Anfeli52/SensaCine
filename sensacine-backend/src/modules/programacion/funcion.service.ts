@@ -1,7 +1,9 @@
 import { AppError } from "../../common/errors/AppError";
-import { IPeliculaRepository } from "../catalogo/pelicula.types";
-import { ISalaRepository } from "./sala.types";
 import { getCinemaDateStr, getCinemaTimeStr } from "../../common/helpers/dateUtils";
+import { prisma } from "../../infrastructure/prisma/client";
+import { AuditoriaActor, DbClient } from "../auditoria/auditoria.types";
+import { AuditoriaService } from "../auditoria/auditoria.service";
+import { IPeliculaRepository } from "../catalogo/pelicula.types";
 import {
   CreateFuncionInput,
   FuncionConDetalles,
@@ -10,12 +12,14 @@ import {
   IFuncionRepository,
   UpdateFuncionInput,
 } from "./funcion.types";
+import { ISalaRepository } from "./sala.types";
 
 export class FuncionService {
   constructor(
     private readonly funcionRepo: IFuncionRepository,
     private readonly peliculaRepo: IPeliculaRepository,
-    private readonly salaRepo: ISalaRepository
+    private readonly salaRepo: ISalaRepository,
+    private readonly auditoriaService?: AuditoriaService
   ) {}
 
   public parseDate(val: string | Date): Date {
@@ -103,7 +107,6 @@ export class FuncionService {
     return dtos;
   }
 
-
   async obtenerPorId(id: number): Promise<FuncionResponseDTO> {
     const funcion = await this.funcionRepo.findById(id);
     if (!funcion) {
@@ -112,14 +115,12 @@ export class FuncionService {
     return this.toDTO(funcion);
   }
 
-  async crear(input: CreateFuncionInput): Promise<FuncionResponseDTO> {
-    // 1. Validar existencia de Película
+  async crear(input: CreateFuncionInput, actor?: AuditoriaActor): Promise<FuncionResponseDTO> {
     const pelicula = await this.peliculaRepo.findById(input.idPelicula);
     if (!pelicula) {
       throw new AppError("La película seleccionada no existe", 404);
     }
 
-    // 2. Validar existencia de Sala
     const sala = await this.salaRepo.findById(input.idSala);
     if (!sala) {
       throw new AppError("La sala seleccionada no existe", 404);
@@ -129,7 +130,6 @@ export class FuncionService {
       throw new AppError(`La sala '${sala.nombre}' no está activa (${sala.estado})`, 400);
     }
 
-    // 3. Normalizar Fechas y Horas
     const fecha = this.parseDate(input.fecha);
     const horaInicio = this.parseTime(input.horaInicio);
 
@@ -137,7 +137,6 @@ export class FuncionService {
     if (input.horaFin) {
       horaFin = this.parseTime(input.horaFin);
     } else {
-      // Calcular automáticamente: horaInicio + duracionMinutos
       horaFin = new Date(horaInicio.getTime() + pelicula.duracionMinutos * 60 * 1000);
     }
 
@@ -145,7 +144,6 @@ export class FuncionService {
       throw new AppError("La hora de finalización debe ser posterior a la hora de inicio", 400);
     }
 
-    // 4. Verificar Solapamientos (Schedule Conflicts)
     const conflictos = await this.funcionRepo.findConflicts(
       input.idSala,
       fecha,
@@ -165,21 +163,55 @@ export class FuncionService {
       );
     }
 
-    // 5. Crear la función
-    const nuevaFuncion = await this.funcionRepo.create({
-      idPelicula: input.idPelicula,
-      idSala: input.idSala,
-      fecha,
-      horaInicio,
-      horaFin,
-      precioAsientoOficial: input.precioAsientoOficial,
-      estado: input.estado ?? "programada",
-    });
+    const operacion = async (tx?: DbClient) => {
+      const datosCreacion = {
+        idPelicula: input.idPelicula,
+        idSala: input.idSala,
+        fecha,
+        horaInicio,
+        horaFin,
+        precioAsientoOficial: input.precioAsientoOficial,
+        estado: input.estado ?? "programada",
+      };
 
-    return this.toDTO(nuevaFuncion);
+      const nuevaFuncion = tx
+        ? await this.funcionRepo.create(datosCreacion, tx)
+        : await this.funcionRepo.create(datosCreacion);
+
+      if (this.auditoriaService && actor) {
+        await this.auditoriaService.registrar(
+          {
+            actor,
+            accion: "CREAR",
+            entidad: "Funcion",
+            entidadId: nuevaFuncion.id,
+            valorAnterior: null,
+            valorNuevo: nuevaFuncion,
+            metadata: {
+              pelicula: pelicula.titulo,
+              sala: sala.nombre,
+              fecha: this.formatDate(fecha),
+              horaInicio: this.formatTime(horaInicio),
+            },
+          },
+          tx
+        );
+      }
+
+      return this.toDTO(nuevaFuncion);
+    };
+
+    if (this.auditoriaService && actor) {
+      return prisma.$transaction((tx) => operacion(tx));
+    }
+    return operacion();
   }
 
-  async actualizar(id: number, input: UpdateFuncionInput): Promise<FuncionResponseDTO> {
+  async actualizar(
+    id: number,
+    input: UpdateFuncionInput,
+    actor?: AuditoriaActor
+  ): Promise<FuncionResponseDTO> {
     const existing = await this.funcionRepo.findById(id);
     if (!existing) {
       throw new AppError("Función no encontrada", 404);
@@ -214,7 +246,6 @@ export class FuncionService {
       throw new AppError("La hora de finalización debe ser posterior a la hora de inicio", 400);
     }
 
-    // Verificar Solapamientos excluyendo esta función
     const conflictos = await this.funcionRepo.findConflicts(
       idSala,
       fecha,
@@ -235,36 +266,92 @@ export class FuncionService {
       );
     }
 
-    const actualizada = await this.funcionRepo.update(id, {
-      idPelicula,
-      idSala,
-      fecha,
-      horaInicio,
-      horaFin,
-      precioAsientoOficial: input.precioAsientoOficial,
-      estado: input.estado,
-    });
+    let accion = "EDITAR";
+    if (input.estado && input.estado !== existing.estado) {
+      accion = input.estado === "cancelada" ? "DESACTIVAR" : "ACTIVAR";
+    }
 
-    return this.toDTO(actualizada);
+    const operacion = async (tx?: DbClient) => {
+      const datosActualizar = {
+        idPelicula,
+        idSala,
+        fecha,
+        horaInicio,
+        horaFin,
+        precioAsientoOficial: input.precioAsientoOficial,
+        estado: input.estado,
+      };
+
+      const actualizada = tx
+        ? await this.funcionRepo.update(id, datosActualizar, tx)
+        : await this.funcionRepo.update(id, datosActualizar);
+
+      if (this.auditoriaService && actor) {
+        await this.auditoriaService.registrar(
+          {
+            actor,
+            accion,
+            entidad: "Funcion",
+            entidadId: id,
+            valorAnterior: existing,
+            valorNuevo: actualizada,
+          },
+          tx
+        );
+      }
+
+      return this.toDTO(actualizada);
+    };
+
+    if (this.auditoriaService && actor) {
+      return prisma.$transaction((tx) => operacion(tx));
+    }
+    return operacion();
   }
 
-  async eliminar(id: number): Promise<{ mensaje: string; id: number }> {
+  async eliminar(id: number, actor?: AuditoriaActor): Promise<{ mensaje: string; id: number }> {
     const existing = await this.funcionRepo.findById(id);
     if (!existing) {
       throw new AppError("Función no encontrada", 404);
     }
 
-    try {
-      await this.funcionRepo.delete(id);
-      return { mensaje: "Función eliminada exitosamente", id };
-    } catch (error: any) {
-      if (error?.code === "P2003") {
-        throw new AppError(
-          "No se puede eliminar la función porque ya tiene reservas asociadas. Puedes cambiar su estado a 'cancelada'.",
-          400
-        );
+    const operacion = async (tx?: DbClient) => {
+      try {
+        if (tx) {
+          await this.funcionRepo.delete(id, tx);
+        } else {
+          await this.funcionRepo.delete(id);
+        }
+
+        if (this.auditoriaService && actor) {
+          await this.auditoriaService.registrar(
+            {
+              actor,
+              accion: "ELIMINAR",
+              entidad: "Funcion",
+              entidadId: id,
+              valorAnterior: existing,
+              valorNuevo: null,
+            },
+            tx
+          );
+        }
+
+        return { mensaje: "Función eliminada exitosamente", id };
+      } catch (error: any) {
+        if (error?.code === "P2003") {
+          throw new AppError(
+            "No se puede eliminar la función porque ya tiene reservas asociadas. Puedes cambiar su estado a 'cancelada'.",
+            400
+          );
+        }
+        throw error;
       }
-      throw error;
+    };
+
+    if (this.auditoriaService && actor) {
+      return prisma.$transaction((tx) => operacion(tx));
     }
+    return operacion();
   }
 }
