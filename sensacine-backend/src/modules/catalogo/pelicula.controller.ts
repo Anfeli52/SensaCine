@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../../common/middlewares/authMiddleware";
 import { PeliculaService } from "./pelicula.service";
 
 export class PeliculaController {
@@ -19,20 +20,26 @@ export class PeliculaController {
     res.status(200).json(pelicula);
   };
 
-  crear = async (req: Request, res: Response) => {
-    const nuevaPelicula = await this.peliculaService.crear(req.body);
+  crear = async (req: AuthRequest, res: Response) => {
+    const nuevaPelicula = req.usuario
+      ? await this.peliculaService.crear(req.body, req.usuario)
+      : await this.peliculaService.crear(req.body);
     res.status(201).json(nuevaPelicula);
   };
 
-  actualizar = async (req: Request, res: Response) => {
+  actualizar = async (req: AuthRequest, res: Response) => {
     const id = Number(req.params.id);
-    const peliculaActualizada = await this.peliculaService.actualizar(id, req.body);
+    const peliculaActualizada = req.usuario
+      ? await this.peliculaService.actualizar(id, req.body, req.usuario)
+      : await this.peliculaService.actualizar(id, req.body);
     res.status(200).json(peliculaActualizada);
   };
 
-  eliminar = async (req: Request, res: Response) => {
+  eliminar = async (req: AuthRequest, res: Response) => {
     const id = Number(req.params.id);
-    const resultado = await this.peliculaService.eliminar(id);
+    const resultado = req.usuario
+      ? await this.peliculaService.eliminar(id, req.usuario)
+      : await this.peliculaService.eliminar(id);
     res.status(200).json(resultado);
   };
 }

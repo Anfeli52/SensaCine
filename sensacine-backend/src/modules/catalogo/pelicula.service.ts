@@ -1,12 +1,18 @@
-import { AppError } from "../../common/errors/AppError";
-import { CreatePeliculaDTO } from "./dtos/CreatePeliculaDTO";
-import { UpdatePeliculaDTO } from "./dtos/UpdatePeliculaDTO";
-import { PeliculaResponseDTO } from "./dtos/PeliculaResponseDTO";
-import { IPeliculaRepository } from "./pelicula.types";
 import { Pelicula } from "@prisma/client";
+import { AppError } from "../../common/errors/AppError";
+import { prisma } from "../../infrastructure/prisma/client";
+import { AuditoriaActor, DbClient } from "../auditoria/auditoria.types";
+import { AuditoriaService } from "../auditoria/auditoria.service";
+import { CreatePeliculaDTO } from "./dtos/CreatePeliculaDTO";
+import { PeliculaResponseDTO } from "./dtos/PeliculaResponseDTO";
+import { UpdatePeliculaDTO } from "./dtos/UpdatePeliculaDTO";
+import { IPeliculaRepository } from "./pelicula.types";
 
 export class PeliculaService {
-  constructor(private peliculaRepo: IPeliculaRepository) {}
+  constructor(
+    private peliculaRepo: IPeliculaRepository,
+    private auditoriaService?: AuditoriaService
+  ) {}
 
   private toDTO(pelicula: Pelicula): PeliculaResponseDTO {
     return {
@@ -40,26 +46,55 @@ export class PeliculaService {
     return this.toDTO(pelicula);
   }
 
-  async crear(dto: CreatePeliculaDTO): Promise<PeliculaResponseDTO> {
+  async crear(dto: CreatePeliculaDTO, actor?: AuditoriaActor): Promise<PeliculaResponseDTO> {
     if (dto.duracionMinutos <= 0) {
       throw new AppError("La duración debe ser mayor a 0 minutos", 400);
     }
 
-    const nuevaPelicula = await this.peliculaRepo.create({
-      titulo: dto.titulo,
-      sinopsis: dto.sinopsis,
-      duracionMinutos: dto.duracionMinutos,
-      genero: dto.genero,
-      clasificacion: dto.clasificacion,
-      posterUrl: dto.posterUrl,
-      estado: dto.estado ?? "activa",
-      precioBaseExperiencia: dto.precioBaseExperiencia,
-    });
+    const operacion = async (tx?: DbClient) => {
+      const data = {
+        titulo: dto.titulo,
+        sinopsis: dto.sinopsis,
+        duracionMinutos: dto.duracionMinutos,
+        genero: dto.genero,
+        clasificacion: dto.clasificacion,
+        posterUrl: dto.posterUrl,
+        estado: dto.estado ?? "activa",
+        precioBaseExperiencia: dto.precioBaseExperiencia,
+      };
 
-    return this.toDTO(nuevaPelicula);
+      const nuevaPelicula = tx
+        ? await this.peliculaRepo.create(data, tx)
+        : await this.peliculaRepo.create(data);
+
+      if (this.auditoriaService && actor) {
+        await this.auditoriaService.registrar(
+          {
+            actor,
+            accion: "CREAR",
+            entidad: "Pelicula",
+            entidadId: nuevaPelicula.id,
+            valorAnterior: null,
+            valorNuevo: nuevaPelicula,
+          },
+          tx
+        );
+      }
+
+      return this.toDTO(nuevaPelicula);
+    };
+
+    if (this.auditoriaService && actor) {
+      return prisma.$transaction((tx) => operacion(tx));
+    }
+    return operacion();
   }
 
-  async actualizar(id: number, dto: UpdatePeliculaDTO): Promise<PeliculaResponseDTO> {
+  async actualizar(
+    id: number,
+    dto: UpdatePeliculaDTO,
+    actor?: AuditoriaActor
+  ): Promise<PeliculaResponseDTO> {
     const existing = await this.peliculaRepo.findById(id);
     if (!existing) {
       throw new AppError("Película no encontrada", 404);
@@ -69,27 +104,82 @@ export class PeliculaService {
       throw new AppError("La duración debe ser mayor a 0 minutos", 400);
     }
 
-    const actualizada = await this.peliculaRepo.update(id, dto);
-    return this.toDTO(actualizada);
+    let accion = "EDITAR";
+    if (dto.estado && dto.estado !== existing.estado) {
+      accion = dto.estado === "inactiva" ? "DESACTIVAR" : "ACTIVAR";
+    }
+
+    const operacion = async (tx?: DbClient) => {
+      const actualizada = tx
+        ? await this.peliculaRepo.update(id, dto, tx)
+        : await this.peliculaRepo.update(id, dto);
+
+      if (this.auditoriaService && actor) {
+        await this.auditoriaService.registrar(
+          {
+            actor,
+            accion,
+            entidad: "Pelicula",
+            entidadId: id,
+            valorAnterior: existing,
+            valorNuevo: actualizada,
+          },
+          tx
+        );
+      }
+
+      return this.toDTO(actualizada);
+    };
+
+    if (this.auditoriaService && actor) {
+      return prisma.$transaction((tx) => operacion(tx));
+    }
+    return operacion();
   }
 
-  async eliminar(id: number): Promise<{ mensaje: string; id: number }> {
+  async eliminar(id: number, actor?: AuditoriaActor): Promise<{ mensaje: string; id: number }> {
     const existing = await this.peliculaRepo.findById(id);
     if (!existing) {
       throw new AppError("Película no encontrada", 404);
     }
 
-    try {
-      await this.peliculaRepo.delete(id);
-      return { mensaje: "Película eliminada exitosamente", id };
-    } catch (error: any) {
-      if (error?.code === "P2003") {
-        throw new AppError(
-          "No se puede eliminar la película porque tiene funciones o productos asociados. Puedes cambiar su estado a 'inactiva'.",
-          400
-        );
+    const operacion = async (tx?: DbClient) => {
+      try {
+        if (tx) {
+          await this.peliculaRepo.delete(id, tx);
+        } else {
+          await this.peliculaRepo.delete(id);
+        }
+
+        if (this.auditoriaService && actor) {
+          await this.auditoriaService.registrar(
+            {
+              actor,
+              accion: "ELIMINAR",
+              entidad: "Pelicula",
+              entidadId: id,
+              valorAnterior: existing,
+              valorNuevo: null,
+            },
+            tx
+          );
+        }
+
+        return { mensaje: "Película eliminada exitosamente", id };
+      } catch (error: any) {
+        if (error?.code === "P2003") {
+          throw new AppError(
+            "No se puede eliminar la película porque tiene funciones o productos asociados. Puedes cambiar su estado a 'inactiva'.",
+            400
+          );
+        }
+        throw error;
       }
-      throw error;
+    };
+
+    if (this.auditoriaService && actor) {
+      return prisma.$transaction((tx) => operacion(tx));
     }
+    return operacion();
   }
 }

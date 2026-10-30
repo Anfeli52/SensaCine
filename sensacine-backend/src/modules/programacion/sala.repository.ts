@@ -1,4 +1,5 @@
 import { prisma } from "../../infrastructure/prisma/client";
+import { DbClient } from "../auditoria/auditoria.types";
 import { ISalaRepository, UpdateSalaInput } from "./sala.types";
 
 export class PrismaSalaRepository implements ISalaRepository {
@@ -16,8 +17,9 @@ export class PrismaSalaRepository implements ISalaRepository {
     });
   }
 
-  findById(id: number) {
-    return prisma.sala.findUnique({
+  findById(id: number, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.sala.findUnique({
       where: { id },
       include: {
         asientos: {
@@ -33,34 +35,42 @@ export class PrismaSalaRepository implements ISalaRepository {
     });
   }
 
-  create(data: { nombre: string; capacidad: number; estado?: string }) {
-    return prisma.sala.create({
+  create(data: { nombre: string; capacidad: number; estado?: string }, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.sala.create({
       data,
     });
   }
 
-  async createAsientos(asientos: { idSala: number; fila: string; numero: number }[]) {
-    await prisma.asiento.createMany({
+  async createAsientos(
+    asientos: { idSala: number; fila: string; numero: number }[],
+    tx?: DbClient
+  ) {
+    const client = tx ?? prisma;
+    await client.asiento.createMany({
       data: asientos,
       skipDuplicates: true,
     });
   }
 
-  update(id: number, data: UpdateSalaInput) {
-    return prisma.sala.update({
+  update(id: number, data: UpdateSalaInput, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.sala.update({
       where: { id },
       data,
     });
   }
 
-  async deleteAsientosBySala(idSala: number) {
-    await prisma.asiento.deleteMany({
+  async deleteAsientosBySala(idSala: number, tx?: DbClient) {
+    const client = tx ?? prisma;
+    await client.asiento.deleteMany({
       where: { idSala },
     });
   }
 
-  delete(id: number) {
-    return prisma.sala.delete({
+  delete(id: number, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.sala.delete({
       where: { id },
     });
   }

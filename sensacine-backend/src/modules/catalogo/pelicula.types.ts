@@ -1,4 +1,5 @@
 import { Pelicula, Prisma } from "@prisma/client";
+import { DbClient } from "../auditoria/auditoria.types";
 
 export interface CreatePeliculaInput {
   titulo: string;
@@ -24,8 +25,8 @@ export interface UpdatePeliculaInput {
 
 export interface IPeliculaRepository {
   findAll(options?: { estado?: string }): Promise<Pelicula[]>;
-  findById(id: number): Promise<Pelicula | null>;
-  create(data: CreatePeliculaInput): Promise<Pelicula>;
-  update(id: number, data: UpdatePeliculaInput): Promise<Pelicula>;
-  delete(id: number): Promise<Pelicula>;
+  findById(id: number, tx?: DbClient): Promise<Pelicula | null>;
+  create(data: CreatePeliculaInput, tx?: DbClient): Promise<Pelicula>;
+  update(id: number, data: UpdatePeliculaInput, tx?: DbClient): Promise<Pelicula>;
+  delete(id: number, tx?: DbClient): Promise<Pelicula>;
 }
