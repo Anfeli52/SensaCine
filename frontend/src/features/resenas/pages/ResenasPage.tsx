@@ -107,7 +107,7 @@ export function ResenasPage() {
             );
         }
 
-        const { resumen, resenas } = datosResenas;
+        const { resumen} = datosResenas;
 
         return (
             <div className="space-y-4">
