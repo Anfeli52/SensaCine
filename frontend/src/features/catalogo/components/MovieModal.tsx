@@ -6,14 +6,8 @@ import { Badge } from "../../../shared/components/Badge";
 import { Button } from "../../../shared/components/Button";
 import { Spinner } from "../../../shared/components/Spinner";
 import { useFuncionesDisponibles } from "../hooks/usePeliculas";
-import {
-  Clock,
-  Calendar,
-  Armchair,
-  CheckCircle2,
-  Sparkles,
-  UtensilsCrossed,
-} from "lucide-react";
+import { Clock, Calendar, Armchair, CheckCircle2, Sparkles, UtensilsCrossed, Star, MessageSquare } from "lucide-react";
+import { useResenasPorPelicula } from "../../resenas/hooks/useResenas";
 
 
 interface MovieModalProps {
@@ -27,6 +21,7 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
   const [selectedFuncionId, setSelectedFuncionId] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [isSynopsisExpanded, setIsSynopsisExpanded] = useState(false);
+  const { data: datosResenas, isLoading: isLoadingResenas, isError: isErrorResenas } = useResenasPorPelicula(pelicula?.id);
 
   const navigate = useNavigate();
 
@@ -93,6 +88,100 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
 
   const selectedFuncion = funciones.find((f: any) => f.id === selectedFuncionId);
 
+  const renderEstrellas = (calificacion: number) => (
+    <div className="flex items-center gap-0.5" aria-label={`${calificacion} de 5 estrellas`}>
+      {Array.from({ length: 5 }, (_, index) => (
+        <Star
+          key={index}
+          className={`w-3.5 h-3.5 ${index < calificacion
+            ? "fill-[#e5a000] text-[#e5a000]"
+            : "text-[#d2d2d7]"
+            }`}
+        />
+      ))}
+    </div>
+  );
+
+  const renderResenasContent = () => {
+    if (isLoadingResenas) {
+      return (
+        <div className="py-6 flex justify-center">
+          <Spinner size="sm" />
+        </div>
+      );
+    }
+
+    if (isErrorResenas || !datosResenas) {
+      return (
+        <p className="text-[12px] text-[#86868b] text-center py-4">
+          No fue posible cargar las calificaciones.
+        </p>
+      );
+    }
+
+    const { resumen } = datosResenas;
+
+    if (resumen.totalResenas === 0) {
+      return (
+        <div className="py-5 px-4 bg-[#fafafc] rounded-appleLg border border-[#e5e5ea] text-center">
+          <MessageSquare className="w-6 h-6 text-[#86868b] mx-auto mb-2" />
+          <p className="text-[12px] font-medium text-[#1d1d1f]">
+            Esta película aún no tiene calificaciones.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="p-3.5 rounded-appleLg bg-[#fafafc] border border-[#e5e5ea]">
+            <p className="text-[11px] font-medium text-[#86868b] mb-2">
+              Calificación de la película
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-[#1d1d1f]">
+                {resumen.promedioPelicula?.toFixed(1)}
+              </span>
+              <span className="text-[11px] text-[#86868b]">/ 5</span>
+            </div>
+            {renderEstrellas(Math.round(resumen.promedioPelicula ?? 0))}
+          </div>
+
+          <div className="p-3.5 rounded-appleLg bg-[#fafafc] border border-[#e5e5ea]">
+            <p className="text-[11px] font-medium text-[#86868b] mb-2">
+              Experiencia gastronómica
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-[#1d1d1f]">
+                {resumen.promedioExperiencia?.toFixed(1)}
+              </span>
+              <span className="text-[11px] text-[#86868b]">/ 5</span>
+            </div>
+            {renderEstrellas(Math.round(resumen.promedioExperiencia ?? 0))}
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-[#86868b]">
+            {resumen.totalResenas} reseña{resumen.totalResenas !== 1 ? "s" : ""} registradas
+          </span>
+
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              navigate(`/peliculas/${pelicula.id}/resenas`);
+            }}
+            className="text-[12px] font-semibold text-[#0071e3] hover:underline whitespace-nowrap"
+          >
+            Ver todas las reseñas →
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderFuncionesContent = () => {
     if (isLoading) {
       return (
@@ -132,8 +221,8 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
                   setSelectedFuncionId(null);
                 }}
                 className={`px-3.5 py-1.5 rounded-applePill text-[12px] font-medium transition-all whitespace-nowrap flex items-center gap-1.5 ${isSelected
-                    ? "bg-[#0071e3] text-white shadow-sm font-semibold"
-                    : "bg-[#f5f5f7] text-[#6e6e73] hover:text-[#1d1d1f] hover:bg-[#e8e8ed]"
+                  ? "bg-[#0071e3] text-white shadow-sm font-semibold"
+                  : "bg-[#f5f5f7] text-[#6e6e73] hover:text-[#1d1d1f] hover:bg-[#e8e8ed]"
                   }`}
               >
                 <Calendar className="w-3 h-3" />
@@ -154,8 +243,8 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
                 type="button"
                 onClick={() => setSelectedFuncionId(funcion.id)}
                 className={`text-left w-full p-3.5 rounded-appleLg border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2.5 focus:outline-none focus:ring-2 focus:ring-[#0071e3]/40 ${isSelected
-                    ? "bg-[#0071e3]/5 border-[#0071e3] shadow-md ring-2 ring-[#0071e3]/20"
-                    : "bg-white hover:bg-[#fafafc] border-[#e5e5ea] shadow-xs"
+                  ? "bg-[#0071e3]/5 border-[#0071e3] shadow-md ring-2 ring-[#0071e3]/20"
+                  : "bg-white hover:bg-[#fafafc] border-[#e5e5ea] shadow-xs"
                   }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -257,7 +346,25 @@ export function MovieModal({ pelicula, isOpen, onClose }: Readonly<MovieModalPro
             </button>
           </div>
         </div>
+        {/* Section: Movie Reviews */}
+        <div className="pt-4 border-t border-[#f0f0f0] space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-[#e5a000]" />
+              <h3 className="text-[14px] font-bold text-[#1d1d1f] tracking-tight">
+                Opiniones de los asistentes
+              </h3>
+            </div>
 
+            {datosResenas && datosResenas.resumen.totalResenas > 0 && (
+              <span className="text-[11px] text-[#86868b] font-medium">
+                {datosResenas.resumen.totalResenas} reseñas
+              </span>
+            )}
+          </div>
+
+          {renderResenasContent()}
+        </div>
         {/* Section: Available Showtimes (HU-05) */}
         <div className="pt-4 border-t border-[#f0f0f0] space-y-4">
           <div className="flex items-center justify-between">
