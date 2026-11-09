@@ -9,9 +9,9 @@ import { prisma } from "./src/infrastructure/prisma/client";
 
 // Mock transparente de transacciones para pruebas unitarias:
 // ejecuta el callback con el cliente para no requerir conexión real a BD.
-jest.spyOn(prisma, "$transaction").mockImplementation(async (cb: any) => {
+jest.spyOn(prisma, "$transaction").mockImplementation(async (cb: unknown) => {
   if (typeof cb === "function") {
-    return cb(prisma);
+    return (cb as (tx: typeof prisma) => unknown)(prisma);
   }
   return cb;
 });

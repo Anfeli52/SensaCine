@@ -1,13 +1,12 @@
 import { AppError } from "../../common/errors/AppError";
 import { prisma } from "../../infrastructure/prisma/client";
-import { AuditoriaActor, DbClient } from "../auditoria/auditoria.types";
-import { AuditoriaService } from "../auditoria/auditoria.service";
+import { AuditoriaActor, DbClient, IAuditoriaService } from "../auditoria/auditoria.types";
 import { CreateSalaInput, ISalaRepository, SalaConDetalles, UpdateSalaInput } from "./sala.types";
 
 export class SalaService {
   constructor(
     private readonly salaRepo: ISalaRepository,
-    private readonly auditoriaService?: AuditoriaService
+    private readonly auditoriaService?: IAuditoriaService
   ) {}
 
   async listarTodas(): Promise<SalaConDetalles[]> {
@@ -193,8 +192,13 @@ export class SalaService {
         }
 
         return { mensaje: "Sala y sus asientos eliminados exitosamente", id };
-      } catch (error: any) {
-        if (error?.code === "P2003") {
+      } catch (error: unknown) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          (error as { code?: string }).code === "P2003"
+        ) {
           throw new AppError(
             "No se puede eliminar la sala porque tiene registros relacionados.",
             400

@@ -1,4 +1,5 @@
-import { EstadoOrdenCocina } from "@prisma/client";
+import { EstadoOrdenCocina, LogAuditoria } from "@prisma/client";
+import { IAuditoriaService } from "../../auditoria/auditoria.types";
 import { CocinaService } from "../cocina.service";
 import { FuncionCocina, ICocinaRepository, ReservaCocina } from "../cocina.types";
 
@@ -158,10 +159,23 @@ describe("CocinaService (HU-29 y HU Cambio de Estado Orden)", () => {
       expect(resultado.orden.estado).toBe(EstadoOrdenCocina.Pendiente);
     });
     it("debe registrar log de auditoria cuando se provee actor y auditoriaService", async () => {
-      const mockAuditoria = {
-        registrar: jest.fn().mockResolvedValue({} as any),
+      const mockLogAuditoria: LogAuditoria = {
+        id: 1,
+        idUsuario: 8,
+        usuarioEmail: "chef@sensacine.com",
+        usuarioRol: "cocina",
+        accion: "CAMBIO_ESTADO",
+        entidad: "OrdenCocina",
+        entidadId: 10,
+        valorAnterior: null,
+        valorNuevo: null,
+        metadata: null,
+        fechaHora: new Date(),
       };
-      const serviceConAuditoria = new CocinaService(mockRepo, mockAuditoria as any);
+      const mockAuditoria: IAuditoriaService = {
+        registrar: jest.fn().mockResolvedValue(mockLogAuditoria),
+      };
+      const serviceConAuditoria = new CocinaService(mockRepo, mockAuditoria);
 
       mockRepo.obtenerOrdenConReserva = jest.fn().mockResolvedValue({
         id: 10,
@@ -210,7 +224,7 @@ describe("CocinaService (HU-29 y HU Cambio de Estado Orden)", () => {
     });
 
     it("debe lanzar 400 si el estado no es uno de los permitidos", async () => {
-      await expect(service.actualizarEstadoOrden(10, "Cancelado" as any)).rejects.toMatchObject({
+      await expect(service.actualizarEstadoOrden(10, "Cancelado" as unknown as EstadoOrdenCocina)).rejects.toMatchObject({
         statusCode: 400,
         message: "Estado no válido. Los estados permitidos son: Pendiente, En preparación y Lista",
       });

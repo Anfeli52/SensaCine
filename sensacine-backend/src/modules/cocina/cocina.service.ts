@@ -1,14 +1,13 @@
 import { EstadoOrdenCocina } from "@prisma/client";
 import { AppError } from "../../common/errors/AppError";
 import { prisma } from "../../infrastructure/prisma/client";
-import { AuditoriaActor, DbClient } from "../auditoria/auditoria.types";
-import { AuditoriaService } from "../auditoria/auditoria.service";
+import { AuditoriaActor, DbClient, IAuditoriaService } from "../auditoria/auditoria.types";
 import { ICocinaRepository, ListadoCocinaResponse } from "./cocina.types";
 
 export class CocinaService {
   constructor(
     private readonly cocinaRepo: ICocinaRepository,
-    private readonly auditoriaService?: AuditoriaService
+    private readonly auditoriaService?: IAuditoriaService
   ) {}
 
   async listarFuncionesProgramadas(): Promise<ListadoCocinaResponse> {

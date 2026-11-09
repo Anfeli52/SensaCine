@@ -30,8 +30,8 @@ export interface FuncionResponseDTO {
   horaFin: string;
   precioAsientoOficial: number;
   estado: string;
-  pelicula?: any;
-  sala?: any;
+  pelicula?: FuncionConDetalles["pelicula"];
+  sala?: FuncionConDetalles["sala"];
 }
 
 export interface FuncionConDetalles extends Funcion {

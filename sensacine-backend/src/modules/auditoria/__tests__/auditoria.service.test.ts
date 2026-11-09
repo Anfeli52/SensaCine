@@ -1,3 +1,4 @@
+import { LogAuditoria } from "@prisma/client";
 import { AppError } from "../../../common/errors/AppError";
 import { AuditoriaService } from "../auditoria.service";
 import { IAuditoriaRepository } from "../auditoria.types";
@@ -17,7 +18,7 @@ describe("AuditoriaService", () => {
 
   describe("registrar", () => {
     it("debe registrar un evento de auditoría exitosamente", async () => {
-      const mockLog = {
+      const mockLog: LogAuditoria = {
         id: 1,
         idUsuario: 10,
         usuarioEmail: "admin@sensacine.com",
@@ -31,7 +32,7 @@ describe("AuditoriaService", () => {
         fechaHora: new Date(),
       };
 
-      mockRepo.crear.mockResolvedValue(mockLog as any);
+      mockRepo.crear.mockResolvedValue(mockLog);
 
       const input = {
         actor: { id: 10, email: "admin@sensacine.com", rol: "admin" },
@@ -89,7 +90,7 @@ describe("AuditoriaService", () => {
     it("debe lanzar 400 si el ID no es válido", async () => {
       await expect(service.obtenerPorId(0)).rejects.toThrow(AppError);
       await expect(service.obtenerPorId(-1)).rejects.toThrow(AppError);
-      await expect(service.obtenerPorId(1.5 as any)).rejects.toThrow(AppError);
+      await expect(service.obtenerPorId(1.5)).rejects.toThrow(AppError);
     });
 
     it("debe lanzar 404 si el log no existe", async () => {

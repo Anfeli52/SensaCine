@@ -549,7 +549,7 @@ async function seedMenu(): Promise<void> {
             idPelicula: pelicula.id,
             ordenMenu: plato.ordenMenu,
             imagenUrl: plato.imagenUrl,
-          } as any,
+          },
         });
         console.log(`  ➕ Plato creado: "${plato.nombre}" (Orden: ${plato.ordenMenu}) para ${tituloPelicula}`);
       }
@@ -728,7 +728,7 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
           idReserva: reserva1.id,
           idAsiento: a.id,
           nombrePersona: ocupante.nombre,
-        } as any,
+        },
       });
 
       if (ocupante.restriccion) {
@@ -786,7 +786,7 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
           idReserva: reserva2.id,
           idAsiento: a.id,
           nombrePersona: ocupante.nombre,
-        } as any,
+        },
       });
 
       if (ocupante.restriccion) {

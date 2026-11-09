@@ -59,7 +59,7 @@ export function AdminAuditoriaModal({ log, isOpen, onClose }: AdminAuditoriaModa
     return <Badge variant="neutral">{rol}</Badge>;
   };
 
-  const formatJson = (data: any) => {
+  const formatJson = (data: unknown): React.ReactNode => {
     if (data === null || data === undefined) {
       return <span className="text-[#86868b] italic">Sin datos registrados</span>;
     }

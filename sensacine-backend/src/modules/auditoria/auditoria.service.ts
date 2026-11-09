@@ -5,10 +5,11 @@ import {
   DbClient,
   FiltrosAuditoriaInput,
   IAuditoriaRepository,
+  IAuditoriaService,
   RegistrarAuditoriaInput,
 } from "./auditoria.types";
 
-export class AuditoriaService {
+export class AuditoriaService implements IAuditoriaService {
   constructor(private readonly auditoriaRepo: IAuditoriaRepository) {}
 
   async registrar(data: RegistrarAuditoriaInput, tx?: DbClient) {

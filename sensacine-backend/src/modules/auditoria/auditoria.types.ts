@@ -58,3 +58,9 @@ export interface IAuditoriaRepository {
   obtenerPorId(id: number): Promise<AuditoriaItemResponse | null>;
 }
 
+export interface IAuditoriaService {
+  registrar(data: RegistrarAuditoriaInput, tx?: DbClient): Promise<LogAuditoria>;
+  listar?(filtros: FiltrosAuditoriaInput): Promise<AuditoriaPaginadaResponse>;
+  obtenerPorId?(id: number): Promise<AuditoriaItemResponse>;
+}
+

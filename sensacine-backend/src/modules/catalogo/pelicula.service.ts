@@ -1,8 +1,7 @@
 import { Pelicula } from "@prisma/client";
 import { AppError } from "../../common/errors/AppError";
 import { prisma } from "../../infrastructure/prisma/client";
-import { AuditoriaActor, DbClient } from "../auditoria/auditoria.types";
-import { AuditoriaService } from "../auditoria/auditoria.service";
+import { AuditoriaActor, DbClient, IAuditoriaService } from "../auditoria/auditoria.types";
 import { CreatePeliculaDTO } from "./dtos/CreatePeliculaDTO";
 import { PeliculaResponseDTO } from "./dtos/PeliculaResponseDTO";
 import { UpdatePeliculaDTO } from "./dtos/UpdatePeliculaDTO";
@@ -11,7 +10,7 @@ import { IPeliculaRepository } from "./pelicula.types";
 export class PeliculaService {
   constructor(
     private peliculaRepo: IPeliculaRepository,
-    private auditoriaService?: AuditoriaService
+    private auditoriaService?: IAuditoriaService
   ) {}
 
   private toDTO(pelicula: Pelicula): PeliculaResponseDTO {
@@ -166,8 +165,13 @@ export class PeliculaService {
         }
 
         return { mensaje: "Película eliminada exitosamente", id };
-      } catch (error: any) {
-        if (error?.code === "P2003") {
+      } catch (error: unknown) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          (error as { code?: string }).code === "P2003"
+        ) {
           throw new AppError(
             "No se puede eliminar la película porque tiene funciones o productos asociados. Puedes cambiar su estado a 'inactiva'.",
             400

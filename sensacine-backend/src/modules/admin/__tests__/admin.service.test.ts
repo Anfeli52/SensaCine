@@ -1,13 +1,28 @@
+import { Rol } from "@prisma/client";
 import { AdminService } from "../admin.service";
-import { AdminRepository } from "../admin.repository";
-import { AuditoriaService } from "../../auditoria/auditoria.service";
+import { IAdminRepository } from "../admin.repository";
+import { IAuditoriaService } from "../../auditoria/auditoria.types";
 import { AppError } from "../../../common/errors/AppError";
+
+const mockLogAuditoria = {
+  id: 1,
+  idUsuario: 1,
+  usuarioEmail: "admin@sensacine.com",
+  usuarioRol: "admin",
+  accion: "EDITAR_ROL",
+  entidad: "Usuario",
+  entidadId: 1,
+  valorAnterior: null,
+  valorNuevo: null,
+  metadata: null,
+  fechaHora: new Date(),
+};
 
 const usuario = {
   id: 1,
   nombre: "Ana",
   email: "ana@test.com",
-  rol: "cliente" as any,
+  rol: Rol.cliente,
   estado: "activo",
   fechaRegistro: new Date("2026-01-01"),
   passwordHash: "secreto",
@@ -16,14 +31,14 @@ const dto = {
   id: 1,
   nombre: "Ana",
   email: "ana@test.com",
-  rol: "cliente",
+  rol: Rol.cliente,
   estado: "activo",
   fechaRegistro: usuario.fechaRegistro,
 };
 
 describe("AdminService", () => {
-  let repo: jest.Mocked<Partial<AdminRepository>>;
-  let mockAuditoria: jest.Mocked<Partial<AuditoriaService>>;
+  let repo: jest.Mocked<IAdminRepository>;
+  let mockAuditoria: IAuditoriaService;
   let service: AdminService;
   let serviceConAuditoria: AdminService;
 
@@ -41,14 +56,11 @@ describe("AdminService", () => {
       obtenerPorId: jest.fn().mockResolvedValue(usuario),
     };
     mockAuditoria = {
-      registrar: jest.fn().mockResolvedValue({} as any),
+      registrar: jest.fn().mockResolvedValue(mockLogAuditoria),
     };
 
-    service = new AdminService(repo as AdminRepository);
-    serviceConAuditoria = new AdminService(
-      repo as AdminRepository,
-      mockAuditoria as AuditoriaService
-    );
+    service = new AdminService(repo);
+    serviceConAuditoria = new AdminService(repo, mockAuditoria);
   });
 
   it("obtenerUsuarios nunca expone el passwordHash", async () => {
@@ -60,15 +72,15 @@ describe("AdminService", () => {
 
   it("actualizarRol devuelve el usuario como DTO sin auditoria", async () => {
     (repo.actualizarRol as jest.Mock).mockResolvedValue(usuario);
-    expect(await service.actualizarRol(1, "admin" as any)).toEqual(dto);
-    expect(repo.actualizarRol).toHaveBeenCalledWith(1, "admin");
+    expect(await service.actualizarRol(1, Rol.admin)).toEqual(dto);
+    expect(repo.actualizarRol).toHaveBeenCalledWith(1, Rol.admin);
   });
 
   it("actualizarRol registra auditoria cuando hay actor y auditoriaService", async () => {
-    (repo.actualizarRol as jest.Mock).mockResolvedValue({ ...usuario, rol: "cocina" });
-    const res = await serviceConAuditoria.actualizarRol(1, "cocina" as any, actor);
+    (repo.actualizarRol as jest.Mock).mockResolvedValue({ ...usuario, rol: Rol.cocina });
+    const res = await serviceConAuditoria.actualizarRol(1, Rol.cocina, actor);
 
-    expect(res.rol).toBe("cocina");
+    expect(res.rol).toBe(Rol.cocina);
     expect(mockAuditoria.registrar).toHaveBeenCalledWith(
       expect.objectContaining({
         actor,
@@ -82,7 +94,7 @@ describe("AdminService", () => {
 
   it("actualizarRol lanza 404 si el usuario no existe", async () => {
     (repo.obtenerPorId as jest.Mock).mockResolvedValue(null);
-    await expect(service.actualizarRol(999, "admin" as any)).rejects.toThrow(AppError);
+    await expect(service.actualizarRol(999, Rol.admin)).rejects.toThrow(AppError);
   });
 
   it("actualizarEstado devuelve el usuario como DTO sin auditoria", async () => {

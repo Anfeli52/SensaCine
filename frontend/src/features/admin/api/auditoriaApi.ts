@@ -8,7 +8,7 @@ import {
 export async function getAuditoriaLogs(
   filtros: AuditoriaFiltros
 ): Promise<AuditoriaPaginadaResponse> {
-  const params: Record<string, any> = {};
+  const params: Record<string, string | number> = {};
 
   if (filtros.entidad) params.entidad = filtros.entidad;
   if (filtros.entidadId) params.entidadId = filtros.entidadId;
@@ -29,4 +29,3 @@ export async function getAuditoriaLogById(id: number): Promise<LogAuditoriaItem>
   const { data } = await apiClient.get<LogAuditoriaItem>(`/admin/auditoria/${id}`);
   return data;
 }
-

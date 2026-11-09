@@ -1,7 +1,8 @@
 import { PeliculaService } from "../pelicula.service";
 import { IPeliculaRepository } from "../pelicula.types";
 import { AppError } from "../../../common/errors/AppError";
-import { Pelicula, Prisma } from "@prisma/client";
+import { LogAuditoria, Pelicula, Prisma } from "@prisma/client";
+import { IAuditoriaService } from "../../auditoria/auditoria.types";
 
 function makeFakePeliculaRepo(initialPeliculas: Pelicula[] = []): IPeliculaRepository {
   let peliculas = [...initialPeliculas];
@@ -147,11 +148,27 @@ describe("PeliculaService", () => {
 
   describe("Auditoría en PeliculaService", () => {
     const actor = { id: 1, email: "admin@sensacine.com", rol: "admin" };
+    const mockLogAuditoria: LogAuditoria = {
+      id: 1,
+      idUsuario: 1,
+      usuarioEmail: "admin@sensacine.com",
+      usuarioRol: "admin",
+      accion: "CREAR",
+      entidad: "Pelicula",
+      entidadId: 1,
+      valorAnterior: null,
+      valorNuevo: null,
+      metadata: null,
+      fechaHora: new Date(),
+    };
+    const makeMockAuditoria = (): IAuditoriaService => ({
+      registrar: jest.fn().mockResolvedValue(mockLogAuditoria),
+    });
 
     it("crear registra auditoría cuando se pasa actor y auditoriaService", async () => {
       const repo = makeFakePeliculaRepo();
-      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
-      const service = new PeliculaService(repo, mockAuditoria as any);
+      const mockAuditoria = makeMockAuditoria();
+      const service = new PeliculaService(repo, mockAuditoria);
 
       const res = await service.crear({
         titulo: "Avatar",
@@ -172,8 +189,8 @@ describe("PeliculaService", () => {
 
     it("actualizar registra auditoría DESACTIVAR al cambiar a inactiva", async () => {
       const repo = makeFakePeliculaRepo([samplePelicula]);
-      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
-      const service = new PeliculaService(repo, mockAuditoria as any);
+      const mockAuditoria = makeMockAuditoria();
+      const service = new PeliculaService(repo, mockAuditoria);
 
       const res = await service.actualizar(1, { estado: "inactiva" }, actor);
       expect(res.estado).toBe("inactiva");
@@ -190,8 +207,8 @@ describe("PeliculaService", () => {
 
     it("actualizar registra auditoría ACTIVAR al cambiar a activa", async () => {
       const repo = makeFakePeliculaRepo([{ ...samplePelicula, estado: "inactiva" }]);
-      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
-      const service = new PeliculaService(repo, mockAuditoria as any);
+      const mockAuditoria = makeMockAuditoria();
+      const service = new PeliculaService(repo, mockAuditoria);
 
       const res = await service.actualizar(1, { estado: "activa" }, actor);
       expect(res.estado).toBe("activa");
@@ -208,8 +225,8 @@ describe("PeliculaService", () => {
 
     it("eliminar registra auditoría ELIMINAR", async () => {
       const repo = makeFakePeliculaRepo([samplePelicula]);
-      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
-      const service = new PeliculaService(repo, mockAuditoria as any);
+      const mockAuditoria = makeMockAuditoria();
+      const service = new PeliculaService(repo, mockAuditoria);
 
       const res = await service.eliminar(1, actor);
       expect(res.id).toBe(1);

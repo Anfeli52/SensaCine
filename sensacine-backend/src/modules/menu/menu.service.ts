@@ -108,8 +108,13 @@ export class MenuService {
 
       return { mensaje: "Producto gastronómico eliminado exitosamente", id };
 
-    } catch (error: any) {
-      if (error?.code === "P2003") {
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: string }).code === "P2003"
+      ) {
         throw new AppError(
           "No se puede eliminar el producto porque tiene restricciones o reservas asociadas. Puedes cambiar su estado a 'inactivo'.",
           400

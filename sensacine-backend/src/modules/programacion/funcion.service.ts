@@ -1,8 +1,7 @@
 import { AppError } from "../../common/errors/AppError";
 import { getCinemaDateStr, getCinemaTimeStr } from "../../common/helpers/dateUtils";
 import { prisma } from "../../infrastructure/prisma/client";
-import { AuditoriaActor, DbClient } from "../auditoria/auditoria.types";
-import { AuditoriaService } from "../auditoria/auditoria.service";
+import { AuditoriaActor, DbClient, IAuditoriaService } from "../auditoria/auditoria.types";
 import { IPeliculaRepository } from "../catalogo/pelicula.types";
 import {
   CreateFuncionInput,
@@ -19,7 +18,7 @@ export class FuncionService {
     private readonly funcionRepo: IFuncionRepository,
     private readonly peliculaRepo: IPeliculaRepository,
     private readonly salaRepo: ISalaRepository,
-    private readonly auditoriaService?: AuditoriaService
+    private readonly auditoriaService?: IAuditoriaService
   ) {}
 
   public parseDate(val: string | Date): Date {
@@ -338,8 +337,13 @@ export class FuncionService {
         }
 
         return { mensaje: "Función eliminada exitosamente", id };
-      } catch (error: any) {
-        if (error?.code === "P2003") {
+      } catch (error: unknown) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "code" in error &&
+          (error as { code?: string }).code === "P2003"
+        ) {
           throw new AppError(
             "No se puede eliminar la función porque ya tiene reservas asociadas. Puedes cambiar su estado a 'cancelada'.",
             400

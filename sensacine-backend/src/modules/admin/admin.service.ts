@@ -1,15 +1,14 @@
 import { Rol } from "@prisma/client";
 import { AppError } from "../../common/errors/AppError";
 import { prisma } from "../../infrastructure/prisma/client";
-import { AuditoriaActor, DbClient } from "../auditoria/auditoria.types";
-import { AuditoriaService } from "../auditoria/auditoria.service";
+import { AuditoriaActor, DbClient, IAuditoriaService } from "../auditoria/auditoria.types";
 import { IAdminRepository } from "./admin.repository";
 import { UsuarioResponseDTO } from "./dtos/UsuarioResponseDTO";
 
 export class AdminService {
   constructor(
     private readonly adminRepository: IAdminRepository,
-    private readonly auditoriaService?: AuditoriaService
+    private readonly auditoriaService?: IAuditoriaService
   ) {}
 
   async obtenerUsuarios(): Promise<UsuarioResponseDTO[]> {

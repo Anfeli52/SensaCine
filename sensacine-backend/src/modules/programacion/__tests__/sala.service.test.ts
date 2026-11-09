@@ -1,11 +1,12 @@
 import { SalaService } from "../sala.service";
 import { ISalaRepository, SalaConDetalles } from "../sala.types";
 import { AppError } from "../../../common/errors/AppError";
-import { Sala } from "@prisma/client";
+import { Asiento, LogAuditoria } from "@prisma/client";
+import { IAuditoriaService } from "../../auditoria/auditoria.types";
 
 function makeFakeSalaRepo(initialSalas: SalaConDetalles[] = []): ISalaRepository {
   let salas = [...initialSalas];
-  let asientosDb: { idSala: number; fila: string; numero: number }[] = [];
+  let asientosDb: Asiento[] = [];
 
   return {
     findAll: jest.fn(async () => salas),
@@ -14,7 +15,7 @@ function makeFakeSalaRepo(initialSalas: SalaConDetalles[] = []): ISalaRepository
       if (!found) return null;
       return {
         ...found,
-        asientos: asientosDb.filter((a) => a.idSala === id) as any,
+        asientos: asientosDb.filter((a) => a.idSala === id),
       };
     }),
     create: jest.fn(async (data) => {
@@ -29,7 +30,14 @@ function makeFakeSalaRepo(initialSalas: SalaConDetalles[] = []): ISalaRepository
       return nueva;
     }),
     createAsientos: jest.fn(async (asientos) => {
-      asientosDb.push(...asientos);
+      asientos.forEach((a, idx) => {
+        asientosDb.push({
+          id: asientosDb.length + idx + 1,
+          idSala: a.idSala,
+          fila: a.fila,
+          numero: a.numero,
+        });
+      });
     }),
     update: jest.fn(async (id, data) => {
       const index = salas.findIndex((s) => s.id === id);
@@ -123,11 +131,27 @@ describe("SalaService", () => {
 
   describe("Auditoría en SalaService", () => {
     const actor = { id: 1, email: "admin@sensacine.com", rol: "admin" };
+    const mockLogAuditoria: LogAuditoria = {
+      id: 1,
+      idUsuario: 1,
+      usuarioEmail: "admin@sensacine.com",
+      usuarioRol: "admin",
+      accion: "CREAR",
+      entidad: "Sala",
+      entidadId: 1,
+      valorAnterior: null,
+      valorNuevo: null,
+      metadata: null,
+      fechaHora: new Date(),
+    };
+    const makeMockAuditoria = (): IAuditoriaService => ({
+      registrar: jest.fn().mockResolvedValue(mockLogAuditoria),
+    });
 
     it("crear registra auditoría cuando se pasa actor y auditoriaService", async () => {
       const repo = makeFakeSalaRepo();
-      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
-      const service = new SalaService(repo, mockAuditoria as any);
+      const mockAuditoria = makeMockAuditoria();
+      const service = new SalaService(repo, mockAuditoria);
 
       const res = await service.crear({
         nombre: "Sala VIP",
@@ -148,8 +172,8 @@ describe("SalaService", () => {
 
     it("actualizar registra auditoría DESACTIVAR al cambiar a inactiva", async () => {
       const repo = makeFakeSalaRepo([sampleSala]);
-      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
-      const service = new SalaService(repo, mockAuditoria as any);
+      const mockAuditoria = makeMockAuditoria();
+      const service = new SalaService(repo, mockAuditoria);
 
       const res = await service.actualizar(1, { estado: "inactiva" }, actor);
       expect(res.estado).toBe("inactiva");
@@ -166,8 +190,8 @@ describe("SalaService", () => {
 
     it("actualizar registra auditoría ACTIVAR al cambiar a activa", async () => {
       const repo = makeFakeSalaRepo([{ ...sampleSala, estado: "inactiva" }]);
-      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
-      const service = new SalaService(repo, mockAuditoria as any);
+      const mockAuditoria = makeMockAuditoria();
+      const service = new SalaService(repo, mockAuditoria);
 
       const res = await service.actualizar(1, { estado: "activa" }, actor);
       expect(res.estado).toBe("activa");
@@ -184,8 +208,8 @@ describe("SalaService", () => {
 
     it("eliminar registra auditoría ELIMINAR", async () => {
       const repo = makeFakeSalaRepo([sampleSala]);
-      const mockAuditoria = { registrar: jest.fn().mockResolvedValue({} as any) };
-      const service = new SalaService(repo, mockAuditoria as any);
+      const mockAuditoria = makeMockAuditoria();
+      const service = new SalaService(repo, mockAuditoria);
 
       const res = await service.eliminar(1, actor);
       expect(res.id).toBe(1);

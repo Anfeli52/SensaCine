@@ -1,3 +1,19 @@
+export interface AuditoriaMetadata {
+  idPedido?: number;
+  idReserva?: number;
+  totalAsientos?: number;
+  [key: string]: unknown;
+}
+
+export interface AuditoriaSnapshot {
+  id?: number;
+  titulo?: string;
+  nombre?: string;
+  estado?: string;
+  rol?: string;
+  [key: string]: unknown;
+}
+
 export interface LogAuditoriaItem {
   id: number;
   idUsuario: number | null;
@@ -7,9 +23,9 @@ export interface LogAuditoriaItem {
   accion: string;
   entidad: string;
   entidadId: number;
-  valorAnterior: any;
-  valorNuevo: any;
-  metadata: any;
+  valorAnterior: AuditoriaSnapshot | null;
+  valorNuevo: AuditoriaSnapshot | null;
+  metadata: AuditoriaMetadata | null;
   fechaHora: string;
 }
 
@@ -31,4 +47,3 @@ export interface AuditoriaPaginadaResponse {
   limite: number;
   logs: LogAuditoriaItem[];
 }
-

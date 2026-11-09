@@ -2,7 +2,6 @@ import { FuncionService } from "../funcion.service";
 import { FuncionConDetalles, IFuncionRepository } from "../funcion.types";
 import { IPeliculaRepository } from "../../catalogo/pelicula.types";
 import { ISalaRepository, SalaConDetalles } from "../sala.types";
-import { AppError } from "../../../common/errors/AppError";
 import { Pelicula, Prisma } from "@prisma/client";
 
 function makeFakeFuncionRepo(initialFunciones: FuncionConDetalles[] = []): IFuncionRepository {
