@@ -820,6 +820,115 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
   }
 }
 
+async function seedResenas(): Promise<void> {
+  console.log("⭐ Configurando reseñas de películas...");
+
+  const comentariosSeed = [
+    {
+      calificacionPelicula: 5,
+      calificacionExperiencia: 5,
+      comentario: "Una película increíble. La experiencia gastronómica hizo que disfrutara todavía más la función.",
+    },
+    {
+      calificacionPelicula: 4,
+      calificacionExperiencia: 5,
+      comentario: "Me encantó la película y los platos estuvieron deliciosos. Una experiencia diferente.",
+    },
+    {
+      calificacionPelicula: 5,
+      calificacionExperiencia: 4,
+      comentario: "Una historia maravillosa. La comida estuvo muy bien relacionada con la temática de la película.",
+    },
+    {
+      calificacionPelicula: 3,
+      calificacionExperiencia: 4,
+      comentario: "La película estuvo bien y la experiencia gastronómica fue agradable. Me gustaría repetir.",
+    },
+    {
+      calificacionPelicula: 4,
+      calificacionExperiencia: 3,
+      comentario: "Disfruté mucho la función. Algunos platos podrían mejorar, pero en general fue una buena experiencia.",
+    },
+    {
+      calificacionPelicula: 5,
+      calificacionExperiencia: 5,
+      comentario: "Todo estuvo excelente. La ambientación y la comida complementaron perfectamente la película.",
+    },
+    {
+      calificacionPelicula: 4,
+      calificacionExperiencia: 4,
+      comentario: "Una propuesta muy original. Me gustó cómo conectaron los sabores con la historia.",
+    },
+    {
+      calificacionPelicula: 2,
+      calificacionExperiencia: 4,
+      comentario: "La película no fue mucho de mi gusto, pero la comida y la atención estuvieron excelentes.",
+    },
+  ];
+
+  const reservas = await prisma.reserva.findMany({
+    where: {
+      estado: {
+        in: [EstadoReserva.Confirmado, EstadoReserva.Finalizado],
+      },
+      usuario: {
+        email: {
+          in: [
+            "cliente@sensacine.com",
+            "maria@sensacine.com",
+            "andres@sensacine.com",
+          ],
+        },
+      },
+    },
+    include: {
+      funcion: {
+        include: {
+          pelicula: true,
+        },
+      },
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  let resenasCreadas = 0;
+
+  for (let i = 0; i < reservas.length; i++) {
+    const reserva = reservas[i];
+
+    const resenaExistente = await prisma.resena.findFirst({
+      where: {
+        idReserva: reserva.id,
+      },
+    });
+
+    if (resenaExistente) {
+      continue;
+    }
+
+    const datosResena = comentariosSeed[i % comentariosSeed.length];
+
+    await prisma.resena.create({
+      data: {
+        idReserva: reserva.id,
+        calificacionPelicula: datosResena.calificacionPelicula,
+        calificacionExperiencia: datosResena.calificacionExperiencia,
+        comentario: datosResena.comentario,
+      },
+    });
+
+    resenasCreadas++;
+
+    console.log(
+      `  ➕ Reseña agregada para "${reserva.funcion.pelicula.titulo}" (Reserva #${reserva.id})`
+    );
+  }
+
+  console.log(`⭐ ${resenasCreadas} reseñas creadas.`);
+}
+
 async function main() {
   console.log("🌱 Iniciando proceso de Seed Enriquecido para SensaCine...\n");
   await seedUsuarios();
@@ -829,6 +938,7 @@ async function main() {
   await seedMenu();
   await seedFunciones();
   await seedReservasYAsientosOcupados();
+  await seedResenas();
   console.log("\n✨ ¡Seed Enriquecido completado exitosamente con películas, comidas, restricciones y asientos ocupados!");
 }
 

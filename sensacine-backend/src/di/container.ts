@@ -45,12 +45,18 @@ import { AdminRepository } from "../modules/admin/admin.repository";
 import { ReservasAdminRepository } from "../modules/reservas/reservasAdmin.repository";
 import { ReservasAdminService } from "../modules/reservas/reservasAdmin.service";
 import { ReservasAdminController } from "../modules/reservas/reservasAdmin.controller";
+
 import { TarjetaController } from "../modules/pagos/tarjeta.controller";
 import { TarjetaService } from "../modules/pagos/tarjeta.servicie";
 import { TarjetaRepository } from "../modules/pagos/tarjeta.repository";
+
 import { CocinaRepository } from "../modules/cocina/cocina.repository";
 import { CocinaService } from "../modules/cocina/cocina.service";
 import { CocinaController } from "../modules/cocina/cocina.controller";
+
+import { ResenasController } from "../modules/resenas/resena.controller";
+import { ResenasService } from "../modules/resenas/resena.service";
+import { PrismaResenasRepository } from "../modules/resenas/resena.repository";
 
 // Módulo Auth
 const usuarioRepository = new PrismaUsuarioRepository();
@@ -118,8 +124,12 @@ const tarjetaRepository = new TarjetaRepository();
 const tarjetaService = new TarjetaService(tarjetaRepository);
 export const tarjetaController = new TarjetaController(tarjetaService);
 
-// Módulo Cocina (HU-29)
+// Módulo Cocina 
 const cocinaRepository = new CocinaRepository();
 export const cocinaService = new CocinaService(cocinaRepository);
 export const cocinaController = new CocinaController(cocinaService);
 
+// Módulo Reseñas
+const resenasRepository = new PrismaResenasRepository();
+const resenasService = new ResenasService(resenasRepository);
+export const resenasController = new ResenasController(resenasService);
