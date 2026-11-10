@@ -20,6 +20,7 @@ import { AdminReservasPage } from "../features/admin/pages/AdminReservasPage";
 import { AdminAuditoriaPage } from "../features/admin/pages/AdminAuditoriaPage";
 import { FuncionesCocinaPage } from "../features/cocina/pages/FuncionesCocinaPage";
 import { DetalleFuncionCocinaPage } from "../features/cocina/pages/DetalleFuncionCcinaPage";
+import { ResenasPage } from "../features/resenas/pages/ResenasPage";
 
 function HomeRedirect() {
   const { isAuthenticated, usuario } = useAuthStore();
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomeRedirect /> },
       { path: "menu/:peliculaId", element: <MenuPage /> },
+      { path: "peliculas/:peliculaId/resenas", element: <ResenasPage /> }
     ],
 
   },

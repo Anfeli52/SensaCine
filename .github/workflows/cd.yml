@@ -101,7 +101,7 @@ jobs:
 
       # Versión fijada: un cambio de la CLI no puede romper el despliegue
       - name: Publicar en Netlify
-        run: npx --yes netlify-cli@27.14.0 deploy --prod --dir=dist --message "${DEPLOY_SHA}"
+        run: npx --yes netlify-cli@27.14.0 deploy --prod --dir=dist --site="${NETLIFY_SITE_ID}" --auth="${NETLIFY_AUTH_TOKEN}" --message "${DEPLOY_SHA}"
 
       - name: Verificar el sitio publicado
         run: ../.github/scripts/verificar-sitio.sh "${{ vars.FRONTEND_URL }}" / /reservas/historial
