@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export function Footer() {
   return (
     <footer className="border-t border-[#e0e0e0] bg-[#f5f5f7] mt-24 text-[#86868b] text-[12px]">
@@ -5,13 +7,13 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} SensaCine. Todos los derechos reservados.</p>
           <div className="flex items-center gap-6">
-            <a href="#" className="hover:text-[#1d1d1f] transition-colors">
+            <Link to="/privacy-policy" className="hover:text-[#1d1d1f] transition-colors">
               Privacidad
-            </a>
-            <a href="#" className="hover:text-[#1d1d1f] transition-colors">
+            </Link>
+            <Link to="/terms" className="hover:text-[#1d1d1f] transition-colors">
               Términos de uso
-            </a>
-            <a href="#" className="hover:text-[#1d1d1f] transition-colors">
+            </Link>
+            <a href="mailto:anfeli201111@gmail.com" className="hover:text-[#1d1d1f] transition-colors">
               Contacto
             </a>
           </div>

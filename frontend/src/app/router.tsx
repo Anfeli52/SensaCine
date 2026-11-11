@@ -18,6 +18,8 @@ import { MenuPage } from "../features/menu/pages/MenuPage";
 import { MisReservasPage } from "../features/reservas/pages/MisReservasPage";
 import { AdminReservasPage } from "../features/admin/pages/AdminReservasPage";
 import { FuncionesCocinaPage } from "../features/cocina/pages/FuncionesCocinaPage";
+import { PrivacyPolicyPage } from "../features/legal/pages/PrivacyPolicyPage";
+import { TermsPage } from "../features/legal/pages/TermsPage";
 import { DetalleFuncionCocinaPage } from "../features/cocina/pages/DetalleFuncionCcinaPage";
 
 function HomeRedirect() {
@@ -37,6 +39,9 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomeRedirect /> },
       { path: "menu/:peliculaId", element: <MenuPage /> },
+      // Públicas: Google las exige para publicar la app de OAuth (API de Gmail)
+      { path: "privacy-policy", element: <PrivacyPolicyPage /> },
+      { path: "terms", element: <TermsPage /> },
     ],
 
   },
