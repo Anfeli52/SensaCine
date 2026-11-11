@@ -42,6 +42,16 @@ const historialInclude = {
             },
         },
     },
+    // Permite al frontend saber qué reservas ya tienen reseña (y mostrarla en vez del formulario)
+    resenas: {
+        select: {
+            id: true,
+            calificacionPelicula: true,
+            calificacionExperiencia: true,
+            comentario: true,
+            fechaCreacion: true,
+        },
+    },
     asientos: {
         include: {
             asiento: {

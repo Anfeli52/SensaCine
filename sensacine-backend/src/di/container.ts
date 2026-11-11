@@ -51,6 +51,9 @@ import { TarjetaRepository } from "../modules/pagos/tarjeta.repository";
 import { CocinaRepository } from "../modules/cocina/cocina.repository";
 import { CocinaService } from "../modules/cocina/cocina.service";
 import { CocinaController } from "../modules/cocina/cocina.controller";
+import { PrismaResenaRepository } from "../modules/resenas/resena.repository";
+import { ResenaService } from "../modules/resenas/resena.service";
+import { ResenaController } from "../modules/resenas/resena.controller";
 
 // Módulo Auth
 const usuarioRepository = new PrismaUsuarioRepository();
@@ -123,3 +126,6 @@ const cocinaRepository = new CocinaRepository();
 export const cocinaService = new CocinaService(cocinaRepository);
 export const cocinaController = new CocinaController(cocinaService);
 
+// Módulo Reseñas (HU-20)
+export const resenaService = new ResenaService(new PrismaResenaRepository());
+export const resenaController = new ResenaController(resenaService);
