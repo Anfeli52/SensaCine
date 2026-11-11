@@ -14,7 +14,7 @@ export interface ResenasPorPelicula {
   resenas: Resena[];
 }
 
-// ---- Registro de la reseña de una función asistida (HU-20) ----
+// ---- Calificación de película y registro de reseña de función asistida (HU-19 / HU-20) ----
 export const MAX_COMENTARIO_RESENA = 1000;
 
 export interface ResenaInput {

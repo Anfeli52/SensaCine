@@ -150,6 +150,6 @@ const resenasRepository = new PrismaResenasRepository();
 const resenasService = new ResenasService(resenasRepository);
 export const resenasController = new ResenasController(resenasService);
 
-// Módulo Reseñas: registro de la reseña de una función asistida (HU-20)
+// Módulo Reseñas: calificación de película y registro de reseña de función asistida (HU-19 / HU-20)
 export const registroResenaService = new RegistroResenaService(new PrismaRegistroResenaRepository());
 export const registroResenaController = new RegistroResenaController(registroResenaService);

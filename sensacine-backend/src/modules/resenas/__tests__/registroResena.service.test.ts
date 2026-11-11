@@ -19,7 +19,7 @@ const reserva = (extra: Partial<ReservaParaResena> = {}): ReservaParaResena => (
 
 const guardada: ResenaGuardada = { id: 1, ...entrada, fechaCreacion: AHORA };
 
-describe("RegistroResenaService (HU-20)", () => {
+describe("RegistroResenaService (HU-19 / HU-20)", () => {
     let repo: jest.Mocked<IRegistroResenaRepository>;
     let service: RegistroResenaService;
 
@@ -30,6 +30,27 @@ describe("RegistroResenaService (HU-20)", () => {
             crear: jest.fn().mockResolvedValue(guardada),
         };
         service = new RegistroResenaService(repo);
+    });
+
+    describe("HU-19: Calificar una película", () => {
+        it("asigna la calificación a la película y queda asociada a la función terminada recibiendo confirmación", async () => {
+            const r = await service.crearResena(10, entrada, AHORA);
+
+            expect(repo.getReservaDelUsuario).toHaveBeenCalledWith(5, 10);
+            expect(repo.crear).toHaveBeenCalledWith(entrada);
+            expect(r.mensaje).toBe(MENSAJE_RESENA_GUARDADA);
+            expect(r.resena.calificacionPelicula).toBe(entrada.calificacionPelicula);
+        });
+
+        it("rechaza calificar la película si el usuario no ha asistido (función aún no termina)", async () => {
+            repo.getReservaDelUsuario.mockResolvedValue(
+                reserva({ fecha: new Date("2026-11-20T00:00:00.000Z") })
+            );
+
+            await expect(service.crearResena(10, entrada, AHORA)).rejects.toThrow(
+                "cuando haya terminado"
+            );
+        });
     });
 
     it("guarda la reseña asociada a la reserva y devuelve la confirmación", async () => {
