@@ -1,52 +1,56 @@
-import { EstadoReserva, Prisma } from "@prisma/client";
 import { AppError } from "../../common/errors/AppError";
-import { getCinemaDateStr, getCinemaTimeStr } from "../../common/helpers/dateUtils";
-import { CrearResenaInput, IResenaRepository, ResenaGuardada } from "./resena.types";
+import { IResenasRepository } from "./resena.types";
 
-export const MENSAJE_RESENA_GUARDADA = "¡Gracias! Tu reseña fue guardada correctamente.";
+export class ResenasService {
+    constructor(private resenasRepo: IResenasRepository) { }
 
-export class ResenaService {
-    constructor(private readonly repo: IResenaRepository) {}
-
-    /**
-     * Registra la reseña de una reserva del usuario. Reglas:
-     * - la reserva debe ser suya y no estar cancelada,
-     * - la función ya debe haber terminado (solo reseña quien pudo asistir),
-     * - una sola reseña por reserva.
-     */
-    async crearResena(
-        idUsuario: number,
-        data: CrearResenaInput,
-        ahora: Date = new Date()
-    ): Promise<{ mensaje: string; resena: ResenaGuardada }> {
-        const reserva = await this.repo.getReservaDelUsuario(data.idReserva, idUsuario);
-        if (!reserva) throw new AppError("Reserva no encontrada", 404);
-
-        if (reserva.estado === EstadoReserva.Cancelado) {
-            throw new AppError("No puedes reseñar una reserva cancelada", 400);
+    async obtenerPorPelicula(idPelicula: number) {
+        if (!Number.isInteger(idPelicula) || idPelicula <= 0) {
+            throw new AppError("El ID de la película no es válido", 400);
         }
 
-        const fecha = reserva.fecha.toISOString().slice(0, 10);
-        const horaFin = reserva.horaFin.toISOString().slice(11, 16);
-        const hoy = getCinemaDateStr(ahora);
-        const terminada = fecha < hoy || (fecha === hoy && horaFin < getCinemaTimeStr(ahora));
-        if (!terminada) {
-            throw new AppError("Podrás reseñar la función cuando haya terminado", 400);
+        const pelicula = await this.resenasRepo.findPeliculaById(idPelicula);
+
+        if (!pelicula) {
+            throw new AppError("Película no encontrada", 404);
         }
 
-        if (await this.repo.getResenaByReserva(data.idReserva)) {
-            throw new AppError("Ya registraste una reseña para esta reserva", 409);
-        }
+        const resenas = await this.resenasRepo.findByPeliculaId(idPelicula);
 
-        try {
-            const resena = await this.repo.crear(data);
-            return { mensaje: MENSAJE_RESENA_GUARDADA, resena };
-        } catch (e) {
-            // Doble envío simultáneo: la restricción única de BD es la última barrera
-            if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-                throw new AppError("Ya registraste una reseña para esta reserva", 409);
-            }
-            throw e;
-        }
+        const totalResenas = resenas.length;
+
+        const promedioPelicula = totalResenas > 0
+            ? resenas.reduce((total, resena) => total + resena.calificacionPelicula, 0) / totalResenas
+            : null;
+
+        const promedioExperiencia = totalResenas > 0
+            ? resenas.reduce((total, resena) => total + resena.calificacionExperiencia, 0) / totalResenas
+            : null;
+
+        return {
+            pelicula: {
+                id: pelicula.id,
+                titulo: pelicula.titulo,
+            },
+            resumen: {
+                totalResenas,
+                promedioPelicula:
+                    promedioPelicula !== null
+                        ? Number(promedioPelicula.toFixed(1))
+                        : null,
+                promedioExperiencia:
+                    promedioExperiencia !== null
+                        ? Number(promedioExperiencia.toFixed(1))
+                        : null,
+            },
+            resenas: resenas.map((resena) => ({
+                id: resena.id,
+                usuario: resena.reserva.usuario.nombre,
+                calificacionPelicula: resena.calificacionPelicula,
+                calificacionExperiencia: resena.calificacionExperiencia,
+                comentario: resena.comentario,
+                fechaCreacion: resena.fechaCreacion,
+            })),
+        };
     }
 }

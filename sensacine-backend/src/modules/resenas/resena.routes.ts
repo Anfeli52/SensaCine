@@ -1,12 +1,10 @@
 import { Router } from "express";
+import { resenasController } from "../../di/container";
 import { asyncHandler } from "../../common/helpers/asyncHandler";
-import { authenticate } from "../../common/middlewares/authMiddleware";
-import { validateSchema } from "../../common/middlewares/validateSchema";
-import { resenaController } from "../../di/container";
-import { crearResenaSchema } from "./resena.validator";
 
 const router = Router();
 
-router.post("/", authenticate, validateSchema(crearResenaSchema), asyncHandler(resenaController.crear));
+// Consultar reseñas y calificaciones de una película
+router.get("/:id/resenas", asyncHandler(resenasController.obtenerPorPelicula));
 
 export default router;

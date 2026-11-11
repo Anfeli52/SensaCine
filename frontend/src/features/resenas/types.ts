@@ -1,3 +1,20 @@
+// ---- Consulta de reseñas por película (HU-21) ----
+export interface Resena {
+  id: number;
+  usuario: string;
+  calificacionPelicula: number;
+  calificacionExperiencia: number;
+  comentario: string | null;
+  fechaCreacion: string;
+}
+
+export interface ResenasPorPelicula {
+  pelicula: { id: number; titulo: string; };
+  resumen: { totalResenas: number; promedioPelicula: number | null; promedioExperiencia: number | null; };
+  resenas: Resena[];
+}
+
+// ---- Registro de la reseña de una función asistida (HU-20) ----
 export const MAX_COMENTARIO_RESENA = 1000;
 
 export interface ResenaInput {
@@ -7,7 +24,8 @@ export interface ResenaInput {
     comentario?: string;
 }
 
-export interface Resena {
+// La reseña propia no lleva el nombre del usuario (a diferencia de `Resena`)
+export interface MiResena {
     id: number;
     calificacionPelicula: number;
     calificacionExperiencia: number;
@@ -17,5 +35,5 @@ export interface Resena {
 
 export interface CrearResenaResponse {
     mensaje: string;
-    resena: Resena & { idReserva: number };
+    resena: MiResena & { idReserva: number };
 }

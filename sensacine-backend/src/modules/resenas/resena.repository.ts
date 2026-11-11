@@ -1,48 +1,34 @@
 import { prisma } from "../../infrastructure/prisma/client";
-import { CrearResenaInput, IResenaRepository, ReservaParaResena, ResenaGuardada } from "./resena.types";
+import { IResenasRepository } from "./resena.types";
 
-const resenaSelect = {
-    id: true,
-    idReserva: true,
-    calificacionPelicula: true,
-    calificacionExperiencia: true,
-    comentario: true,
-    fechaCreacion: true,
-} as const;
-
-export class PrismaResenaRepository implements IResenaRepository {
-    async getReservaDelUsuario(idReserva: number, idUsuario: number): Promise<ReservaParaResena | null> {
-        const reserva = await prisma.reserva.findFirst({
-            where: { id: idReserva, idUsuario },
-            select: {
-                id: true,
-                estado: true,
-                funcion: { select: { fecha: true, horaFin: true, pelicula: { select: { titulo: true } } } },
-            },
+export class PrismaResenasRepository implements IResenasRepository {
+    findPeliculaById(id: number) {
+        return prisma.pelicula.findUnique({
+            where: { id },
         });
-        if (!reserva) return null;
-        return {
-            id: reserva.id,
-            estado: reserva.estado,
-            fecha: reserva.funcion.fecha,
-            horaFin: reserva.funcion.horaFin,
-            pelicula: reserva.funcion.pelicula.titulo,
-        };
     }
 
-    getResenaByReserva(idReserva: number): Promise<ResenaGuardada | null> {
-        return prisma.resena.findFirst({ where: { idReserva }, select: resenaSelect });
-    }
-
-    crear(data: CrearResenaInput): Promise<ResenaGuardada> {
-        return prisma.resena.create({
-            data: {
-                idReserva: data.idReserva,
-                calificacionPelicula: data.calificacionPelicula,
-                calificacionExperiencia: data.calificacionExperiencia,
-                comentario: data.comentario ?? null,
+    findByPeliculaId(idPelicula: number) {
+        return prisma.resena.findMany({
+            where: {
+                reserva: {
+                    funcion: {
+                        idPelicula,
+                    },
+                },
             },
-            select: resenaSelect,
+            include: {
+                reserva: {
+                    include: {
+                        usuario: {
+                            select: { nombre: true },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                fechaCreacion: "desc",
+            },
         });
     }
 }

@@ -1,101 +1,206 @@
-import { EstadoReserva, Prisma } from "@prisma/client";
+import { ResenasService } from "../resena.service";
+import { IResenasRepository, ResenaUsuario } from "../resena.types";
+import { Pelicula, Prisma } from "@prisma/client";
 import { AppError } from "../../../common/errors/AppError";
-import { MENSAJE_RESENA_GUARDADA, ResenaService } from "../resena.service";
-import { IResenaRepository, ReservaParaResena, ResenaGuardada } from "../resena.types";
 
-const entrada = { idReserva: 5, calificacionPelicula: 4, calificacionExperiencia: 5, comentario: "Muy buena cena" };
+function makePelicula(): Pelicula {
+    return {
+        id: 1,
+        titulo: "Coco",
+        sinopsis: "Una historia sobre la familia y la música",
+        duracionMinutos: 105,
+        genero: "Animación",
+        clasificacion: "TP",
+        posterUrl: "poster.jpg",
+        estado: "activa",
+        precioBaseExperiencia: new Prisma.Decimal(15000),
+    };
+}
 
-// 2026-11-08 20:00 en Bogotá (UTC-5) = 2026-11-09 01:00 UTC
-const AHORA = new Date("2026-11-09T01:00:00.000Z");
+function makeResena(
+    id: number,
+    calificacionPelicula: number,
+    calificacionExperiencia: number,
+    comentario: string | null = "Excelente experiencia"
+): ResenaUsuario {
+    return {
+        id,
+        calificacionPelicula,
+        calificacionExperiencia,
+        comentario,
+        fechaCreacion: new Date("2026-10-15T12:00:00.000Z"),
+        reserva: {
+            usuario: {
+                nombre: `Usuario ${id}`,
+            },
+        },
+    } as unknown as ResenaUsuario;
+}
 
-const reserva = (extra: Partial<ReservaParaResena> = {}): ReservaParaResena => ({
-    id: 5,
-    estado: EstadoReserva.Confirmado,
-    fecha: new Date("2026-11-07T00:00:00.000Z"),
-    horaFin: new Date("1970-01-01T21:00:00.000Z"),
-    pelicula: "Dune",
-    ...extra,
-});
-
-const guardada: ResenaGuardada = { id: 1, ...entrada, fechaCreacion: AHORA };
-
-describe("ResenaService (HU-20)", () => {
-    let repo: jest.Mocked<IResenaRepository>;
-    let service: ResenaService;
+describe("ResenasService", () => {
+    let repo: jest.Mocked<IResenasRepository>;
+    let service: ResenasService;
 
     beforeEach(() => {
         repo = {
-            getReservaDelUsuario: jest.fn().mockResolvedValue(reserva()),
-            getResenaByReserva: jest.fn().mockResolvedValue(null),
-            crear: jest.fn().mockResolvedValue(guardada),
+            findPeliculaById: jest.fn(),
+            findByPeliculaId: jest.fn(),
         };
-        service = new ResenaService(repo);
+
+        service = new ResenasService(repo);
     });
 
-    it("guarda la reseña asociada a la reserva y devuelve la confirmación", async () => {
-        const r = await service.crearResena(10, entrada, AHORA);
+    describe("obtenerPorPelicula", () => {
+        it("rechaza un ID de película inválido con error 400", async () => {
+            const idsInvalidos = [0, -1, 1.5, NaN];
 
-        expect(repo.getReservaDelUsuario).toHaveBeenCalledWith(5, 10);
-        expect(repo.crear).toHaveBeenCalledWith(entrada);
-        expect(r).toEqual({ mensaje: MENSAJE_RESENA_GUARDADA, resena: guardada });
-    });
+            for (const id of idsInvalidos) {
+                await expect(
+                    service.obtenerPorPelicula(id)
+                ).rejects.toMatchObject({
+                    statusCode: 400,
+                    message: "El ID de la película no es válido",
+                });
+            }
 
-    it("rechaza con 404 una reserva inexistente o de otro usuario", async () => {
-        repo.getReservaDelUsuario.mockResolvedValue(null);
+            expect(repo.findPeliculaById).not.toHaveBeenCalled();
+            expect(repo.findByPeliculaId).not.toHaveBeenCalled();
+        });
 
-        await expect(service.crearResena(10, entrada, AHORA)).rejects.toMatchObject({ statusCode: 404 });
-        expect(repo.crear).not.toHaveBeenCalled();
-    });
+        it("lanza error 404 cuando la película no existe", async () => {
+            repo.findPeliculaById.mockResolvedValue(null);
 
-    it("rechaza una reserva cancelada", async () => {
-        repo.getReservaDelUsuario.mockResolvedValue(reserva({ estado: EstadoReserva.Cancelado }));
+            await expect(
+                service.obtenerPorPelicula(99)
+            ).rejects.toBeInstanceOf(AppError);
 
-        await expect(service.crearResena(10, entrada, AHORA)).rejects.toMatchObject({ statusCode: 400 });
-        expect(repo.crear).not.toHaveBeenCalled();
-    });
+            expect(repo.findPeliculaById).toHaveBeenCalledWith(99);
+            expect(repo.findByPeliculaId).not.toHaveBeenCalled();
+        });
 
-    it("rechaza si la función es futura", async () => {
-        repo.getReservaDelUsuario.mockResolvedValue(reserva({ fecha: new Date("2026-11-20T00:00:00.000Z") }));
+        it("devuelve la película y un resumen vacío cuando no tiene reseñas", async () => {
+            repo.findPeliculaById.mockResolvedValue(makePelicula());
+            repo.findByPeliculaId.mockResolvedValue([]);
 
-        await expect(service.crearResena(10, entrada, AHORA)).rejects.toThrow("cuando haya terminado");
-    });
+            const resultado = await service.obtenerPorPelicula(1);
 
-    it("rechaza si la función es hoy pero aún no termina", async () => {
-        repo.getReservaDelUsuario.mockResolvedValue(
-            reserva({ fecha: new Date("2026-11-08T00:00:00.000Z"), horaFin: new Date("1970-01-01T23:00:00.000Z") })
-        );
+            expect(resultado).toEqual({
+                pelicula: {
+                    id: 1,
+                    titulo: "Coco",
+                },
+                resumen: {
+                    totalResenas: 0,
+                    promedioPelicula: null,
+                    promedioExperiencia: null,
+                },
+                resenas: [],
+            });
 
-        await expect(service.crearResena(10, entrada, AHORA)).rejects.toMatchObject({ statusCode: 400 });
-    });
+            expect(repo.findPeliculaById).toHaveBeenCalledWith(1);
+            expect(repo.findByPeliculaId).toHaveBeenCalledWith(1);
+        });
 
-    it("acepta si la función es hoy y ya terminó", async () => {
-        repo.getReservaDelUsuario.mockResolvedValue(
-            reserva({ fecha: new Date("2026-11-08T00:00:00.000Z"), horaFin: new Date("1970-01-01T18:00:00.000Z") })
-        );
+        it("calcula correctamente los promedios cuando existe una reseña", async () => {
+            repo.findPeliculaById.mockResolvedValue(makePelicula());
+            repo.findByPeliculaId.mockResolvedValue([
+                makeResena(1, 5, 4),
+            ]);
 
-        await expect(service.crearResena(10, entrada, AHORA)).resolves.toBeDefined();
-    });
+            const resultado = await service.obtenerPorPelicula(1);
 
-    it("rechaza con 409 una segunda reseña de la misma reserva", async () => {
-        repo.getResenaByReserva.mockResolvedValue(guardada);
+            expect(resultado.resumen).toEqual({
+                totalResenas: 1,
+                promedioPelicula: 5,
+                promedioExperiencia: 4,
+            });
 
-        await expect(service.crearResena(10, entrada, AHORA)).rejects.toMatchObject({ statusCode: 409 });
-        expect(repo.crear).not.toHaveBeenCalled();
-    });
+            expect(resultado.resenas).toHaveLength(1);
+        });
 
-    it("traduce la violación de unicidad (doble envío simultáneo) a 409", async () => {
-        repo.crear.mockRejectedValue(
-            new Prisma.PrismaClientKnownRequestError("dup", { code: "P2002", clientVersion: "x" })
-        );
+        it("calcula los promedios correctamente con varias reseñas", async () => {
+            repo.findPeliculaById.mockResolvedValue(makePelicula());
+            repo.findByPeliculaId.mockResolvedValue([
+                makeResena(1, 5, 4),
+                makeResena(2, 3, 5),
+                makeResena(3, 4, 3),
+            ]);
 
-        const p = service.crearResena(10, entrada, AHORA);
-        await expect(p).rejects.toBeInstanceOf(AppError);
-        await expect(p).rejects.toMatchObject({ statusCode: 409 });
-    });
+            const resultado = await service.obtenerPorPelicula(1);
 
-    it("propaga errores inesperados del repositorio", async () => {
-        repo.crear.mockRejectedValue(new Error("db caída"));
+            expect(resultado.resumen).toEqual({
+                totalResenas: 3,
+                promedioPelicula: 4,
+                promedioExperiencia: 4,
+            });
+        });
 
-        await expect(service.crearResena(10, entrada, AHORA)).rejects.toThrow("db caída");
+        it("redondea los promedios a un decimal", async () => {
+            repo.findPeliculaById.mockResolvedValue(makePelicula());
+            repo.findByPeliculaId.mockResolvedValue([
+                makeResena(1, 5, 4),
+                makeResena(2, 4, 3),
+                makeResena(3, 4, 4),
+            ]);
+
+            const resultado = await service.obtenerPorPelicula(1);
+
+            expect(resultado.resumen.promedioPelicula).toBe(4.3);
+            expect(resultado.resumen.promedioExperiencia).toBe(3.7);
+        });
+
+        it("transforma las reseñas con los datos necesarios para el frontend", async () => {
+            const fecha = new Date("2026-10-15T12:00:00.000Z");
+
+            repo.findPeliculaById.mockResolvedValue(makePelicula());
+            repo.findByPeliculaId.mockResolvedValue([
+                makeResena(7, 5, 4, "Muy buena experiencia"),
+            ]);
+
+            const resultado = await service.obtenerPorPelicula(1);
+
+            expect(resultado.resenas[0]).toEqual({
+                id: 7,
+                usuario: "Usuario 7",
+                calificacionPelicula: 5,
+                calificacionExperiencia: 4,
+                comentario: "Muy buena experiencia",
+                fechaCreacion: fecha,
+            });
+        });
+
+        it("permite devolver reseñas sin comentario", async () => {
+            repo.findPeliculaById.mockResolvedValue(makePelicula());
+            repo.findByPeliculaId.mockResolvedValue([
+                makeResena(1, 4, 5, null),
+            ]);
+
+            const resultado = await service.obtenerPorPelicula(1);
+
+            expect(resultado.resenas[0].comentario).toBeNull();
+        });
+
+        it("propaga los errores del repositorio al consultar la película", async () => {
+            repo.findPeliculaById.mockRejectedValue(
+                new Error("Error de conexión")
+            );
+
+            await expect(
+                service.obtenerPorPelicula(1)
+            ).rejects.toThrow("Error de conexión");
+
+            expect(repo.findByPeliculaId).not.toHaveBeenCalled();
+        });
+
+        it("propaga los errores del repositorio al consultar las reseñas", async () => {
+            repo.findPeliculaById.mockResolvedValue(makePelicula());
+            repo.findByPeliculaId.mockRejectedValue(
+                new Error("Error al consultar reseñas")
+            );
+
+            await expect(
+                service.obtenerPorPelicula(1)
+            ).rejects.toThrow("Error al consultar reseñas");
+        });
     });
 });

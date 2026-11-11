@@ -29,7 +29,6 @@ import { createEmailSender } from "../infrastructure/email/createEmailSender";
 import { logger } from "../infrastructure/logger/winston";
 import { SocketAsientoNotifier } from "../infrastructure/socket/SocketAsientoNotifier";
 
-
 import { HistorialReservaRepository } from "../modules/reservas/historial.repository";
 import { HistorialReservaService } from "../modules/reservas/historial.service";
 import { HistorialReservaController } from "../modules/reservas/historial.controller";
@@ -42,18 +41,32 @@ import { AdminController } from "../modules/admin/admin.controller";
 import { AdminService } from "../modules/admin/admin.service";
 import { AdminRepository } from "../modules/admin/admin.repository";
 
+import { AuditoriaRepository } from "../modules/auditoria/auditoria.repository";
+import { AuditoriaService } from "../modules/auditoria/auditoria.service";
+import { AuditoriaController } from "../modules/auditoria/auditoria.controller";
+
 import { ReservasAdminRepository } from "../modules/reservas/reservasAdmin.repository";
 import { ReservasAdminService } from "../modules/reservas/reservasAdmin.service";
 import { ReservasAdminController } from "../modules/reservas/reservasAdmin.controller";
+
 import { TarjetaController } from "../modules/pagos/tarjeta.controller";
 import { TarjetaService } from "../modules/pagos/tarjeta.servicie";
 import { TarjetaRepository } from "../modules/pagos/tarjeta.repository";
+
 import { CocinaRepository } from "../modules/cocina/cocina.repository";
 import { CocinaService } from "../modules/cocina/cocina.service";
 import { CocinaController } from "../modules/cocina/cocina.controller";
-import { PrismaResenaRepository } from "../modules/resenas/resena.repository";
-import { ResenaService } from "../modules/resenas/resena.service";
-import { ResenaController } from "../modules/resenas/resena.controller";
+import { PrismaRegistroResenaRepository } from "../modules/resenas/registroResena.repository";
+import { RegistroResenaService } from "../modules/resenas/registroResena.service";
+import { RegistroResenaController } from "../modules/resenas/registroResena.controller";
+
+// Módulo Auditoría
+export const auditoriaRepository = new AuditoriaRepository();
+export const auditoriaService = new AuditoriaService(auditoriaRepository);
+export const auditoriaController = new AuditoriaController(auditoriaService);
+import { ResenasController } from "../modules/resenas/resena.controller";
+import { ResenasService } from "../modules/resenas/resena.service";
+import { PrismaResenasRepository } from "../modules/resenas/resena.repository";
 
 // Módulo Auth
 const usuarioRepository = new PrismaUsuarioRepository();
@@ -62,16 +75,21 @@ export const authController = new AuthController(authService);
 
 // Módulo Catálogo (Películas)
 const peliculaRepository = new PrismaPeliculaRepository();
-const peliculaService = new PeliculaService(peliculaRepository);
+const peliculaService = new PeliculaService(peliculaRepository, auditoriaService);
 export const peliculaController = new PeliculaController(peliculaService);
 
 // Módulo Programación (Salas y Funciones)
 const salaRepository = new PrismaSalaRepository();
-export const salaService = new SalaService(salaRepository);
+export const salaService = new SalaService(salaRepository, auditoriaService);
 export const salaController = new SalaController(salaService);
 
 const funcionRepository = new PrismaFuncionRepository();
-export const funcionService = new FuncionService(funcionRepository, peliculaRepository, salaRepository);
+export const funcionService = new FuncionService(
+  funcionRepository,
+  peliculaRepository,
+  salaRepository,
+  auditoriaService
+);
 export const funcionController = new FuncionController(funcionService);
 
 // Módulo Reservas (Asientos)
@@ -109,23 +127,29 @@ export const menuController = new MenuController(menuService);
 
 // Módulo Admin
 const adminRepository = new AdminRepository();
-const adminService = new AdminService(adminRepository);
+const adminService = new AdminService(adminRepository, auditoriaService);
 export const adminController = new AdminController(adminService);
 
 // Módulo Reservas Admin
 const reservasAdminRepository = new ReservasAdminRepository();
 const reservasAdminService = new ReservasAdminService(reservasAdminRepository);
 export const reservasAdminController = new ReservasAdminController(reservasAdminService);
+
 // Módulo Pagos
 const tarjetaRepository = new TarjetaRepository();
 const tarjetaService = new TarjetaService(tarjetaRepository);
 export const tarjetaController = new TarjetaController(tarjetaService);
 
-// Módulo Cocina (HU-29)
+// Módulo Cocina 
 const cocinaRepository = new CocinaRepository();
-export const cocinaService = new CocinaService(cocinaRepository);
+export const cocinaService = new CocinaService(cocinaRepository, auditoriaService);
 export const cocinaController = new CocinaController(cocinaService);
 
-// Módulo Reseñas (HU-20)
-export const resenaService = new ResenaService(new PrismaResenaRepository());
-export const resenaController = new ResenaController(resenaService);
+// Módulo Reseñas: consulta por película (HU-21)
+const resenasRepository = new PrismaResenasRepository();
+const resenasService = new ResenasService(resenasRepository);
+export const resenasController = new ResenasController(resenasService);
+
+// Módulo Reseñas: registro de la reseña de una función asistida (HU-20)
+export const registroResenaService = new RegistroResenaService(new PrismaRegistroResenaRepository());
+export const registroResenaController = new RegistroResenaController(registroResenaService);

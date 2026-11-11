@@ -1,12 +1,14 @@
-import { Response } from "express";
-import { AuthRequest } from "../../common/middlewares/authMiddleware";
-import { ResenaService } from "./resena.service";
+import { Request, Response } from "express";
+import { ResenasService } from "./resena.service";
 
-export class ResenaController {
-    constructor(private readonly service: ResenaService) {}
+export class ResenasController {
+    constructor(private resenasService: ResenasService) { }
 
-    crear = async (req: AuthRequest, res: Response) => {
-        const resultado = await this.service.crearResena(req.usuario!.id, req.body);
-        res.status(201).json(resultado);
+    obtenerPorPelicula = async (req: Request, res: Response) => {
+        const id = Number(req.params.id);
+
+        const resultado = await this.resenasService.obtenerPorPelicula(id);
+
+        res.status(200).json(resultado);
     };
 }

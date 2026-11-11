@@ -1,5 +1,6 @@
 import {
   PrismaClient,
+  Prisma,
   Rol,
   TipoRestriccion,
   EstadoReserva,
@@ -373,7 +374,7 @@ function getFechasDinamicas(): string[] {
   const fechas: string[] = [];
   const todayStr = getCinemaDateStr();
   const [year, month, day] = todayStr.split("-").map(Number);
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 10; i++) {
     const d = new Date(Date.UTC(year, month - 1, day + i));
     const yyyy = d.getUTCFullYear();
     const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
@@ -548,7 +549,7 @@ async function seedMenu(): Promise<void> {
             idPelicula: pelicula.id,
             ordenMenu: plato.ordenMenu,
             imagenUrl: plato.imagenUrl,
-          } as any,
+          },
         });
         console.log(`  ➕ Plato creado: "${plato.nombre}" (Orden: ${plato.ordenMenu}) para ${tituloPelicula}`);
       }
@@ -669,14 +670,14 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
   // Obtener funciones vigentes estrictamente futuras para simular reservas activas
   const todayUtc = getCinemaTodayUtcMidnight();
   const funciones = await prisma.funcion.findMany({
-    where: { fecha: { gt: todayUtc } },
+    where: { fecha: { gte: todayUtc } },
     include: {
       sala: {
         include: { asientos: { orderBy: [{ fila: "asc" }, { numero: "asc" }] } },
       },
       pelicula: true,
     },
-    take: 3,
+    take: 6,
     orderBy: [{ fecha: "asc" }, { horaInicio: "asc" }],
   });
 
@@ -727,7 +728,7 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
           idReserva: reserva1.id,
           idAsiento: a.id,
           nombrePersona: ocupante.nombre,
-        } as any,
+        },
       });
 
       if (ocupante.restriccion) {
@@ -785,7 +786,7 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
           idReserva: reserva2.id,
           idAsiento: a.id,
           nombrePersona: ocupante.nombre,
-        } as any,
+        },
       });
 
       if (ocupante.restriccion) {
@@ -820,6 +821,228 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
   }
 }
 
+
+async function seedAuditoria(): Promise<void> {
+  console.log("🛡️ Configurando registros iniciales de Auditoría...");
+  const count = await prisma.logAuditoria.count();
+  if (count > 0) {
+    console.log(`  ℹ️ Ya existen ${count} registros de auditoría.`);
+    return;
+  }
+
+  const admin = await prisma.usuario.findUnique({ where: { email: "admin@sensacine.com" } });
+  const cocina = await prisma.usuario.findUnique({ where: { email: "cocina@sensacine.com" } });
+  const primeraPelicula = await prisma.pelicula.findFirst();
+  const primeraSala = await prisma.sala.findFirst();
+  const primeraOrden = await prisma.ordenCocina.findFirst({
+    include: {
+      reservaAsiento: {
+        select: {
+          id: true,
+          idReserva: true,
+        },
+      },
+    },
+  });
+
+  if (admin && primeraPelicula) {
+    await prisma.logAuditoria.create({
+      data: {
+        idUsuario: admin.id,
+        usuarioEmail: admin.email,
+        usuarioRol: admin.rol,
+        accion: "CREAR",
+        entidad: "Pelicula",
+        entidadId: primeraPelicula.id,
+        valorAnterior: Prisma.JsonNull,
+        valorNuevo: {
+          id: primeraPelicula.id,
+          titulo: primeraPelicula.titulo,
+          duracionMinutos: primeraPelicula.duracionMinutos,
+          precioBaseExperiencia: Number(primeraPelicula.precioBaseExperiencia),
+        },
+        metadata: {
+          titulo: primeraPelicula.titulo,
+        },
+        fechaHora: new Date(Date.now() - 3600 * 1000 * 5),
+      },
+    });
+  }
+
+  if (admin && primeraSala) {
+    await prisma.logAuditoria.create({
+      data: {
+        idUsuario: admin.id,
+        usuarioEmail: admin.email,
+        usuarioRol: admin.rol,
+        accion: "CREAR",
+        entidad: "Sala",
+        entidadId: primeraSala.id,
+        valorAnterior: Prisma.JsonNull,
+        valorNuevo: {
+          id: primeraSala.id,
+          nombre: primeraSala.nombre,
+          capacidad: primeraSala.capacidad,
+        },
+        metadata: {
+          totalAsientos: primeraSala.capacidad,
+        },
+        fechaHora: new Date(Date.now() - 3600 * 1000 * 4),
+      },
+    });
+  }
+
+  if (admin && cocina) {
+    await prisma.logAuditoria.create({
+      data: {
+        idUsuario: admin.id,
+        usuarioEmail: admin.email,
+        usuarioRol: admin.rol,
+        accion: "EDITAR_ROL",
+        entidad: "Usuario",
+        entidadId: cocina.id,
+        valorAnterior: { rol: "cliente" },
+        valorNuevo: { rol: "cocina" },
+        metadata: {
+          usuarioObjetivoEmail: cocina.email,
+          usuarioObjetivoNombre: cocina.nombre,
+        },
+        fechaHora: new Date(Date.now() - 3600 * 1000 * 3),
+      },
+    });
+  }
+
+  if (cocina && primeraOrden) {
+    await prisma.logAuditoria.create({
+      data: {
+        idUsuario: cocina.id,
+        usuarioEmail: cocina.email,
+        usuarioRol: cocina.rol,
+        accion: "CAMBIO_ESTADO",
+        entidad: "OrdenCocina",
+        entidadId: primeraOrden.id,
+        valorAnterior: { estado: "Pendiente" },
+        valorNuevo: { estado: "En_preparacion" },
+        metadata: {
+          idPedido: primeraOrden.id,
+          idReserva: primeraOrden.reservaAsiento?.idReserva ?? 1,
+          idReservaAsiento: primeraOrden.idReservaAsiento,
+        },
+        fechaHora: new Date(Date.now() - 3600 * 1000 * 1),
+      },
+    });
+  }
+
+  console.log("  ✅ Registros iniciales de auditoría listos.");
+async function seedResenas(): Promise<void> {
+  console.log("⭐ Configurando reseñas de películas...");
+
+  const comentariosSeed = [
+    {
+      calificacionPelicula: 5,
+      calificacionExperiencia: 5,
+      comentario: "Una película increíble. La experiencia gastronómica hizo que disfrutara todavía más la función.",
+    },
+    {
+      calificacionPelicula: 4,
+      calificacionExperiencia: 5,
+      comentario: "Me encantó la película y los platos estuvieron deliciosos. Una experiencia diferente.",
+    },
+    {
+      calificacionPelicula: 5,
+      calificacionExperiencia: 4,
+      comentario: "Una historia maravillosa. La comida estuvo muy bien relacionada con la temática de la película.",
+    },
+    {
+      calificacionPelicula: 3,
+      calificacionExperiencia: 4,
+      comentario: "La película estuvo bien y la experiencia gastronómica fue agradable. Me gustaría repetir.",
+    },
+    {
+      calificacionPelicula: 4,
+      calificacionExperiencia: 3,
+      comentario: "Disfruté mucho la función. Algunos platos podrían mejorar, pero en general fue una buena experiencia.",
+    },
+    {
+      calificacionPelicula: 5,
+      calificacionExperiencia: 5,
+      comentario: "Todo estuvo excelente. La ambientación y la comida complementaron perfectamente la película.",
+    },
+    {
+      calificacionPelicula: 4,
+      calificacionExperiencia: 4,
+      comentario: "Una propuesta muy original. Me gustó cómo conectaron los sabores con la historia.",
+    },
+    {
+      calificacionPelicula: 2,
+      calificacionExperiencia: 4,
+      comentario: "La película no fue mucho de mi gusto, pero la comida y la atención estuvieron excelentes.",
+    },
+  ];
+
+  const reservas = await prisma.reserva.findMany({
+    where: {
+      estado: {
+        in: [EstadoReserva.Confirmado, EstadoReserva.Finalizado],
+      },
+      usuario: {
+        email: {
+          in: [
+            "cliente@sensacine.com",
+            "maria@sensacine.com",
+            "andres@sensacine.com",
+          ],
+        },
+      },
+    },
+    include: {
+      funcion: {
+        include: {
+          pelicula: true,
+        },
+      },
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  let resenasCreadas = 0;
+
+  for (let i = 0; i < reservas.length; i++) {
+    const reserva = reservas[i];
+
+    const resenaExistente = await prisma.resena.findFirst({
+      where: {
+        idReserva: reserva.id,
+      },
+    });
+
+    if (resenaExistente) {
+      continue;
+    }
+
+    const datosResena = comentariosSeed[i % comentariosSeed.length];
+
+    await prisma.resena.create({
+      data: {
+        idReserva: reserva.id,
+        calificacionPelicula: datosResena.calificacionPelicula,
+        calificacionExperiencia: datosResena.calificacionExperiencia,
+        comentario: datosResena.comentario,
+      },
+    });
+
+    resenasCreadas++;
+
+    console.log(
+      `  ➕ Reseña agregada para "${reserva.funcion.pelicula.titulo}" (Reserva #${reserva.id})`
+    );
+  }
+
+  console.log(`⭐ ${resenasCreadas} reseñas creadas.`);
+}
+
 async function main() {
   console.log("🌱 Iniciando proceso de Seed Enriquecido para SensaCine...\n");
   await seedUsuarios();
@@ -829,6 +1052,8 @@ async function main() {
   await seedMenu();
   await seedFunciones();
   await seedReservasYAsientosOcupados();
+  await seedAuditoria();
+  await seedResenas();
   console.log("\n✨ ¡Seed Enriquecido completado exitosamente con películas, comidas, restricciones y asientos ocupados!");
 }
 

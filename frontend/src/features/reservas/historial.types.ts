@@ -1,4 +1,4 @@
-import type { Resena } from "../resenas/types";
+import type { MiResena } from "../resenas/types";
 
 export interface ProductoMenuHistorial {
     id: number;
@@ -31,7 +31,7 @@ export interface ReservaHistorial {
     fechaReserva: string;
     montoTotal: string | number;
     estado: string;
-    resenas: Resena[];
+    resenas: MiResena[];
     funcion: {
         fecha: string;
         horaInicio: string;

@@ -1,32 +1,16 @@
-import { EstadoReserva } from "@prisma/client";
+import { Pelicula, Prisma } from "@prisma/client";
 
-export interface CrearResenaInput {
-    idReserva: number;
-    calificacionPelicula: number;
-    calificacionExperiencia: number;
-    comentario?: string | null;
-}
+export type ResenaUsuario = Prisma.ResenaGetPayload<{
+    include: {
+        reserva: {
+            include: {
+                usuario: { select: { nombre: true } }
+            }
+        }
+    }
+}>
 
-export interface ReservaParaResena {
-    id: number;
-    estado: EstadoReserva;
-    fecha: Date;
-    horaFin: Date;
-    pelicula: string;
-}
-
-export interface ResenaGuardada {
-    id: number;
-    idReserva: number;
-    calificacionPelicula: number;
-    calificacionExperiencia: number;
-    comentario: string | null;
-    fechaCreacion: Date;
-}
-
-export interface IResenaRepository {
-    /** Reserva del usuario con lo necesario para validar que pueda reseñar; null si no existe o no es suya. */
-    getReservaDelUsuario(idReserva: number, idUsuario: number): Promise<ReservaParaResena | null>;
-    getResenaByReserva(idReserva: number): Promise<ResenaGuardada | null>;
-    crear(data: CrearResenaInput): Promise<ResenaGuardada>;
+export interface IResenasRepository {
+    findPeliculaById(id: number): Promise<Pelicula | null>;
+    findByPeliculaId(idPelicula: number): Promise<ResenaUsuario[]>;
 }

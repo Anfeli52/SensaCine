@@ -10,7 +10,7 @@ import reservaRoutes from "./modules/reservas/reserva.routes";
 import menuRoutes from "./modules/menu/menu.routes";
 import tarjetaRoutes from "./modules/pagos/tarjeta.routes";
 import cocinaRoutes from "./modules/cocina/cocina.routes";
-import resenaRoutes from "./modules/resenas/resena.routes";
+import registroResenaRoutes from "./modules/resenas/registroResena.routes";
 import { errorHandler } from "./common/middlewares/errorHandler";
 
 export const app = express();
@@ -32,7 +32,7 @@ app.use("/api/reservas", reservaRoutes);
 app.use("/api/productos", menuRoutes);
 app.use("/api/tarjetas", tarjetaRoutes);
 app.use("/api/cocina", cocinaRoutes);
-app.use("/api/resenas", resenaRoutes);
+app.use("/api/resenas", registroResenaRoutes);
 
 // El errorHandler SIEMPRE va de último, después de montar todas las rutas.
 

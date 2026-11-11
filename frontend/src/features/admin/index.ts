@@ -1,9 +1,11 @@
 export * from "./pages/AdminPeliculasPage";
 export * from "./pages/AdminFuncionesPage";
 export * from "./pages/AdminSalasPage";
+export * from "./pages/AdminAuditoriaPage";
 export * from "./hooks/useAdminPeliculas";
 export * from "./hooks/useAdminFunciones";
 export * from "./hooks/useAdminSalas";
+export * from "./hooks/useAdminAuditoria";
 export * from "./components/AdminNavTabs";
 export * from "./components/AdminStats";
 export * from "./components/AdminPeliculaTable";
@@ -15,6 +17,7 @@ export * from "./components/AdminFuncionTable";
 export * from "./components/AdminFuncionModal";
 export * from "./components/AdminDeleteFuncionModal";
 export * from "./components/AdminSalaModal";
+export * from "./components/AdminAuditoriaTable";
+export * from "./components/AdminAuditoriaModal";
 export * from "./types/programacion.types";
-
-
+export * from "./types/auditoria.types";

@@ -1,4 +1,4 @@
-import { crearResenaSchema } from "../resena.validator";
+import { crearResenaSchema } from "../registroResena.validator";
 
 const ok = { idReserva: 1, calificacionPelicula: 4, calificacionExperiencia: 5, comentario: "  Genial  " };
 

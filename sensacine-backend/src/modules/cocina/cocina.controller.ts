@@ -42,7 +42,9 @@ export class CocinaController {
     }
 
     const { estado } = req.body;
-    const resultado = await this.cocinaService.actualizarEstadoOrden(id, estado);
+    const resultado = req.usuario
+      ? await this.cocinaService.actualizarEstadoOrden(id, estado, req.usuario)
+      : await this.cocinaService.actualizarEstadoOrden(id, estado);
     res.status(200).json(resultado);
   };
 
