@@ -264,7 +264,7 @@ model Pago {
 
 model Resena {
   id                      Int      @id @default(autoincrement()) @map("id_resena")
-  idReserva               Int      @map("id_reserva")
+  idReserva               Int      @unique @map("id_reserva") // una reseña por reserva
   reserva                 Reserva  @relation(fields: [idReserva], references: [id])
   calificacionPelicula    Int      @map("calificacion_pelicula")
   calificacionExperiencia Int      @map("calificacion_experiencia")

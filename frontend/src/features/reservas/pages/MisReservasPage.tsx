@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import {
     CalendarDays,
     Clock3,
@@ -14,12 +14,14 @@ import {
     CalendarCheck,
     CalendarX,
     Sparkles,
+    MessageSquarePlus,
 } from "lucide-react";
 import { useAuthStore } from "../../auth/authStore";
 import { useReservasActivas, useHistorialReservas, useDetalleReserva } from "../hooks/useHistorialReservas";
 import { ReservaHistorial } from "../historial.types";
 import { Spinner } from "../../../shared/components/Spinner";
 import { Button } from "../../../shared/components/Button";
+import { EstrellasInput, ResenaModal } from "../../resenas";
 
 function formatearFecha(fecha: string): string {
     const [anio, mes, dia] = fecha.slice(0, 10).split("-").map(Number);
@@ -195,18 +197,23 @@ function ReservaCard({
     onToggle,
     esProxima = false,
     tipo = "activa",
+    onResenar,
 }: {
     reserva: ReservaHistorial;
     seleccionada: boolean;
     onToggle: () => void;
     esProxima?: boolean;
     tipo?: "activa" | "historial";
+    onResenar?: () => void;
 }) {
     const pelicula = reserva.funcion.pelicula;
     const funcion = reserva.funcion;
     const asientos = reserva.asientos || [];
 
     const esConfirmada = reserva.estado.toLowerCase() === "confirmado";
+    const resena = reserva.resenas?.[0];
+    // En el historial solo hay funciones terminadas; una reserva cancelada no se reseña
+    const puedeResenar = tipo === "historial" && reserva.estado.toLowerCase() !== "cancelado" && !resena;
 
     return (
         <article className={`bg-white border rounded-2xl p-5 shadow-xs transition-all ${
@@ -334,6 +341,27 @@ function ReservaCard({
                         </span>
                     </div>
 
+                    {tipo === "historial" && resena && (
+                        <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Tu reseña</p>
+                            <div className="flex flex-wrap gap-x-8 gap-y-2">
+                                <EstrellasInput label="Película" valor={resena.calificacionPelicula} />
+                                <EstrellasInput label="Experiencia" valor={resena.calificacionExperiencia} />
+                            </div>
+                            {resena.comentario && (
+                                <p className="text-sm text-[#1d1d1f] whitespace-pre-wrap break-words">{resena.comentario}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {puedeResenar && onResenar && (
+                        <div className="mt-4">
+                            <Button variant="primary" size="sm" type="button" onClick={onResenar} leftIcon={<MessageSquarePlus className="w-4 h-4" />}>
+                                Escribir reseña
+                            </Button>
+                        </div>
+                    )}
+
                     {seleccionada && <ReservaDetalle id={reserva.id} />}
                 </div>
             </div>
@@ -343,7 +371,13 @@ function ReservaCard({
 
 export function MisReservasPage() {
     const { isAuthenticated } = useAuthStore();
-    const [tab, setTab] = useState<"activas" | "historial">("activas");
+    const [searchParams, setSearchParams] = useSearchParams();
+    // El correo de invitación enlaza a /reservas/historial?resena=<idReserva>
+    const resenaDesdeEnlace = Number(searchParams.get("resena")) || null;
+    const [tab, setTab] = useState<"activas" | "historial">(
+        resenaDesdeEnlace || window.location.pathname.endsWith("/historial") ? "historial" : "activas"
+    );
+    const [reservaAResenar, setReservaAResenar] = useState<number | null>(resenaDesdeEnlace);
     const [reservaSeleccionada, setReservaSeleccionada] = useState<number | null>(null);
 
     const {
@@ -368,8 +402,28 @@ export function MisReservasPage() {
     const isError = tab === "activas" ? isErrorActivas : isErrorHistorial;
     const refetch = tab === "activas" ? refetchActivas : refetchHistorial;
 
+    const cerrarResena = () => {
+        setReservaAResenar(null);
+        if (searchParams.has("resena")) {
+            searchParams.delete("resena");
+            setSearchParams(searchParams, { replace: true });
+        }
+    };
+    const reservaResena = reservasHistorial?.find((r) => r.id === reservaAResenar);
+    // Solo se abre si la reserva es reseñable (existe en el historial, no cancelada y sin reseña previa)
+    const abrirModalResena =
+        reservaResena && reservaResena.estado.toLowerCase() !== "cancelado" && !reservaResena.resenas?.length;
+
     return (
         <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            {abrirModalResena && (
+                <ResenaModal
+                    idReserva={reservaResena.id}
+                    pelicula={reservaResena.funcion.pelicula.titulo}
+                    onClose={cerrarResena}
+                />
+            )}
+
             {/* Encabezado */}
             <div className="mb-6">
                 <div className="flex items-center gap-2 mb-2.5">
@@ -545,6 +599,7 @@ export function MisReservasPage() {
                                     key={reserva.id}
                                     reserva={reserva}
                                     tipo="historial"
+                                    onResenar={() => setReservaAResenar(reserva.id)}
                                     seleccionada={reservaSeleccionada === reserva.id}
                                     onToggle={() =>
                                         setReservaSeleccionada((actual) =>

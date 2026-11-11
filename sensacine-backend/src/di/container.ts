@@ -56,6 +56,9 @@ import { TarjetaRepository } from "../modules/pagos/tarjeta.repository";
 import { CocinaRepository } from "../modules/cocina/cocina.repository";
 import { CocinaService } from "../modules/cocina/cocina.service";
 import { CocinaController } from "../modules/cocina/cocina.controller";
+import { PrismaRegistroResenaRepository } from "../modules/resenas/registroResena.repository";
+import { RegistroResenaService } from "../modules/resenas/registroResena.service";
+import { RegistroResenaController } from "../modules/resenas/registroResena.controller";
 
 // Módulo Auditoría
 export const auditoriaRepository = new AuditoriaRepository();
@@ -142,7 +145,11 @@ const cocinaRepository = new CocinaRepository();
 export const cocinaService = new CocinaService(cocinaRepository, auditoriaService);
 export const cocinaController = new CocinaController(cocinaService);
 
-// Módulo Reseñas
+// Módulo Reseñas: consulta por película (HU-21)
 const resenasRepository = new PrismaResenasRepository();
 const resenasService = new ResenasService(resenasRepository);
 export const resenasController = new ResenasController(resenasService);
+
+// Módulo Reseñas: registro de la reseña de una función asistida (HU-20)
+export const registroResenaService = new RegistroResenaService(new PrismaRegistroResenaRepository());
+export const registroResenaController = new RegistroResenaController(registroResenaService);

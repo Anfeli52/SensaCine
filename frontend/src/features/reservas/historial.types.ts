@@ -1,3 +1,5 @@
+import type { MiResena } from "../resenas/types";
+
 export interface ProductoMenuHistorial {
     id: number;
     nombre: string;
@@ -29,6 +31,7 @@ export interface ReservaHistorial {
     fechaReserva: string;
     montoTotal: string | number;
     estado: string;
+    resenas: MiResena[];
     funcion: {
         fecha: string;
         horaInicio: string;
@@ -55,4 +58,4 @@ export interface ReservaHistorial {
     }[];
 }
 
-export type ReservaActiva = ReservaHistorial;
+export type ReservaActiva = ReservaHistorial;
