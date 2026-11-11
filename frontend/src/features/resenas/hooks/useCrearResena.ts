@@ -5,7 +5,10 @@ export function useCrearResena() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: crearResena,
-        // El historial incluye la reseña de cada reserva: se refresca para mostrarla y ocultar el botón
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reservas"] }),
+        // HU-19 y HU-20: Refresca el historial de reservas y las reseñas/promedio de la película
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["reservas"] });
+            queryClient.invalidateQueries({ queryKey: ["resenas"] });
+        },
     });
 }
