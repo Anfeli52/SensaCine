@@ -29,7 +29,6 @@ import { createEmailSender } from "../infrastructure/email/createEmailSender";
 import { logger } from "../infrastructure/logger/winston";
 import { SocketAsientoNotifier } from "../infrastructure/socket/SocketAsientoNotifier";
 
-
 import { HistorialReservaRepository } from "../modules/reservas/historial.repository";
 import { HistorialReservaService } from "../modules/reservas/historial.service";
 import { HistorialReservaController } from "../modules/reservas/historial.controller";
@@ -41,6 +40,10 @@ import { MenuRepository } from "../modules/menu/menu.repository";
 import { AdminController } from "../modules/admin/admin.controller";
 import { AdminService } from "../modules/admin/admin.service";
 import { AdminRepository } from "../modules/admin/admin.repository";
+
+import { AuditoriaRepository } from "../modules/auditoria/auditoria.repository";
+import { AuditoriaService } from "../modules/auditoria/auditoria.service";
+import { AuditoriaController } from "../modules/auditoria/auditoria.controller";
 
 import { ReservasAdminRepository } from "../modules/reservas/reservasAdmin.repository";
 import { ReservasAdminService } from "../modules/reservas/reservasAdmin.service";
@@ -54,6 +57,10 @@ import { CocinaRepository } from "../modules/cocina/cocina.repository";
 import { CocinaService } from "../modules/cocina/cocina.service";
 import { CocinaController } from "../modules/cocina/cocina.controller";
 
+// Módulo Auditoría
+export const auditoriaRepository = new AuditoriaRepository();
+export const auditoriaService = new AuditoriaService(auditoriaRepository);
+export const auditoriaController = new AuditoriaController(auditoriaService);
 import { ResenasController } from "../modules/resenas/resena.controller";
 import { ResenasService } from "../modules/resenas/resena.service";
 import { PrismaResenasRepository } from "../modules/resenas/resena.repository";
@@ -65,16 +72,21 @@ export const authController = new AuthController(authService);
 
 // Módulo Catálogo (Películas)
 const peliculaRepository = new PrismaPeliculaRepository();
-const peliculaService = new PeliculaService(peliculaRepository);
+const peliculaService = new PeliculaService(peliculaRepository, auditoriaService);
 export const peliculaController = new PeliculaController(peliculaService);
 
 // Módulo Programación (Salas y Funciones)
 const salaRepository = new PrismaSalaRepository();
-export const salaService = new SalaService(salaRepository);
+export const salaService = new SalaService(salaRepository, auditoriaService);
 export const salaController = new SalaController(salaService);
 
 const funcionRepository = new PrismaFuncionRepository();
-export const funcionService = new FuncionService(funcionRepository, peliculaRepository, salaRepository);
+export const funcionService = new FuncionService(
+  funcionRepository,
+  peliculaRepository,
+  salaRepository,
+  auditoriaService
+);
 export const funcionController = new FuncionController(funcionService);
 
 // Módulo Reservas (Asientos)
@@ -112,13 +124,14 @@ export const menuController = new MenuController(menuService);
 
 // Módulo Admin
 const adminRepository = new AdminRepository();
-const adminService = new AdminService(adminRepository);
+const adminService = new AdminService(adminRepository, auditoriaService);
 export const adminController = new AdminController(adminService);
 
 // Módulo Reservas Admin
 const reservasAdminRepository = new ReservasAdminRepository();
 const reservasAdminService = new ReservasAdminService(reservasAdminRepository);
 export const reservasAdminController = new ReservasAdminController(reservasAdminService);
+
 // Módulo Pagos
 const tarjetaRepository = new TarjetaRepository();
 const tarjetaService = new TarjetaService(tarjetaRepository);
@@ -126,7 +139,7 @@ export const tarjetaController = new TarjetaController(tarjetaService);
 
 // Módulo Cocina 
 const cocinaRepository = new CocinaRepository();
-export const cocinaService = new CocinaService(cocinaRepository);
+export const cocinaService = new CocinaService(cocinaRepository, auditoriaService);
 export const cocinaController = new CocinaController(cocinaService);
 
 // Módulo Reseñas

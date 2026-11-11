@@ -1,4 +1,5 @@
 import { prisma } from "../../infrastructure/prisma/client";
+import { DbClient } from "../auditoria/auditoria.types";
 import { CreatePeliculaInput, IPeliculaRepository, UpdatePeliculaInput } from "./pelicula.types";
 
 export class PrismaPeliculaRepository implements IPeliculaRepository {
@@ -10,27 +11,31 @@ export class PrismaPeliculaRepository implements IPeliculaRepository {
     });
   }
 
-  findById(id: number) {
-    return prisma.pelicula.findUnique({
+  findById(id: number, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.pelicula.findUnique({
       where: { id },
     });
   }
 
-  create(data: CreatePeliculaInput) {
-    return prisma.pelicula.create({
+  create(data: CreatePeliculaInput, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.pelicula.create({
       data,
     });
   }
 
-  update(id: number, data: UpdatePeliculaInput) {
-    return prisma.pelicula.update({
+  update(id: number, data: UpdatePeliculaInput, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.pelicula.update({
       where: { id },
       data,
     });
   }
 
-  delete(id: number) {
-    return prisma.pelicula.delete({
+  delete(id: number, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.pelicula.delete({
       where: { id },
     });
   }

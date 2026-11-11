@@ -1,35 +1,33 @@
 import { Router } from "express";
-import { adminController } from "../../di/container";
+import { adminController, auditoriaController } from "../../di/container";
 import { asyncHandler } from "../../common/helpers/asyncHandler";
 import { validateSchema } from "../../common/middlewares/validateSchema";
 import { authenticate, requireRole } from "../../common/middlewares/authMiddleware";
-import {updateUsuarioRolSchema, updateUsuarioEstadoSchema,} from "./admin.validator";
+import { updateUsuarioRolSchema, updateUsuarioEstadoSchema } from "./admin.validator";
 
 const router = Router();
 
 // Rutas protegidas (Solo administradores)
+router.use(authenticate);
+router.use(requireRole("admin"));
 
-router.get(
-  "/usuarios",
-  authenticate,
-  requireRole("admin"),
-  asyncHandler(adminController.obtenerUsuarios)
-);
+// Gestión de Usuarios
+router.get("/usuarios", asyncHandler(adminController.obtenerUsuarios));
 
 router.patch(
   "/usuarios/:id/rol",
-  authenticate,
-  requireRole("admin"),
   validateSchema(updateUsuarioRolSchema),
   asyncHandler(adminController.actualizarRol)
 );
 
 router.patch(
   "/usuarios/:id/estado",
-  authenticate,
-  requireRole("admin"),
   validateSchema(updateUsuarioEstadoSchema),
   asyncHandler(adminController.actualizarEstado)
 );
+
+// Auditoría para el Administrador
+router.get("/auditoria", asyncHandler(auditoriaController.listar));
+router.get("/auditoria/:id", asyncHandler(auditoriaController.obtenerPorId));
 
 export default router;

@@ -1,4 +1,5 @@
 import { prisma } from "../../infrastructure/prisma/client";
+import { DbClient } from "../auditoria/auditoria.types";
 import { FuncionConDetalles, FuncionFilterOptions, IFuncionRepository } from "./funcion.types";
 import { Prisma } from "@prisma/client";
 import { getCinemaTodayUtcMidnight } from "../../common/helpers/dateUtils";
@@ -38,7 +39,6 @@ export class PrismaFuncionRepository implements IFuncionRepository {
       };
     }
 
-
     return prisma.funcion.findMany({
       where,
       include: {
@@ -49,8 +49,9 @@ export class PrismaFuncionRepository implements IFuncionRepository {
     });
   }
 
-  findById(id: number): Promise<FuncionConDetalles | null> {
-    return prisma.funcion.findUnique({
+  findById(id: number, tx?: DbClient): Promise<FuncionConDetalles | null> {
+    const client = tx ?? prisma;
+    return client.funcion.findUnique({
       where: { id },
       include: {
         pelicula: true,
@@ -64,15 +65,16 @@ export class PrismaFuncionRepository implements IFuncionRepository {
     fecha: Date,
     horaInicio: Date,
     horaFin: Date,
-    excludeId?: number
+    excludeId?: number,
+    tx?: DbClient
   ): Promise<FuncionConDetalles[]> {
-    return prisma.funcion.findMany({
+    const client = tx ?? prisma;
+    return client.funcion.findMany({
       where: {
         idSala,
         fecha,
         estado: { not: "cancelada" },
         id: excludeId ? { not: excludeId } : undefined,
-        // Overlap: horaInicio < funcion.horaFin AND horaFin > funcion.horaInicio
         horaInicio: { lt: horaFin },
         horaFin: { gt: horaInicio },
       },
@@ -83,16 +85,20 @@ export class PrismaFuncionRepository implements IFuncionRepository {
     });
   }
 
-  create(data: {
-    idPelicula: number;
-    idSala: number;
-    fecha: Date;
-    horaInicio: Date;
-    horaFin: Date;
-    precioAsientoOficial: number | Prisma.Decimal;
-    estado?: string;
-  }): Promise<FuncionConDetalles> {
-    return prisma.funcion.create({
+  create(
+    data: {
+      idPelicula: number;
+      idSala: number;
+      fecha: Date;
+      horaInicio: Date;
+      horaFin: Date;
+      precioAsientoOficial: number | Prisma.Decimal;
+      estado?: string;
+    },
+    tx?: DbClient
+  ): Promise<FuncionConDetalles> {
+    const client = tx ?? prisma;
+    return client.funcion.create({
       data,
       include: {
         pelicula: true,
@@ -111,9 +117,11 @@ export class PrismaFuncionRepository implements IFuncionRepository {
       horaFin?: Date;
       precioAsientoOficial?: number | Prisma.Decimal;
       estado?: string;
-    }
+    },
+    tx?: DbClient
   ): Promise<FuncionConDetalles> {
-    return prisma.funcion.update({
+    const client = tx ?? prisma;
+    return client.funcion.update({
       where: { id },
       data,
       include: {
@@ -123,8 +131,9 @@ export class PrismaFuncionRepository implements IFuncionRepository {
     });
   }
 
-  delete(id: number) {
-    return prisma.funcion.delete({
+  delete(id: number, tx?: DbClient) {
+    const client = tx ?? prisma;
+    return client.funcion.delete({
       where: { id },
     });
   }
