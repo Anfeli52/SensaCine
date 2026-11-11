@@ -7,7 +7,7 @@ import {
   EstadoOrdenCocina
 } from "@prisma/client";
 import bcrypt from "bcrypt";
-import { getCinemaDateStr, getCinemaTodayUtcMidnight } from "../src/common/helpers/dateUtils";
+import { getCinemaDateStr, getCinemaTimeStr, getCinemaTodayUtcMidnight } from "../src/common/helpers/dateUtils";
 
 const prisma = new PrismaClient();
 
@@ -365,6 +365,11 @@ const PRODUCTOS_POR_PELICULA: Record<string, Array<{
     },
   ],
 };
+
+// Clientes del seed: ver seedUsuarios
+const CLIENTES_SEED_EMAILS = ["cliente@sensacine.com", "maria@sensacine.com", "andres@sensacine.com"];
+// Este cliente queda con reservas terminadas SIN reseña, para probar el formulario (HU-20)
+const CLIENTE_SIN_RESENAS_EMAIL = "cliente@sensacine.com";
 
 function createUtcDate(dateStr: string, hours: number, minutes = 0): Date {
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -822,6 +827,102 @@ async function seedReservasYAsientosOcupados(): Promise<void> {
 }
 
 
+// Funciones ya terminadas (ayer y antier) con reservas de los clientes del seed. Las reservas de
+// funciones futuras no se pueden reseñar, así que sin estas no habría cómo probar el historial,
+// la invitación por correo ni el registro de reseñas (HU-20).
+async function seedFuncionesPasadas(): Promise<void> {
+  console.log("🕰️ Configurando funciones ya terminadas (para probar reseñas)...");
+
+  const clientes = await prisma.usuario.findMany({
+    where: { email: { in: CLIENTES_SEED_EMAILS } },
+    orderBy: { id: "asc" },
+  });
+  const salas = await prisma.sala.findMany({
+    orderBy: { id: "asc" },
+    include: { asientos: { orderBy: [{ fila: "asc" }, { numero: "asc" }] } },
+  });
+  const peliculas = await prisma.pelicula.findMany({
+    where: { titulo: { in: PELICULAS_SEED.map(({ titulo }) => titulo) } },
+    orderBy: { id: "asc" },
+  });
+
+  if (clientes.length === 0 || salas.length === 0 || peliculas.length === 0) {
+    console.warn("  ⚠️ Faltan clientes, salas o películas para crear funciones pasadas.");
+    return;
+  }
+
+  const [anio, mes, dia] = getCinemaDateStr().split("-").map(Number);
+  const fechaDesdeHoy = (dias: number) => new Date(Date.UTC(anio, mes - 1, dia + dias)).toISOString().slice(0, 10);
+
+  const plan = [
+    { dias: -1, hora: 15 },
+    { dias: -1, hora: 19 },
+    { dias: -2, hora: 15 },
+    { dias: -2, hora: 19 },
+  ];
+
+  let reservasCreadas = 0;
+
+  for (let i = 0; i < plan.length; i++) {
+    const { dias, hora } = plan[i];
+    const pelicula = peliculas[i % peliculas.length];
+    const sala = salas[i % salas.length];
+    const fechaStr = fechaDesdeHoy(dias);
+    const inicio = createUtcDate(fechaStr, hora);
+
+    const where = { idPelicula: pelicula.id, idSala: sala.id, fecha: createUtcDate(fechaStr, 0), horaInicio: inicio };
+    const funcion =
+      (await prisma.funcion.findFirst({ where })) ??
+      (await prisma.funcion.create({
+        data: {
+          ...where,
+          horaFin: new Date(inicio.getTime() + pelicula.duracionMinutos * 60 * 1000),
+          precioAsientoOficial: pelicula.precioBaseExperiencia,
+          estado: "programada",
+        },
+      }));
+
+    if ((await prisma.reserva.count({ where: { idFuncion: funcion.id } })) > 0) continue;
+
+    for (let k = 0; k < clientes.length; k++) {
+      const cliente = clientes[k];
+      const asientos = sala.asientos.slice(k * 2, k * 2 + 2);
+      const monto = Number(funcion.precioAsientoOficial) * asientos.length;
+
+      const reserva = await prisma.reserva.create({
+        data: { idUsuario: cliente.id, idFuncion: funcion.id, montoTotal: monto, estado: EstadoReserva.Confirmado },
+      });
+
+      for (let a = 0; a < asientos.length; a++) {
+        const reservaAsiento = await prisma.reservaAsiento.create({
+          data: {
+            idReserva: reserva.id,
+            idAsiento: asientos[a].id,
+            nombrePersona: a === 0 ? cliente.nombre : `Invitado de ${cliente.nombre.split(" ")[0]}`,
+          },
+        });
+        await prisma.ordenCocina.create({
+          data: { idReservaAsiento: reservaAsiento.id, estado: EstadoOrdenCocina.Lista },
+        });
+      }
+
+      await prisma.pago.create({
+        data: {
+          idReserva: reserva.id,
+          medioPago: "tarjeta_credito",
+          monto,
+          estado: "aprobado",
+          referenciaTransaccion: `TX-SENSA-PASADA-${funcion.id}-${reserva.id}`,
+        },
+      });
+      reservasCreadas++;
+    }
+    console.log(`  ➕ Función terminada #${funcion.id} (${pelicula.titulo}, ${fechaStr}) con reservas de ${clientes.length} clientes`);
+  }
+
+  console.log(`🕰️ ${reservasCreadas} reservas de funciones terminadas creadas.`);
+}
+
 async function seedAuditoria(): Promise<void> {
   console.log("🛡️ Configurando registros iniciales de Auditoría...");
   const count = await prisma.logAuditoria.count();
@@ -934,6 +1035,8 @@ async function seedAuditoria(): Promise<void> {
   }
 
   console.log("  ✅ Registros iniciales de auditoría listos.");
+}
+
 async function seedResenas(): Promise<void> {
   console.log("⭐ Configurando reseñas de películas...");
 
@@ -980,22 +1083,19 @@ async function seedResenas(): Promise<void> {
     },
   ];
 
-  const reservas = await prisma.reserva.findMany({
+  const reservasConfirmadas = await prisma.reserva.findMany({
     where: {
       estado: {
         in: [EstadoReserva.Confirmado, EstadoReserva.Finalizado],
       },
       usuario: {
         email: {
-          in: [
-            "cliente@sensacine.com",
-            "maria@sensacine.com",
-            "andres@sensacine.com",
-          ],
+          in: CLIENTES_SEED_EMAILS,
         },
       },
     },
     include: {
+      usuario: { select: { email: true } },
       funcion: {
         include: {
           pelicula: true,
@@ -1005,6 +1105,17 @@ async function seedResenas(): Promise<void> {
     orderBy: {
       id: "asc",
     },
+  });
+
+  // Solo se reseña una función que ya terminó (misma regla que el backend). El cliente de pruebas
+  // se deja sin reseñas a propósito para poder probar el registro desde el historial.
+  const hoy = getCinemaDateStr();
+  const horaActual = getCinemaTimeStr();
+  const reservas = reservasConfirmadas.filter((r) => {
+    if (r.usuario.email === CLIENTE_SIN_RESENAS_EMAIL) return false;
+    const fecha = r.funcion.fecha.toISOString().slice(0, 10);
+    const horaFin = r.funcion.horaFin.toISOString().slice(11, 16);
+    return fecha < hoy || (fecha === hoy && horaFin < horaActual);
   });
 
   let resenasCreadas = 0;
@@ -1052,6 +1163,7 @@ async function main() {
   await seedMenu();
   await seedFunciones();
   await seedReservasYAsientosOcupados();
+  await seedFuncionesPasadas();
   await seedAuditoria();
   await seedResenas();
   console.log("\n✨ ¡Seed Enriquecido completado exitosamente con películas, comidas, restricciones y asientos ocupados!");
