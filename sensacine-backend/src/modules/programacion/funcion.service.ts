@@ -185,7 +185,7 @@ export class FuncionService {
             entidad: "Funcion",
             entidadId: nuevaFuncion.id,
             valorAnterior: null,
-            valorNuevo: nuevaFuncion,
+            valorNuevo: this.toDTO(nuevaFuncion),
             metadata: {
               pelicula: pelicula.titulo,
               sala: sala.nombre,
@@ -292,8 +292,8 @@ export class FuncionService {
             accion,
             entidad: "Funcion",
             entidadId: id,
-            valorAnterior: existing,
-            valorNuevo: actualizada,
+            valorAnterior: this.toDTO(existing),
+            valorNuevo: this.toDTO(actualizada),
           },
           tx
         );
@@ -329,7 +329,7 @@ export class FuncionService {
               accion: "ELIMINAR",
               entidad: "Funcion",
               entidadId: id,
-              valorAnterior: existing,
+              valorAnterior: this.toDTO(existing),
               valorNuevo: null,
             },
             tx
