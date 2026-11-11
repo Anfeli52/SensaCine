@@ -24,5 +24,6 @@ module.exports = {
     "./src/modules/notificaciones/": umbral70,
     "./src/modules/programacion/": umbral70,
     "./src/modules/reservas/": umbral70,
+    "./src/modules/resenas/": umbral70,
   },
 };
